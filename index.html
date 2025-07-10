@@ -138,11 +138,6 @@
             let schools = []; 
             var libraryHTML = "";
             var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
-
-	// Rule tip
-	libraryHTML += "<b>Rebirth rule tip:</b> "; 
-	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><br>");
-	libraryHTML += "<p>";
 		
 				// Add schools based on selected BRW boxes
             for (let i = 0; i < allschools.length; i++) {
@@ -174,9 +169,20 @@
 
             document.getElementById("result").innerHTML = libraryHTML;
         }
+
+	    function ruleTip() {
+		    var libraryHTML = "";
+
+		    	// Rule tip
+	libraryHTML += "<b>Rebirth rule tip:</b> "; 
+	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><br>");
+	libraryHTML += "<p>";
+		    
+		    document.getElementById("result").innerHTML = libraryHTML;
+	    }
     </script>
 
-    <body>
+    <body onload="ruleTip()">
 			<h1>Black Rose Wars - Random Library</h1> 
         	<div id="result">
         	</div>
