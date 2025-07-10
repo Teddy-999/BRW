@@ -141,7 +141,7 @@
 
 	// Rule tip
 	libraryHTML += "<b>Rule tip:</b><br>"; 
-	libraryHTML += rules[Math.floor(Math.random()*rules.length)];
+	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replace("[b]","<b>").replace("[/b]","</b>");
 	libraryHTML += "<p>";
 		
 				// Add schools based on selected BRW boxes
