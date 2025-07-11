@@ -133,7 +133,7 @@
 				"BRW-CRONO BRW Crono: <b>Myth</b> Setup: Disgrace of Crete, SATOR Equipment; OPTIONAL: Medusa <b>Mages:</b> Medusa",
 				];
 
-	    	var mages =[
+	    	var allmages =[
 				"BRW-R-CORE: Rikkart",
 				"BRW-R-CORE: Arianna",
 				"BRW-R-CORE: Gramigna",
@@ -153,36 +153,37 @@
 	// Show a random Library build from selected BRW boxes
         function displayLibrary(){
             let schools = []; 
+	    var mages = [];
             var libraryHTML = "";
             var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		
-				// Add schools based on selected BRW boxes
+	    // Add schools based on selected BRW boxes
             for (let i = 0; i < allschools.length; i++) {
-						for (let j = 0; j < checkboxes.length; j++) {
-							if(checkboxes[j].value == allschools[i].split(" ")[0]) {
-								schools.push(allschools[i].substring(allschools[i].indexOf(' ') + 1));
-							}
-						}
+		for (let j = 0; j < checkboxes.length; j++) {
+			if(checkboxes[j].value == allschools[i].split(" ")[0]) {
+				schools.push(allschools[i].substring(allschools[i].indexOf(' ') + 1));
+			}
+		}
             }
 
-				// Remove random schools until only 6 remain
-            while(schools.length > 6) {
-                schools.splice(Math.floor(Math.random()*schools.length), 1);
-            }
+		// Remove random schools until only 6 remain
+            	while(schools.length > 6) {
+                	schools.splice(Math.floor(Math.random()*schools.length), 1);
+           	}
 
-				// Show Library as HTML table				
-				if(schools.length<6) {
-					libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
-				} else {
-					libraryHTML += "<b>The Black Rose came up with this Library for you:</b><p>";
-					libraryHTML += "<div style='padding-left:20px;'><table><tr><th align=left width=165>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
-            	for (let i = 0; i < schools.length; i++) {
-						schools[i] = schools[i].replace("Setup: ","</td><td>");
-						schools[i] = schools[i].replace(": <b>"," </td><td><b>");
-                 libraryHTML += "<tr><td>" + schools[i] + "</td></tr>";
-            	}
-					libraryHTML += "</table><p>";
-				}
+		// Show Library as HTML table				
+		if(schools.length<6) {
+			libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
+		} else {
+			libraryHTML += "<b>The Black Rose came up with this Library for you:</b><p>";
+			libraryHTML += "<div style='padding-left:20px;'><table><tr><th align=left width=165>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
+            		for (let i = 0; i < schools.length; i++) {
+				schools[i] = schools[i].replace("Setup: ","</td><td>");
+				schools[i] = schools[i].replace(": <b>"," </td><td><b>");
+                 		libraryHTML += "<tr><td>" + schools[i] + "</td></tr>";
+            		}
+			libraryHTML += "</table><p>";
+		}
 
 		// start player
 		shuffleArray(colors);
@@ -195,6 +196,21 @@
 
 		// Random mages
 		libraryHTML += "SOON TO COME! <b>Random Mages:</b>You may want to use these Mages by either drafting them or assigning them in the order of schools or players from above.";
+
+		// Select 6 mages from selected boxes
+            for (let i = 0; i < allmages.length; i++) {
+		for (let j = 0; j < checkboxes.length; j++) {
+			if( allmages[i].split(" ")[0].includes(checkboxes[j].value) ) {
+				mages.push(allmages[i].substring(allmages[i].indexOf(' ') + 1));
+			}
+		}
+            }
+		
+		// Remove random mage until only 6 remain
+            	while(mages.length > 6) {
+                	mages.splice(Math.floor(Math.random()*mages.length), 1);	
+           	}
+		
 		libraryHTML += "<p>";
 		
 		libraryHTML += "</div><p>";
