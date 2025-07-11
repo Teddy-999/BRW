@@ -133,7 +133,14 @@
 				"BRW-CRONO BRW Crono: <b>Myth</b> Setup: Disgrace of Crete, SATOR Equipment; OPTIONAL: Medusa <b>Mages:</b> Medusa",
 				];
 	    
-		var colors =["red", "blue", "green", "yellow", "white", "purple"];
+		var colors =[
+			"red", 
+			"blue", 
+			"green", 
+			"yellow", 
+			"white", 
+			"purple"
+		];
 	    
 	// Show a random Library build from selected BRW boxes
         function displayLibrary(){
@@ -174,7 +181,7 @@
 		libraryHTML += "<b>Start player: </b>";
 		for (let i = 0; i < colors.length; i++) {
 			if(i!=0) libraryHTML += " &gt; ";
-			libraryHTML += colors[i];
+			libraryHTML += "<span style='color: " + colors[i] + ";'>" + colors[i] + "</span>";
 		}
 		libraryHTML += "</div><p>";	
 
