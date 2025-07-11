@@ -352,6 +352,7 @@
 		var delroom=0;
 		var foundrooms=0;
             	for (let i = 0; i < roomcolors.length; i++) {
+		    do {
 			rc=0;
 			for (let j = 0; j < rooms.length; j++) {
 				if( rooms[j].split(")")[0] == roomcolors[i] ) rc++;
@@ -362,10 +363,14 @@
 				for (let j = 0; j < rooms.length; j++) {
 					if( rooms[j].split(")")[0] == roomcolors[i] ) {
 						foundrooms++;
-						if( foundrooms == delroom ) rooms.splice(j, 1);
+						if( foundrooms == delroom ) {
+							rooms.splice(j, 1);
+							rc--;
+						}
 					}
 				}
 			}
+		    } while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
 		}
 		
 		// Output rooms
