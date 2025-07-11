@@ -227,6 +227,17 @@
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Jack",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Odin",
 			];
+
+	    		var allrooms = [
+				"BRW-R-CORE Rebirth (black): The Black Rose",
+				"BRW-R-GAEA Rebirth Gaea Reborn: Black Test 1",
+				"BRW-R-GAEAXXX Rebirth Gaea Reborn: Black Test 1",	
+				"BRW-R-CORE Rebirth (red): Arena",
+				"BRW-R-CORE Rebirth (red): Laboratory",
+				"BRW-R-CORE Rebirth (red): Summoning Room",
+				"BRW-R-CORE Rebirth (red): Red Test",
+			];
+	    
 		var colors =[
 			"red", 
 			"blue", 
@@ -240,6 +251,7 @@
         function displayLibrary(){
             let schools = []; 
 	    var mages = [];
+		var rooms = [];
             var libraryHTML = "";
             var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		
@@ -308,7 +320,31 @@
             		}
 		}		
 		
-		libraryHTML += "<p>";		
+		libraryHTML += "<p>";
+
+		
+		// Random rooms
+		libraryHTML += "<b>SOON - Random Rooms:</b> Resting...<br>";
+
+		// Select rooms from selected boxes
+            	for (let i = 0; i < allrooms.length; i++) {
+			for (let j = 0; j < checkboxes.length; j++) {
+				if( allrooms[i].split(" ")[0] == checkboxes[j].value ) {
+					rooms.push(allrooms[i].substring(allrooms[i].indexOf(':') + 1));
+				}
+			}
+            	}
+
+		if(rooms.length<1) {
+			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 tooms!</font>";
+		} else {
+			for (let i = 0; i < rooms.length; i++) {
+                 		libraryHTML += "<b>" + rooms[i] + "</b>";
+				if(i!=rooms.length-1) libraryHTML += ", ";
+            		}
+		}		
+		
+		libraryHTML += "<p>";
 		libraryHTML += "</div><p>";
 
             document.getElementById("result").innerHTML = libraryHTML;
