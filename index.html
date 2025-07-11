@@ -132,8 +132,10 @@
 				"BRW-SATOR BRW SATOR: <b>Void</b> Setup: Dagon <b>Mages:</b> Howard, Old Jukas",
 				"BRW-CRONO BRW Crono: <b>Myth</b> Setup: Disgrace of Crete, SATOR Equipment; OPTIONAL: Medusa <b>Mages:</b> Medusa",
 				];
-
-			// Show a random Library build from selected BRW boxes
+	    
+		var colors =["red", "blue", "green", "yellow", "white", "purple"];
+	    
+	// Show a random Library build from selected BRW boxes
         function displayLibrary(){
             let schools = []; 
             var libraryHTML = "";
@@ -167,6 +169,8 @@
 					libraryHTML += "</table></div><p>";
 				}
 
+		shuffleArray(colors);
+
             document.getElementById("result").innerHTML = libraryHTML;
         }
 
@@ -174,12 +178,20 @@
 		    var libraryHTML = "";
 
 		    	// Rule tip
-	libraryHTML += "<b>Rebirth rule tip "; 
-	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
-	libraryHTML += "</font></div><p>";
+			libraryHTML += "<b>Rebirth rule tip "; 
+			libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
+			libraryHTML += "</font></div><p>";
 		    
-		    document.getElementById("result").innerHTML = libraryHTML;
+		  	document.getElementById("result").innerHTML = libraryHTML;
 	    }
+
+	function shuffleArray(array) {
+   		 for (let i = array.length - 1; i > 0; i--) {
+       			 const j = Math.floor(Math.random() * (i + 1));
+        		[array[i], array[j]] = [array[j], array[i]];
+   		 }
+	}
+
     </script>
 
     <body onload="ruleTip()">
