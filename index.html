@@ -132,7 +132,15 @@
 				"BRW-SATOR BRW SATOR: <b>Void</b> Setup: Dagon <b>Mages:</b> Howard, Old Jukas",
 				"BRW-CRONO BRW Crono: <b>Myth</b> Setup: Disgrace of Crete, SATOR Equipment; OPTIONAL: Medusa <b>Mages:</b> Medusa",
 				];
-	    
+
+	    	var mages =[
+				"BRW-R-CORE: Rikkart",
+				"BRW-R-CORE: Arianna",
+				"BRW-R-CORE: Gramigna",
+				"BRW-R-CORE: Baron Doria",
+				"BRW-R-CORE (Deadly Masks): Seifu",
+				"BRW-R-CORE (Deadly Masks): Angela"
+			];
 		var colors =[
 			"red", 
 			"blue", 
@@ -183,7 +191,13 @@
 			if(i!=0) libraryHTML += " &gt; ";
 			libraryHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
 		}
-		libraryHTML += "</div><p>";	
+		libraryHTML += "<p>";
+
+		// Random mages
+		libraryHTML += "SOON TO COME! <b>Random Mages:</b>You may want to use these Mages by either drafting them or assigning them in the order of schools or players from above.";
+		libraryHTML += "<p>";
+		
+		libraryHTML += "</div><p>";
 
             document.getElementById("result").innerHTML = libraryHTML;
         }
