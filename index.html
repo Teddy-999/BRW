@@ -174,8 +174,8 @@
 		    var libraryHTML = "";
 
 		    	// Rule tip
-	libraryHTML += "<b>Rebirth rule tip:</b> "; 
-	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>");
+	libraryHTML += "<b>Rebirth rule tip "; 
+	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
 	libraryHTML += "</font></div><p>";
 		    
 		    document.getElementById("result").innerHTML = libraryHTML;
