@@ -200,7 +200,7 @@
 		// Select mages from selected boxes
             for (let i = 0; i < allmages.length; i++) {
 		for (let j = 0; j < checkboxes.length; j++) {
-			if( allmages[i].split(" ")[0].includes(checkboxes[j].value) ) {
+			if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
 				mages.push(allmages[i].substring(allmages[i].indexOf(':') + 1));
 			}
 		}
