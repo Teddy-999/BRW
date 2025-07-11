@@ -378,7 +378,7 @@
 			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 tooms!</font>";
 		} else {
 			for (let i = 0; i < rooms.length; i++) {
-                 		libraryHTML += "<b>" + rooms[i] + "</b>";
+                 		libraryHTML += "<b>" + rooms[i].substring(rooms[i].indexOf(':') + 1) + "</b>";
 				if(i!=rooms.length-1) libraryHTML += ", ";
             		}
 		}		
