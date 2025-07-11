@@ -380,10 +380,16 @@
 		if(rooms.length<1) {
 			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 tooms!</font>";
 		} else {
+			libraryHTML += "<table><tr><th align=left width=165>BOX</th><th align=left width=135>ROOM</th></tr>";
 			for (let i = 0; i < rooms.length; i++) {
-                 		libraryHTML += "<b>" + rooms[i].substring(rooms[i].indexOf(':') + 1) + "</b>";
-				if(i!=rooms.length-1) libraryHTML += ", ";
+				libraryHTML += "<tr><td>";
+                 		libraryHTML += rooms[i].split(":")[0];
+				libraryHTML += "</td><td>";
+				libraryHTML += "<b>" + rooms[i].split(":")[1].substring(1) + "</b>";
+				libraryHTML += "</td></tr>";
+				// if(i!=rooms.length-1) libraryHTML += ", ";
             		}
+			libraryHTML += "</table>";
 		}		
 		
 		libraryHTML += "<p>";
