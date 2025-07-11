@@ -288,7 +288,7 @@
 		if(schools.length<6) {
 			libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
 		} else {
-			libraryHTML += "<b>The Black Rose came up with this Library for you:</b><p>";
+			libraryHTML += "<b>The Black Rose came up with this Setup for you:</b><p>";
 			libraryHTML += "<div style='padding-left:20px;'><table><tr><th align=left width=165>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
             		for (let i = 0; i < schools.length; i++) {
 				schools[i] = schools[i].replace("Setup: ","</td><td>");
@@ -377,15 +377,18 @@
 		}
 		
 		// Output rooms
+		var roomout = "";
 		if(rooms.length<1) {
 			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 tooms!</font>";
 		} else {
-			libraryHTML += "<table><tr><th align=left width=165>BOX</th><th align=left width=135>ROOM</th></tr>";
+			libraryHTML += "<table><tr><th align=left width=165>BOX</th><th align=left width=300>ROOM</th></tr>";
 			for (let i = 0; i < rooms.length; i++) {
 				libraryHTML += "<tr><td>";
                  		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
 				libraryHTML += "</td><td>";
-				libraryHTML += "<b>" + rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[1].substring(1) + "</b>";
+				roomout = rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[1].substring(1);
+				colorout = roomout.split("(")[1]split(")")[0];
+				libraryHTML += "<b>" + roomout.split("(")[0] + colorout + "</b>";
 				libraryHTML += "</td></tr>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             		}
@@ -419,7 +422,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Library</h1> 
+			<h1>Black Rose Wars - Random Setup</h1> 
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions to build your Library:</b><p>
