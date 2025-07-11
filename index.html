@@ -356,7 +356,7 @@
 			for (let j = 0; j < rooms.length; j++) {
 				if( rooms[j].split(")")[0] == roomcolors[i] ) rc++;
 			}
-			while( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
+			if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
 				delroom = Math.floor(Math.random()*rc)+1;
 				foundrooms=0;
 				for (let j = 0; j < rooms.length; j++) {
