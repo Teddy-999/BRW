@@ -389,8 +389,8 @@
 				libraryHTML += "</td><td>";
 				roomout = rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[1].substring(1);
 				colorout = roomout.split("(")[1].split(")")[0];
+				libraryHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
 				libraryHTML += "<b>" + roomout.split("(")[0] + "</b>";
-				libraryHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span>";
 				libraryHTML += "</td></tr>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             		}
