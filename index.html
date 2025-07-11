@@ -349,13 +349,22 @@
 
 		// Remove random rooms until only 1 boack and 3 of each color remain
 		var rc=0;
+		var delroom=0;
+		var foundrooms=0;
             	for (let i = 0; i < roomcolors.length; i++) {
 			rc=0;
 			for (let j = 0; j < rooms.length; j++) {
 				if( rooms[j].split(")")[0] == roomcolors[i] ) rc++;
 			}
 			if( rc >= 3 ) {
-				
+				delroom = Math.floor(Math.random()*rc)+1;
+				foundrooms=0;
+				for (let j = 0; j < rooms.length; j++) {
+					if( rooms[j].split(")")[0] == roomcolors[i] && ) {
+						foundrooms++;
+						if( foundrooms == delroom ) rooms.splice(j, 1);
+					}
+				}
 			}
 		}
 		
