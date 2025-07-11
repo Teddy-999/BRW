@@ -356,7 +356,7 @@
 			for (let j = 0; j < rooms.length; j++) {
 				if( rooms[j].split(")")[0] == roomcolors[i] ) rc++;
 			}
-			if( (roomcolors[i] == "black" && rc >= 1) || (roomcolors[i] != "black" && rc >= 3) ) {
+			while( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
 				delroom = Math.floor(Math.random()*rc)+1;
 				foundrooms=0;
 				for (let j = 0; j < rooms.length; j++) {
@@ -420,7 +420,7 @@
 			<input type="checkbox" id="BRW-R-CORE-DM" name="BRW-R-CORE-DM" value="BRW-R-CORE-DM" checked>
          <label for="BRW-R-CORE-DM"> Deadly Masks</label><br>
 
-			<input type="checkbox" id="BRW-R-IRENE" name="BRW-R-IRENE" value="BRW-R-IRENE" checked>
+			<input type="checkbox" id="BRW-R-IRENE" name="BRW-R-IRENE" value="BRW-R-IRENE">
          <label for="BRW-R-IRENE"> Irene’s Quest</label><br>
 		
 			<input type="checkbox" id="BRW-R-APO" name="BRW-R-APO" value="BRW-R-APO">
