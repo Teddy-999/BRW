@@ -158,13 +158,13 @@
 					libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
 				} else {
 					libraryHTML += "<b>The Black Rose came up with this Library for you:</b><p>";
-					libraryHTML += "<table><tr><th align=left width=165>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
+					libraryHTML += "<div style='padding-left:20px;'><table><tr><th align=left width=165>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
             	for (let i = 0; i < schools.length; i++) {
 						schools[i] = schools[i].replace("Setup: ","</td><td>");
 						schools[i] = schools[i].replace(": <b>"," </td><td><b>");
                  libraryHTML += "<tr><td>" + schools[i] + "</td></tr>";
             	}
-					libraryHTML += "</table><p>";
+					libraryHTML += "</table></div><p>";
 				}
 
             document.getElementById("result").innerHTML = libraryHTML;
