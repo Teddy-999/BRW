@@ -383,9 +383,9 @@
 			libraryHTML += "<table><tr><th align=left width=165>BOX</th><th align=left width=135>ROOM</th></tr>";
 			for (let i = 0; i < rooms.length; i++) {
 				libraryHTML += "<tr><td>";
-                 		libraryHTML += rooms[i].split(":")[0];
+                 		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
 				libraryHTML += "</td><td>";
-				libraryHTML += "<b>" + rooms[i].split(":")[1].substring(1) + "</b>";
+				libraryHTML += "<b>" + rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[1].substring(1) + "</b>";
 				libraryHTML += "</td></tr>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             		}
