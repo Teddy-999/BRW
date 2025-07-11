@@ -197,13 +197,13 @@
 		libraryHTML += "<p>";
 
 		// Random mages
-		libraryHTML += "SOON TO COME! <b>Random Mages:</b>You may want to use these Mages by either drafting them or assigning them in the order of schools or players from above.";
+		libraryHTML += "SOON TO COME! <b>Random Mages:</b>You may want to use these Mages by either drafting them or assigning them in the order of schools or players from above.<br>";
 
 		// Select 6 mages from selected boxes
             for (let i = 0; i < allmages.length; i++) {
 		for (let j = 0; j < checkboxes.length; j++) {
 			if( allmages[i].split(" ")[0].includes(checkboxes[j].value) ) {
-				mages.push(allmages[i].substring(allmages[i].indexOf(' ') + 1));
+				mages.push(allmages[i].substring(allmages[i].indexOf(':') + 1));
 			}
 		}
             }
