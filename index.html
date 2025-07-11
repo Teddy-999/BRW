@@ -230,8 +230,8 @@
 
 	    		var allrooms = [
 				"BRW-R-CORE Rebirth (black): The Black Rose",
-				"BRW-R-GAEA Rebirth Gaea Reborn: Black Test 1",
-				"BRW-R-GAEAXXX Rebirth Gaea Reborn: Black Test 1",	
+				"BRW-R-GAEA Rebirth Gaea Reborn (black): Black Test 1",
+				"BRW-R-GAEAXXX Rebirth Gaea Reborn (black): Black Test 2",	
 				"BRW-R-CORE Rebirth (red): Arena",
 				"BRW-R-CORE Rebirth (red): Laboratory",
 				"BRW-R-CORE Rebirth (red): Summoning Room",
@@ -246,6 +246,18 @@
 			"white", 
 			"purple"
 		];
+
+	    	var roomcolors =[
+			"black",
+			"red", 
+			"blue", 
+			"green", 
+			"yellow", 
+			"white", 
+			"purple"
+		];
+
+
 	    
 	// Show a random Library build from selected BRW boxes
         function displayLibrary(){
@@ -324,17 +336,33 @@
 
 		
 		// Random rooms
-		libraryHTML += "<b>SOON - Random Rooms:</b> Resting...<br>";
+		libraryHTML += "<b>SOON - Random Rooms:</b> Testing...<br>";
 
 		// Select rooms from selected boxes
             	for (let i = 0; i < allrooms.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allrooms[i].split(" ")[0] == checkboxes[j].value ) {
-					rooms.push(allrooms[i].substring(allrooms[i].indexOf(':') + 1));
+					rooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
 				}
 			}
             	}
 
+		// Remove random rooms until only 1 boack and 3 of each color remain
+		var rc=0;
+            	for (let i = 0; i < roomcolors.length; i++) {
+			rc=0;
+			for (let j = 0; j < rooms.length; j++) {
+				if( rooms[j].split(")")[0] == roomcolor[i] ) rc++;
+			}
+			if( rc >= 3 ) {
+				
+			}
+		}
+		while(rooms.length > 6) {
+                	schools.splice(Math.floor(Math.random()*schools.length), 1);
+           	}
+		
+		// Output rooms
 		if(rooms.length<1) {
 			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 tooms!</font>";
 		} else {
