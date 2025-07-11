@@ -139,7 +139,9 @@
 				"BRW-R-CORE: Gramigna",
 				"BRW-R-CORE: Baron Doria",
 				"BRW-R-CORE (Deadly Masks): Seifu",
-				"BRW-R-CORE (Deadly Masks): Angela"
+				"BRW-R-CORE (Deadly Masks): Angela",
+				"BRW-R-XCORE (Deadly Masks): Test1",
+				"BRW-R-CORE (Deadly Masks): Test2"			
 			];
 		var colors =[
 			"red", 
@@ -210,9 +212,18 @@
             	while(mages.length > 6) {
                 	mages.splice(Math.floor(Math.random()*mages.length), 1);	
            	}
+
+		// Show mages			
+		if(mages.length<6) {
+			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 6 mages!</font>";
+		} else {
+			for (let i = 0; i < mages.length; i++) {
+                 		libraryHTML += mages[i];
+				if(i!=mages.length-1) libraryHTML += ", ";
+            		}
+		}		
 		
-		libraryHTML += "<p>";
-		
+		libraryHTML += "<p>";		
 		libraryHTML += "</div><p>";
 
             document.getElementById("result").innerHTML = libraryHTML;
