@@ -407,13 +407,13 @@
 							if( foundrooms == delroom ) rooms.push(duprooms[j]);
 							duprooms.splice(j,1);
 							j--;
-							i=0;
+							i=-1;
 						}
 					}
 				} else {
 					rooms.push(duprooms[i]);
 					duprooms.splice(i,1);
-					i--;
+					i=-1;
 				}
 			} 
 		}
