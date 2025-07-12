@@ -415,7 +415,11 @@
 					duprooms.splice(i,1);
 					i=-1;
 				}
-			} 
+			} else {
+				rooms.push(duprooms[i]);
+				duprooms.splice(i,1);
+				i=-1;
+			}
 		}
 
 		// Remove random rooms until only 1 black and 3 of each color remain
