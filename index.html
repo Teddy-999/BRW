@@ -393,6 +393,8 @@
             	for (let i = 0; i < duprooms.length; i++) {
 			rc=0;
 			hashval=duprooms[i].split("#")[1];
+			libraryHTML += duprooms[i] + "'" + hashval + "'<br>";
+
 			if( hashval != "" )
 			{	
 				for (let j = 0; j < duprooms.length; j++) {
