@@ -404,7 +404,8 @@
 					for (let j = 0; j < duprooms.length; j++) {
 						if( duprooms[j].split("#")[1] == hashval ) {
 							foundrooms++;
-							if( foundrooms == delroom ) rooms.push(duprooms[j]);
+							//if( foundrooms == delroom )
+								rooms.push(duprooms[j]);
 							duprooms.splice(j,1).
 							j--;
 							i=0;
