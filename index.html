@@ -395,7 +395,7 @@
 			hashval=duprooms[i].split("#")[1];
 			libraryHTML += duprooms[i] + "'" + hashval + "'<br>";
 
-			if( duprooms[i].indexOf("#") == -1 )
+			if( duprooms[i].indexOf("#") >= 0 )
 			{	
 				for (let j = 0; j < duprooms.length; j++) {
 					if( duprooms[j].split("#")[1] == hashval ) rc++;
