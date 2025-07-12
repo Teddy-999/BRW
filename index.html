@@ -110,7 +110,7 @@
 				"BRW-R-APO Rebirth Apocalypse: <b>Pestilence</b> Setup: Pestis and Infectio Tokens, Pestice Evocation cards for all players<b>Mages:</b> Pestilentia, Dai Jin",
 				"BRW-R-APO Rebirth Apocalypse: <b>War</b> Setup: Apocalypse Equipments <b>Mages:</b> Bellum, Etns, Venticello, Irene",
 				"BRW-R-FORGE Rebirth Dread Forge: <b>Forge</b> Setup: Forge Equipments and Upgrades, Pupa <b>Mages:</b> Angela, Etna",
-				"BRW-R-GAEA Rebirth Gaea: <b>Geomancy</b> Setup: None <b>Mages:</b> Talia, Venticello, Irene, Prospero",
+				"BRW-R-GAEA Rebirth Gaea Reborn: <b>Geomancy</b> Setup: None <b>Mages:</b> Talia, Venticello, Irene, Prospero",
 				"DUEL-LEX Duel Lex: <b>Lex</b> Setup: Templarii, Lex Upgrades <b>Mages:</b> Bartholomaus, Ulrich, Hogwartz",
 				"DUEL-VOID Duel Void: <b>Void</b> Setup: Dagon <b>Mages:</b> Aluce, Alhazred",
 				"BRW-CORE BRW Core: <b>Conspiracy</b> Setup: None <b>Mages:</b> Geneve, Corax",
@@ -156,8 +156,8 @@
 				"BRW-R-APO Rebirth Apocalypse: Bellum",
 				"BRW-R-APO Rebirth Apocalypse: Pestilentia",
 				"BRW-R-APO Rebirth Apocalypse: Fames",
-				"BRW-R-IRENE Rebirth Apocalypse: Irene",
-				"BRW-R-SOF Rebirth Apocalypse: Prospero",
+				"BRW-R-IRENE Rebirth Irene's Quest: Irene",
+				"BRW-R-SOF Rebirth Seal of Fire: Prospero",
 				"DUEL-LEX Duel Lex: Ulrich",
 				"DUEL-LEX Duel Lex: Bartholom&auml;us",
 				"DUEL-VOID Duel Void: Alhazred",
@@ -231,27 +231,47 @@
 	    		var allrooms = [
 				"BRW-R-CORE (black): Rebirth Core: The Black Rose (black)",
 				"BRW-R-GAEA (black): Rebirth Gaea: Emerald Rose (black)",
+				"BRW-CORE (black): BRW Core: The Black Rose (black)",
 				"BRW-R-CORE (purple): Rebirth Core: Throne Room (purple)",
 				"BRW-R-CORE (purple): Rebirth Core: Pleasure Room (purple)",
 				"BRW-R-CORE (purple): Rebirth Core: Armory (purple)",
+				"BRW-CORE (purple): BRW Core: Throne Room (purple)",
+				"BRW-CORE (purple): BRW Core: Pleasure Room (purple)",
+				"BRW-CORE (purple): BRW Core: Armory (purple)",
 				"BRW-R-CORE (red): Rebirth Core: Arena (red)",
 				"BRW-R-CORE (red): Rebirth Core: Laboratory (red)",
 				"BRW-R-CORE (red): Rebirth Core: Summoning Room (red)",
+				"BRW-CORE (red): BRW Core: Arena (red)",
+				"BRW-CORE (red): BRW Core: Laboratory (red)",
+				"BRW-CORE (red): BRW Core: Summoning Room (red)",
 				"BRW-R-CORE (green): Rebirth Core: Garden (green)",
 				"BRW-R-CORE (green): Rebirth Core: Forge (green)",
 				"BRW-R-CORE (green): Rebirth Core: Treasure Room (green)",
-				"BRW-R-GAEA (green): Rebirth Gaea: Thorny Clearing (green)",	
-				"BRW-R-GAEA (green): Rebirth Gaea: Indoor Forrest (green)",	
-				"BRW-R-GAEA (green): Rebirth Gaea: Life Fountain (green)",
+				"BRW-R-GAEA (green): Rebirth Gaea Reborn: Thorny Clearing (green)",	
+				"BRW-R-GAEA (green): Rebirth Gaea Reborn: Indoor Forrest (green)",	
+				"BRW-R-GAEA (green): Rebirth Gaea Reborn: Life Fountain (green)",
+				"BRW-CORE (green): BRW Core: Garden (green)",
+				"BRW-CORE (green): BRW Core: Forge (green)",
+				"BRW-CORE (green): BRW Core: Treasure Room (green)",
 				"BRW-R-CORE (yellow): Rebirth Core: Bibliotheca (yellow)",
 				"BRW-R-CORE (yellow): Rebirth Core: Observatory (yellow)",
 				"BRW-R-CORE (yellow): Rebirth Core: Sanctuary (yellow)",
+				"BRW-CORE (yellow): BRW Core: Bibliotheca (yellow)",
+				"BRW-CORE (yellow): BRW Core: Observatory (yellow)",
+				"BRW-CORE (yellow): BRW Core: Sanctuary (yellow)",
 				"BRW-R-CORE (blue): Rebirth Core: The Abyss (blue)",
 				"BRW-R-CORE (blue): Rebirth Core: Mirrors' Room (blue)",
 				"BRW-R-CORE (blue): Rebirth Core: Oracle Room (blue)",
-				"BRW-R-CORE (gray): Rebirth Core: Sacrificial Altar (gray)",
-				"BRW-R-CORE (gray): Rebirth Core: Crypt (gray)",
+				"BRW-CORE (blue): BRW Core: The Abyss (blue)",
+				"BRW-CORE (blue): BRW Core: Mirrors' Room (blue)",
+				"BRW-CORE (blue): BRW Core: Oracle Room (blue)",
 				"BRW-R-CORE (gray): Rebirth Core: Cemetery (gray)",
+				"BRW-R-CORE (gray): Rebirth Core: Crypt (gray)",
+				"BRW-R-CORE (gray): Rebirth Core: Sacrificial Altar (gray)",
+				"BRW-R-SOF (gray): Rebirth Seal of Fire: Room of Rebirth (gray)",
+				"BRW-CORE (gray): BRW Core: Cemetery (gray)",
+				"BRW-CORE (gray): BRW Core: Crypt (gray)",
+				"BRW-CORE (gray): BRW Core: Sacrificial Altar (gray)",
 			];
 	    
 		var colors =[
@@ -450,10 +470,10 @@
          <label for="BRW-R-ROTAS"> Rebirth ROTAS</label><br>
 		
 			<input type="checkbox" id="BRW-R-CORE-DM" name="BRW-R-CORE-DM" value="BRW-R-CORE-DM" checked>
-         <label for="BRW-R-CORE-DM"> Deadly Masks</label><br>
+         <label for="BRW-R-CORE-DM"> Rebirth Deadly Masks</label><br>
 
 			<input type="checkbox" id="BRW-R-IRENE" name="BRW-R-IRENE" value="BRW-R-IRENE">
-         <label for="BRW-R-IRENE"> Irene’s Quest</label><br>
+         <label for="BRW-R-IRENE"> Rebirth Irene's Quest</label><br>
 		
 			<input type="checkbox" id="BRW-R-APO" name="BRW-R-APO" value="BRW-R-APO">
          <label for="BRW-R-APO"> Rebirth Apocalypse</label><br>
@@ -461,11 +481,12 @@
 			<input type="checkbox" id="BRW-R-FORGE" name="BRW-R-FORGE" value="BRW-R-FORGE">
          <label for="BRW-R-FORGE"> Rebirth Dread Forge</label><br>
 
-			<input type="checkbox" id="BRW-R-SOF" name="BRW-R-SOF" value="BRW-R-SOF">
-         <label for="BRW-R-SOF"> Seal of Fire</label><br>
-
 			<input type="checkbox" id="BRW-R-GAEA" name="BRW-R-GAEA" value="BRW-R-GAEA">
-         <label for="BRW-R-GAEA"> Rebirth Gaea</label><br>
+         <label for="BRW-R-GAEA"> Rebirth Gaea Reborn</label><br>	
+
+			<input type="checkbox" id="BRW-R-SOF" name="BRW-R-SOF" value="BRW-R-SOF">
+         <label for="BRW-R-SOF"> Rebirth Seal of Fire</label><br>
+
 	</td><td VALIGN=TOP>
 			<input type="checkbox" id="DUEL-LEX" name="DUEL-LEX" value="DUEL-LEX">
          <label for="DUEL-LEX"> Duel Lex</label><br>
