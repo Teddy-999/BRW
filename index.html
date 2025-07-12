@@ -499,12 +499,12 @@
 			}
 			if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
 				delroom = Math.floor(Math.random()*rc)+1;
-				while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
+				// while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
 				foundrooms=0;
 				for (let j = 0; j < rooms.length; j++) {
 					if( rooms[j].split(")")[0] == roomcolors[i] ) {
 						foundrooms++;
-						if( foundrooms == delroom ) {
+						if( foundrooms == delroom && rooms[j].split("#")[1] != 2 ) {
 							rooms.splice(j, 1);
 							rc--;
 							j--;
