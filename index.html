@@ -235,7 +235,8 @@
 				"DUEL-VOID (black): Duel Void: Deep Black Rose Room (black)#1",
 				"BRW-CORE (black): BRW Core: The Black Rose (black)#1",
 				"BRW-SATOR (black): BRW SATOR: Cursed Temple (black)#1",
-				"BRW-INFERNOX (black): BRW Inferno: Tartaro (black)",
+				"BRW-INFERNOX (black): BRW Inferno: Tartaro (black)#1",
+				"BRW-CRONO (black): BRW Crono: Revenge Room (black)#1",
 				"BRW-R-CORE (purple): Rebirth Core: Throne Room (purple)#2",
 				"BRW-R-CORE (purple): Rebirth Core: Pleasure Room (purple)#3",
 				"BRW-R-CORE (purple): Rebirth Core: Armory (purple)#4",
@@ -252,6 +253,7 @@
 				"BRW-INFERNOX (purple): BRW Inferno: Cerchio dei Lussuriosi (purple)",
 				"BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ruffiani (purple)",
 				"BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ladri (purple)#2",
+				"BRW-CRONO (purple): BRW Crono: Room of Corrupt Power (purple)#2",
 				"BRW-R-CORE (red): Rebirth Core: Arena (red)#5",
 				"BRW-R-CORE (red): Rebirth Core: Laboratory (red)#6",
 				"BRW-R-CORE (red): Rebirth Core: Summoning Room (red)#7",
@@ -269,6 +271,7 @@
 				"BRW-INFERNO (red): BRW Inferno: Porta dell'Inferno (red)",
 				"BRW-INFERNO (red): BRW Inferno: Girone degli Omicidi (red)",
 				"BRW-INFERNO (red): BRW Inferno: Cerchio degli Iracondi (red)",
+				"BRW-CRONO (red): BRW Crono: Sanctuary of Flames (red)",
 				"BRW-R-CORE (green): Rebirth Core: Garden (green)#8",
 				"BRW-R-CORE (green): Rebirth Core: Forge (green)#9",
 				"BRW-R-CORE (green): Rebirth Core: Treasure Room (green)#10",
@@ -288,6 +291,7 @@
 				"BRW-INFERNOX (green): BRW Inferno: Selva Oscura (green)",
 				"BRW-INFERNO (green): BRW Inferno: Girone dei Bestemmiator (green)",
 				"BRW-INFERNO (green): BRW Inferno: Cerchio dei Golosi (green)",
+				"BRW-CRONO (green): BRW Crono: Training Room (green)",
 				"BRW-R-CORE (yellow): Rebirth Core: Bibliotheca (yellow)#11",
 				"BRW-R-CORE (yellow): Rebirth Core: Observatory (yellow)#12",
 				"BRW-R-CORE (yellow): Rebirth Core: Sanctuary (yellow)#13",
@@ -304,6 +308,7 @@
 				"BRW-INFERNO (yellow): BRW Inferno: Bolgia dei Simoniaci (yellow)",
 				"BRW-INFERNOX (yellow): BRW Inferno: Limbo (yellow)",
 				"BRW-INFERNO (yellow): BRW Inferno: Cerchio degli Avari (yellow)",
+				"BRW-CRONO (yellow): BRW Crono: Hell's Door (yellow)",
 				"BRW-R-CORE (blue): Rebirth Core: The Abyss (blue)#14",
 				"BRW-R-CORE (blue): Rebirth Core: Mirrors' Room (blue)#15",
 				"BRW-R-CORE (blue): Rebirth Core: Oracle Room (blue)#16",
@@ -332,7 +337,7 @@
 				"BRW-CORE (gray): BRW Core: Sacrificial Altar (gray)#19",	
 				"BRW-INFERNOX (gray): BRW Inferno: Cerchio degli Erefici (grey)",
 				"BRW-INFERNO (gray): BRW Inferno: Antinferno (grey)",
-				"BRW-INFERNO (gray): BRW Inferno: Girone dei Suicidi (grey)",		
+				"BRW-INFERNO (gray): BRW Inferno: Girone dei Suicidi (grey)",
 			];
 	    
 		var colors =[
@@ -494,6 +499,7 @@
 			}
 			if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
 				delroom = Math.floor(Math.random()*rc)+1;
+				while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
 				foundrooms=0;
 				for (let j = 0; j < rooms.length; j++) {
 					if( rooms[j].split(")")[0] == roomcolors[i] ) {
