@@ -602,13 +602,13 @@
 
 		
 		// Random Avata
-		libraryHTML += "<b>Random Avatar:</b> ";
+		libraryHTML += "<b>Random Avatar ";
 		
 		// Select mages from selected boxes
             	for (let i = 0; i < allavatars.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
-					avatars.push( "<b>" + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b> (" + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ")" );
+					avatars.push( "from " + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ": " + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b>" );
 				}
 			}
             	}
@@ -622,6 +622,7 @@
 		} else {
                  		libraryHTML += avatars[0];
 		}
+		libraryHTML += "<p>";
 		
 		libraryHTML += "</div><p>";
 
