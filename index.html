@@ -418,7 +418,7 @@
             for (let i = 0; i < allmages.length; i++) {
 		for (let j = 0; j < checkboxes.length; j++) {
 			if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
-				mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> (" + allmages[i].split(" ")[0] + ")" );
+				mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> (" + allmages[i].split(":")[0].substring(indexOf(' ') + 1) + ")" );
 			}
 		}
             }
