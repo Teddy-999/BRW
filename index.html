@@ -117,7 +117,7 @@
 				"BRW-CORE BRW Core: <b>Destruction</b> Setup: Malacoda <b>Mages:</b> Nero, Vivian",
 				"BRW-CORE BRW Core: <b>Divination</b> Setup: Divine Altar <b>Mages:</b> Jaf'ar",
 				"BRW-CORE BRW Core: <b>Illusion</b> Setup: Andromedar <b>Mages:</b> Marco, Corax, D. Schiavon",
-				"BRW-CORE BRW Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetary Room <b>Mages:</b> Rebecca, Skultor",
+				"BRW-CORE BRW Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetery Room to provide Landsknecht <b>Mages:</b> Rebecca, Skultor",
 				"BRW-CORE BRW Core: <b>Transmutation</b> Setup: Abomination, Mutant Altar <b>Mages:</b> Tessa",
 				"BRW-SATOR BRW SATOR: <b>Bardic</b> Setup: Landsknecht; OPTIONAL: BRW Core Cemetary Room to summon Landsknecht more easily <b>Mages:</b> Arthur Vox",
 				"BRW-SATOR BRW SATOR: <b>Blood</b> Setup: Hashomer and its Action Cards, Poison Tokens <b>Mages:</b> Elizmbra",
@@ -135,7 +135,7 @@
 				"BRW-REV-CORE Revised Core: <b>Destruction</b> Setup: Malacoda <b>Mages:</b> Nero, Vivian",
 				"BRW-REV-CORE Revised Core: <b>Divination</b> Setup: Divine Altar <b>Mages:</b> Jaf'ar",
 				"BRW-REV-CORE Revised Core: <b>Illusion</b> Setup: Andromedar <b>Mages:</b> Marco, Corax, D. Schiavon",
-				"BRW-REV-CORE Revised Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetary Room <b>Mages:</b> Rebecca, Skultor",
+				"BRW-REV-CORE Revised Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetery Room to provide Landsknecht <b>Mages:</b> Rebecca, Skultor",
 				"BRW-REV-CORE Revised Core: <b>Transmutation</b> Setup: Abomination, Mutant Altar <b>Mages:</b> Tessa",
 				"BRW-REV-TENET Revised TENET: <b>Twilight</b> Setup: unknown",
 				"BRW-REV-TENET Revised TENET: <b>Ritualism</b> Setup: unknown <b>Mages:</b> S'Arzadori",
@@ -420,6 +420,7 @@
 	    var mages = [];
 		var rooms = [];
 		var duprooms = [];
+		var avatars = [];
             var libraryHTML = "";
             var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		
@@ -597,7 +598,31 @@
             		}
 			libraryHTML += "</table>";
 		}				
-		libraryHTML += "<p>";		
+		libraryHTML += "<p>";	
+
+		
+		// Random Avata
+		libraryHTML += "<b>Random Avatar:</b> ";
+		
+		// Select mages from selected boxes
+            	for (let i = 0; i < allavatars.length; i++) {
+			for (let j = 0; j < checkboxes.length; j++) {
+				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
+					avatars.push( "<b>" + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b> (" + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ")" );
+				}
+			}
+            	}
+		
+		// Pick first random
+		shuffleArray(avatars);
+
+		// Show mages			
+		if(avatars.length<1) {
+				libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 1 avatar!</font>";
+		} else {
+                 		libraryHTML += avatars[0];
+		}
+		
 		libraryHTML += "</div><p>";
 
             document.getElementById("result").innerHTML = libraryHTML;
