@@ -602,13 +602,12 @@
 
 		
 		// Random Avata
-		libraryHTML += "<b>Random Avatar";
 		
 		// Select mages from selected boxes
             	for (let i = 0; i < allavatars.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
-					avatars.push( " from " + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ": " + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b>" );
+					avatars.push( "<b>Random Avatar from " + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ": " + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b>" );
 				}
 			}
             	}
@@ -618,7 +617,7 @@
 
 		// Show mages			
 		if(avatars.length<1) {
-				libraryHTML += ":</b> <font color=#FF0000>Select more BRW boxes to provide at least 1 avatar!</font>";
+				libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 1 avatar!</font>";
 		} else {
                  		libraryHTML += avatars[0];
 		}
