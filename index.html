@@ -162,12 +162,12 @@
 				"DUEL-LEX Duel Lex: Bartholom&auml;us",
 				"DUEL-VOID Duel Void: Alhazred",
 				"DUEL-VOID Dual Void: Alice",
-				"BRW-CORE BRW Core: Nero OG", 
-				"BRW-CORE BRW Core: Rebecca OG", 
-				"BRW-CORE BRW Core: Tessa OG", 
-				"BRW-CORE BRW Core: Jaf'ar OG", 
-				"BRW-CORE-HT BRW Hidden Thorns: Geneve OG", 
-				"BRW-CORE-HT BRW Hidden Thorns: Marco OG",
+				"BRW-CORE BRW Core: Nero", 
+				"BRW-CORE BRW Core: Rebecca", 
+				"BRW-CORE BRW Core: Tessa", 
+				"BRW-CORE BRW Core: Jaf'ar", 
+				"BRW-CORE-HT BRW Hidden Thorns: Geneve", 
+				"BRW-CORE-HT BRW Hidden Thorns: Marco",
 				"BRW-SATOR BRW SATOR: Corax",
 				"BRW-SATOR BRW SATOR: Dukas",
 				"BRW-SATOR BRW SATOR: Vivian",
@@ -196,17 +196,17 @@
 				"NA Nova Aetas Crossover: Mediceo",
 				"REQ Requiem Crossover: Istvan",
 				"REQ Requiem Crossover: Herick",
-				"BRW-REV-CORE Revised Core: Nero REV",
-				"BRW-REV-CORE Revised Core: Jafar REV",
-				"BRW-REV-CORE Revised Core: Tessa REV",
-				"BRW-REV-CORE Revised Core: Rebecca REV",
-				"BRW-REV-CORE Revised Core: Marco REV",
-				"BRW-REV-CORE Revised Core: Geneve REV",
+				"BRW-REV-CORE Revised Core: Nero",
+				"BRW-REV-CORE Revised Core: Jafar",
+				"BRW-REV-CORE Revised Core: Tessa",
+				"BRW-REV-CORE Revised Core: Rebecca",
+				"BRW-REV-CORE Revised Core: Marco",
+				"BRW-REV-CORE Revised Core: Geneve",
 				"BRW-REV-TENET Revised TENET: Malombra",
 				"BRW-REV-TENET Revised TENET: Efialte",
 				"BRW-REV-TENET Revised TENET: S'Arzadori",
 				"BRW-REV-TENET Revised TENET: Haruka",
-				"BRW-REV-TENET Revised TENET: Jukas REV",
+				"BRW-REV-TENET Revised TENET: Jukas",
 				"BRW-REV-TENET Revised TENET: Isadora",
 				"BRW-REV-TENET Revised TENET: Elektra",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Anubis",
@@ -215,7 +215,7 @@
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Fenrir",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Gaea",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Hastur",
-				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Jukas CCK",
+				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Jukas",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Ignis",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Minotaurus",
 				"BRW-REV-CUSTCONV Rebirth Custom Conversion Kit:  Parcae",
@@ -418,7 +418,7 @@
 
 		// Random mages
 		libraryHTML += "<b>Random Mages:</b> Either draft them or assign them in the order of schools or players from above.<p>";
-
+		
 		// Select mages from selected boxes
             for (let i = 0; i < allmages.length; i++) {
 		for (let j = 0; j < checkboxes.length; j++) {
@@ -427,6 +427,10 @@
 			}
 		}
             }
+
+		// Remove duplicate school names
+		shuffleArray(mages);
+		mages = uniqe_mage(mages);
 		
 		// Remove random mage until only 6 remain
             	while(mages.length > 6) {
@@ -582,7 +586,21 @@
     		}
     		return out;
 	}
-
+	    
+	function uniqe_mage(a) {
+		var seen = {};
+    		var out = [];
+    		var len = a.length;
+    		var j = 0;
+    		for(var i = 0; i < len; i++) {
+         		var item = a[i].split(": ")[1];
+         		if(seen[item] !== 1) {
+               		seen[item] = 1;
+               		out[j++] = a[i];
+         		}
+    		}
+    		return out;
+	}
     </script>
 
     <body onload="ruleTip()">
@@ -650,12 +668,12 @@
 		 	<input type="checkbox" id="REQ" name="REQ" value="REQ">
          <label for="REQ"> Requiem Crossover</label><p>
 
-<!--		 	<input type="checkbox" id="BRW-REV-CORE" name="BRW-REV-CORE" value="BRW-REV-CORE">
+		 	<input type="checkbox" id="BRW-REV-CORE" name="BRW-REV-CORE" value="BRW-REV-CORE">
          <label for="BRW-REV-CORE"> Revised Core (REV)</label><br>
 
 		 	<input type="checkbox" id="BRW-REV-TENET" name="BRW-REV-TENET" value="BRW-REV-TENET">
          <label for="BRW-REV-TENET"> Revised TENET</label><p>
--->
+		 
 			<input type="checkbox" id="BRW-REV-CUSTCONV" name="BRW-REV-CUSTCONV" value="BRW-REV-CUSTCONV">
          <label for="BRW-REV-CUSTCONV"> Rebirth Custom Conversion Kit (CCK)</label><br> 
 		 
