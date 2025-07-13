@@ -423,7 +423,12 @@
 		var avatars = [];
             var libraryHTML = "";
             var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+
 		
+	libraryHTML += "<b>The Black Rose came up with this Setup for you:</b><p>";
+	libraryHTML += "<div style='padding-left:20px;'>";
+		
+	if( checkboxes.includes("SCHOOL") {	
 	    // Add schools based on selected BRW boxes
             for (let i = 0; i < allschools.length; i++) {
 		for (let j = 0; j < checkboxes.length; j++) {
@@ -446,8 +451,7 @@
 		if(schools.length<6) {
 			libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
 		} else {
-			libraryHTML += "<b>The Black Rose came up with this Setup for you:</b><p>";
-			libraryHTML += "<div style='padding-left:20px;'><table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
+			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
             		for (let i = 0; i < schools.length; i++) {
 				schools[i] = schools[i].replace("Setup: ","</td><td>");
 				schools[i] = schools[i].replace(": <b>"," </td><td><b>");
@@ -455,7 +459,9 @@
             		}
 			libraryHTML += "</table><p>";
 		}
+	}
 
+	if( checkboxes.includes("PLAYER") {	
 		// start player
 		shuffleArray(colors);
 		libraryHTML += "<b>Start player: </b>";
@@ -464,8 +470,10 @@
 			libraryHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
 		}
 		libraryHTML += "<p>";
-		
+	}
 
+	if( checkboxes.includes("MAGE") {	
+		
 		// Random mages
 		libraryHTML += "<b>Random Mages:</b> Either draft them or assign them in the order of schools or players from above.<p>";
 		
@@ -499,6 +507,9 @@
 		}		
 		
 		libraryHTML += "<p>";
+	}
+
+	if( checkboxes.includes("LODGE") {	
 
 		
 		// Random rooms
@@ -599,9 +610,11 @@
 			libraryHTML += "</table>";
 		}				
 		libraryHTML += "<p>";	
-
+	}
 		
-		// Random Avata
+	if( checkboxes.includes("AVATAR") {	
+		
+		// Random Avatar
 		
 		// Select mages from selected boxes
             	for (let i = 0; i < allavatars.length; i++) {
@@ -622,6 +635,7 @@
                  		libraryHTML += avatars[0];
 		}
 		libraryHTML += "<p>";
+	}
 		
 		libraryHTML += "</div><p>";
 
@@ -683,6 +697,15 @@
         	</div>
 			<b>Select the core boxes and expansions to build your Setup:</b><p>
 	<div style='padding-left:20px;'>
+
+	<p>
+	<input type="checkbox" id="SCHOOL" name="SCHOOL" value="SCHOOL" checked><label for="SCHOOL"> Schools/label> 
+	<input type="checkbox" id="PLAYER" name="PLAYER" value="PLAYER" checked><label for="PLAYER"> Start Player/label> 
+	<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages/label> 
+	<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge/label> 
+	<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR" checked><label for="AVATAR"> Avatar/label> 
+	</p>
+		
 	<table><tr><td VALIGN=TOP> 
 			<input type="checkbox" id="BRW-R-CORE" name="BRW-R-CORE" value="BRW-R-CORE" checked>
          <label for="BRW-R-CORE"> Rebirth Core</label><br>
