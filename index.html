@@ -593,7 +593,7 @@
     		var len = a.length;
     		var j = 0;
     		for(var i = 0; i < len; i++) {
-         		var item = a[i].split(":")[1];
+         		var item = a[i].split("<b>")[1].split("</b>")[0];
          		if(seen[item] !== 1) {
                		seen[item] = 1;
                		out[j++] = a[i];
