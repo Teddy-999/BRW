@@ -383,6 +383,9 @@
 		}
             }
 
+		// Remove duplicate school names
+		schools = uniqe_school(schools);
+		
 		// Remove random schools until only 6 remain
             	while(schools.length > 6) {
                 	schools.splice(Math.floor(Math.random()*schools.length), 1);
@@ -562,6 +565,21 @@
        			 const j = Math.floor(Math.random() * (i + 1));
         		[array[i], array[j]] = [array[j], array[i]];
    		 }
+	}
+
+	function uniqe_school(a) {
+		var seen = {};
+    		var out = [];
+    		var len = a.length;
+    		var j = 0;
+    		for(var i = 0; i < len; i++) {
+         		var item = a[i].split("<b>")[1].split("</b>")[0];
+         		if(seen[item] !== 1) {
+               		seen[item] = 1;
+               		out[j++] = a[i];
+         		}
+    		}
+    		return out;
 	}
 
     </script>
