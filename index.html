@@ -463,9 +463,9 @@
 		} else {
 			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
             		for (let i = 0; i < schools.length; i++) {
-				schools[i] = schools[i].replace("Setup: ","</td><td>");
-				schools[i] = schools[i].replace(": <b>"," </td><td><b>");
-                 		libraryHTML += "<tr><td>" + schools[i] + "</td></tr>";
+				schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
+				schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
+                 		libraryHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
             		}
 			libraryHTML += "</table><p>";
 		}
