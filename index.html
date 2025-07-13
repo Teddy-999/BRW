@@ -416,19 +416,24 @@
 	    
 	// Show a random Library build from selected BRW boxes
         function displayLibrary(){
-            let schools = []; 
-	    var mages = [];
+            	let schools = []; 
+	    	var mages = [];
 		var rooms = [];
 		var duprooms = [];
 		var avatars = [];
-            var libraryHTML = "";
-            var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+            	var libraryHTML = "";
+        	var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+		var checkboxesVal = [];
 
+	// Get checkbox values as array
+	for (var i = 0; i < checkboxes.length; i++) {
+  		checkboxesVal.push(checkboxes[i].value)
+	}
 		
 	libraryHTML += "<b>The Black Rose came up with this Setup for you:</b><p>";
 	libraryHTML += "<div style='padding-left:20px;'>";
 		
-	if( checkboxes.includes("SCHOOL") ) {	
+	if( checkboxesVal.includes("SCHOOL") ) {	
 	    // Add schools based on selected BRW boxes
             for (let i = 0; i < allschools.length; i++) {
 		for (let j = 0; j < checkboxes.length; j++) {
@@ -461,7 +466,7 @@
 		}
 	}
 
-	if( checkboxes.includes("PLAYER") ) {	
+	if( checkboxesVal.includes("PLAYER") ) {	
 		// start player
 		shuffleArray(colors);
 		libraryHTML += "<b>Start player: </b>";
@@ -472,7 +477,7 @@
 		libraryHTML += "<p>";
 	}
 
-	if( checkboxes.includes("MAGE") ) {	
+	if( checkboxesVal.includes("MAGE") ) {	
 		
 		// Random mages
 		libraryHTML += "<b>Random Mages:</b> Either draft them or assign them in the order of schools or players from above.<p>";
@@ -509,7 +514,7 @@
 		libraryHTML += "<p>";
 	}
 
-	if( checkboxes.includes("LODGE") ) {	
+	if( checkboxesVal.includes("LODGE") ) {	
 
 		
 		// Random rooms
@@ -612,7 +617,7 @@
 		libraryHTML += "<p>";	
 	}
 		
-	if( checkboxes.includes("AVATAR") ) {	
+	if( checkboxesVal.includes("AVATAR") ) {	
 		
 		// Random Avatar
 		
