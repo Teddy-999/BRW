@@ -637,8 +637,8 @@
 				  ) {
 					// found possible replacement, now check if already contained in Lodge
 					// rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
-					rooms[foundInfernalPleasure] = purplerooms[i].substring(purplerooms[i].indexOf('(') + 1).replaceAll("purple","black");
-					rooms.push( purplerooms[i].substring(purplerooms[i].indexOf('(') + 1) );
+					rooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
+					rooms.push( purplerooms[i] );
 					// rooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
 				}
 			}
@@ -757,7 +757,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1> x10
+			<h1>Black Rose Wars - Random Setup</h1> x11
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
