@@ -628,7 +628,7 @@
 		}
 		if( foundSupportRoom == false && foundInfernalPleasure>0 ) {
 			// no supporting room, Pleasure Room - infernsl must be replaced
-			rooms.splice(foundInfernalPleasure, 1);
+			;rooms.splice(foundInfernalPleasure, 1);
 			
 			for (let i = 0; i < purplerooms.length; i++) {
 				if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
@@ -636,7 +636,7 @@
 				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
 				  ) {
 					// found possible replacement, now check if already contained in Lodge
-					rooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 2));		
+					rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 2);
 				}
 			}
 		}
@@ -755,7 +755,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1> x3
+			<h1>Black Rose Wars - Random Setup</h1> x4
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
