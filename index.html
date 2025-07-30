@@ -613,6 +613,7 @@
 		}
 		
 		// Output rooms
+		var roomoutPre = "";
 		var roomout = "";
 		var colorout = "";
 		if(rooms.length<19) {
@@ -624,10 +625,16 @@
 				libraryHTML += "<tr><td>";
                  		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
 				libraryHTML += "</td><td>";
-				roomout = rooms[i].substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
+				roomoutPre = "<b>" + rooms[i].substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
+				// filter setup instructions
+				if(roomoutPre.indexOf(':')>0) {
+					roomout = roomoutPre.split(":")[0] + "</b>:" + roomoutPre.split(":")[1];
+				} else {
+					roomout = roomoutPre.split("(")[0] + "</b>(" + roomoutPre.split("(")[1];
+				}
 				colorout = roomout.split("(")[1].split(")")[0];
 				libraryHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
-				libraryHTML += "<b>" + roomout.split("(")[0] + "</b>";
+				libraryHTML += roomout.split("(")[0] + "</b>";
 				libraryHTML += "</td></tr>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             		}
