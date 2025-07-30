@@ -269,7 +269,7 @@
 				"BRW-SATOR (purple): BRW SATOR: Card's Room (purple)",
 				"BRW-SATOR (purple): BRW SATOR: Pigmen's Room - Setup: Mutated Pigmen (purple)",
 				"BRW-INFERNO (purple): BRW Inferno: Armory - infernal - Setup: Arpia (purple)#4",
-				"BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpua, Farfarello (purple)#3",
+				"BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
 				"BRW-INFERNOX (purple): BRW Inferno: Cerchio dei Lussuriosi (purple)",
 				"BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ruffiani (purple)",
 				"BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ladri [crown](purple)#2",
@@ -610,6 +610,23 @@
 				}
 			}
 		    } while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
+		}
+
+		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
+		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
+		var foundInfernalPleasure = false;
+		var foundSupportRoom = false;
+		for (let i = 0; i < rooms.length; i++) {
+			if( rooms[i].indexof("Cerbero")>0 or rooms[i].indexof("Centauro")>0 ) {
+				foundSupportRoom = true;
+			}
+			if( rooms[i].indexof("BRW Inferno: Pleasure Room - infernal")> ) {
+				foundInfernalPleasure = true;
+			}
+		}
+		if( foundSupportRoom == false && foundInfernalPleasure ) {
+			// no supporting room, Pleasure Room - infernsl must be replaced
+			
 		}
 		
 		// Output rooms
