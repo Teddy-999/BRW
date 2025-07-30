@@ -545,7 +545,6 @@
 				if( allrooms[i].split(" ")[0] == checkboxes[j].value ) {
 					duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
 					if( allrooms[i].indexOf("(purple)")>0 ) purplerooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
-						//purplerooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
 				}
 			}
             	}
@@ -617,20 +616,20 @@
 
 		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
 		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
-		//var foundInfernalPleasure = false;
-		//var foundSupportRoom = false;
-		//for (let i = 0; i < rooms.length; i++) {
-		//	if( rooms[i].indexof("Cerbero")>0 || rooms[i].indexof("Centauro")>0 ) {
-		//		foundSupportRoom = true;
-		//	}
-		//	if( rooms[i].indexof("BRW Inferno: Pleasure Room - infernal")>0 ) {
-		//		foundInfernalPleasure = true;
-		//	}
-		//}
-		//if( foundSupportRoom == false && foundInfernalPleasure ) {
+		var foundInfernalPleasure = false;
+		var foundSupportRoom = false;
+		for (let i = 0; i < rooms.length; i++) {
+			if( rooms[i].indexof("Cerbero")>0 || rooms[i].indexof("Centauro")>0 ) {
+				foundSupportRoom = true;
+			}
+			if( rooms[i].indexof("BRW Inferno: Pleasure Room - infernal")>0 ) {
+				foundInfernalPleasure = true;
+			}
+		}
+		if( foundSupportRoom == false && foundInfernalPleasure ) {
 			// no supporting room, Pleasure Room - infernsl must be replaced
 			
-		//}
+		}
 		
 		// Output rooms
 		var roomoutPre = "";
