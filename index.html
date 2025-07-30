@@ -628,11 +628,15 @@
 				roomout = "<b>" + rooms[i].substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
 				colorout = roomout.split("(")[1].split(")")[0];
 				libraryHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
-				libraryHTML += roomout.split(" - Setup:")[0] + "</b>";
-				libraryHTML += "</td><td>";
+				
 				// filter setup instructions
 				if(roomoutPre.indexOf(' - Setup:')>0) {
+					libraryHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
+					libraryHTML += "</td><td>";
 					libraryHTML += roomout.split(" - Setup:")[1].split("(")[0];
+				} else {
+					libraryHTML += roomout.split("(")[0] + "</b>";
+					libraryHTML += "</td><td>";
 				}
 				libraryHTML += "</td></tr>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
