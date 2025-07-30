@@ -636,7 +636,8 @@
 				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
 				  ) {
 					// found possible replacement, now check if already contained in Lodge
-					rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 2);
+					rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
+					rooms[foundInfernalPleasure]="purple): Replacement: Throne Room [crown](purple)";
 				}
 			}
 		}
@@ -650,7 +651,6 @@
 		} else {
 			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
 			for (let i = 0; i < rooms.length; i++) {
-				//"BRW-FAMILIARS (blue): BRW Familiars: Hydra - Setup Hydra Familiars (blue)",
 				libraryHTML += "<tr><td>";
                  		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
 				libraryHTML += "</td><td>";
