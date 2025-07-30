@@ -360,7 +360,7 @@
 				"BRW-INFERNO (blue): BRW Inferno: Bolgia dei Barattieri (blue)",
 				"BRW-INFERNO (blue): BRW Inferno: Cerchio dei Traditori (blue)",
 				"BRW-INFERNO (blue): BRW Inferno: Bolgia dei Maghi (blue)",
-				"BRW-FAMILIARS (blue): BRW Familiars: Hydra - Setup Hydra Familiars (blue)",
+				"BRW-FAMILIARS (blue): BRW Familiars: Hydra - Setup: Hydra Familiars (blue)",
 				"BRW-REV-CORE (blue): Revised Core: The Abyss (blue)#14",
 				"BRW-REV-CORE (blue): Revised Core: Mirrors' Room (blue)#15",
 				"BRW-REV-CORE (blue): Revised Core: Oracle Room (blue)#16",
@@ -620,10 +620,11 @@
 		} else {
 			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th></tr>";
 			for (let i = 0; i < rooms.length; i++) {
+				//"BRW-FAMILIARS (blue): BRW Familiars: Hydra - Setup Hydra Familiars (blue)",
 				libraryHTML += "<tr><td>";
                  		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
 				libraryHTML += "</td><td>";
-				roomout = rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[1].substring(1);
+				roomout = rooms[i].substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
 				colorout = roomout.split("(")[1].split(")")[0];
 				libraryHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
 				libraryHTML += "<b>" + roomout.split("(")[0] + "</b>";
