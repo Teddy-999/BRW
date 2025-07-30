@@ -636,8 +636,9 @@
 				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
 				  ) {
 					// found possible replacement, now check if already contained in Lodge
-					rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
-					rooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
+					// rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
+					rooms[foundInfernalPleasure] = purplerooms[i].substring(purplerooms[i].indexOf('(') + 1).replace("("," XXX (");
+					// rooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
 				}
 			}
 		}
@@ -755,7 +756,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1> x6
+			<h1>Black Rose Wars - Random Setup</h1> x7
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
