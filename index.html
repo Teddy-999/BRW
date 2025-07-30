@@ -619,9 +619,9 @@
 		var foundInfernalPleasure = false;
 		var foundSupportRoom = false;
 		for (let i = 0; i < rooms.length; i++) {
-			//if( rooms[i].indexof("Cerbero")>0 || rooms[i].indexof("Centauro")>0 ) {
-			//	foundSupportRoom = true;
-			//}
+			if( rooms[i].indexOf("Cerbero")>0 || rooms[i].indexOf("Centauro")>0 ) {
+				foundSupportRoom = true;
+			}
 			if( rooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
 				foundInfernalPleasure = true;
 			}
@@ -745,7 +745,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1> x1
+			<h1>Black Rose Wars - Random Setup</h1> x2
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
