@@ -616,19 +616,28 @@
 
 		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
 		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
-		var foundInfernalPleasure = false;
+		var foundInfernalPleasure = -1;
 		var foundSupportRoom = false;
 		for (let i = 0; i < rooms.length; i++) {
 			if( rooms[i].indexOf("Cerbero")>0 || rooms[i].indexOf("Centauro")>0 ) {
 				foundSupportRoom = true;
 			}
 			if( rooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
-				foundInfernalPleasure = true;
+				foundInfernalPleasure = i;
 			}
 		}
 		if( foundSupportRoom == false && foundInfernalPleasure ) {
 			// no supporting room, Pleasure Room - infernsl must be replaced
-			
+			for (let i = 0; i < purplerooms.length; i++) {
+				if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
+				      || purplerooms[i].indexOf("#")<=0
+				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
+				  ) {
+					// found possible replacement, now check if already contained in Lodge
+					
+					
+				}
+			}
 		}
 		
 		// Output rooms
@@ -745,7 +754,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1> x2
+			<h1>Black Rose Wars - Random Setup</h1> x3
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
