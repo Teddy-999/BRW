@@ -544,7 +544,8 @@
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allrooms[i].split(" ")[0] == checkboxes[j].value ) {
 					duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
-					if( allrooms[i].indexof("(purple)")>0 ) purplerooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
+					if( allrooms[i].indexOf("(purple)")>0 ) i=i;
+						//purplerooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
 				}
 			}
             	}
