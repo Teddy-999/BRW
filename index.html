@@ -433,6 +433,7 @@
 	    	var mages = [];
 		var rooms = [];
 		var duprooms = [];
+		var purplerooms = [];
 		var avatars = [];
             	var libraryHTML = "";
         	var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
@@ -543,6 +544,7 @@
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allrooms[i].split(" ")[0] == checkboxes[j].value ) {
 					duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
+					if(allrooms[i].indexof("(purple)")>0) purplerooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
 				}
 			}
             	}
@@ -617,10 +619,10 @@
 		var foundInfernalPleasure = false;
 		var foundSupportRoom = false;
 		for (let i = 0; i < rooms.length; i++) {
-			if( rooms[i].indexof("Cerbero")>0 or rooms[i].indexof("Centauro")>0 ) {
+			if( rooms[i].indexof("Cerbero")>0 || rooms[i].indexof("Centauro")>0 ) {
 				foundSupportRoom = true;
 			}
-			if( rooms[i].indexof("BRW Inferno: Pleasure Room - infernal")> ) {
+			if( rooms[i].indexof("BRW Inferno: Pleasure Room - infernal")>0 ) {
 				foundInfernalPleasure = true;
 			}
 		}
