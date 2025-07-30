@@ -642,9 +642,10 @@
 						if( rooms[j] == purplerooms[i] ) containsRoomAlready=true;
 					}
 				        if( !containsRoomAlready ) {
-						rooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
+						rooms[foundInfernalPleasure] = purplerooms[i];
+						//rooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
 					}
-					rooms.push( purplerooms[i] );
+					// rooms.push( purplerooms[i] );
 					// rooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
 				}
 			}
@@ -763,7 +764,7 @@
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1> x13
+			<h1>Black Rose Wars - Random Setup</h1>
         	<div id="result">
         	</div>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
