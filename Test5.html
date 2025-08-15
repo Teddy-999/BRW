@@ -2,229 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lodge Generator</title>
 <style>
-  body { display:flex; flex-direction:column; align-items:center; font-family:sans-serif; }
-  #board { position:relative; width:800px; height:600px; border:1px solid #ccc; margin-top:20px; }
-  .hex { position:absolute; width:70px; height:60px; background-color:#eee; clip-path:polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); display:flex; align-items:center; justify-content:center; text-align:center; font-size:10px; }
-  .black { background:#333; color:#fff; }
-  .purple { background:purple; color:#fff; }
-  .red { background:red; color:#fff; }
-  .green { background:green; color:#fff; }
-  .blue { background:blue; color:#fff; }
-  .gray { background:gray; color:#fff; }
-  .yellow { background:yellow; color:#000; }
-  .throne { border:2px solid gold; }
-  .label { font-size:10px; }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f0f0f0;
+    font-family: sans-serif;
+  }
+  #board {
+    position: relative;
+    width: 800px;
+    height: 700px;
+    margin-top: 20px;
+  }
+  .hex {
+    position: absolute;
+    width: 80px;
+    height: 70px;
+    clip-path: polygon(
+      50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    border: 2px solid #333;
+    box-sizing: border-box;
+  }
+  .black { background: #000; }
+  .purple { background: purple; }
+  .red { background: red; }
+  .green { background: green; }
+  .blue { background: blue; }
+  .gray { background: gray; }
+  .yellow { background: goldenrod; }
+  .throne { border: 3px solid gold; }
+  button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+  }
 </style>
 </head>
 <body>
 
-<button id="regen">Regenerate Lodge</button>
+<h1>Lodge Generator</h1>
+<button onclick="generateLodge()">Regenerate Lodge</button>
 <div id="board"></div>
 
 <script>
-// ===== constants =====
-const HEX_W = 70, HEX_H = 60;
-const MAX_PAIR_ATTEMPTS = 25;
-const MAX_LODGE_ATTEMPTS = 10;
-const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+const hexSize = 40; // radius
+const sqrt3 = Math.sqrt(3);
 
-// ===== helper functions =====
-function key(q,r){ return `${q},${r}`; }
-function unkey(k){ const [q,r] = k.split(',').map(Number); return {q,r}; }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function axialToPixel(q,r){ const x=HEX_W*3/4*q; const y=HEX_H*(r + 0.5*(q%2)); return {x,y}; }
+// Room names per color
+const rooms = {
+  black: ["Black Rose Room"],
+  purple: ["Throne Room 1","Throne Room 2","Throne Room 3"],
+  red: ["Red Room 1","Red Room 2","Red Room 3"],
+  green: ["Green Room 1","Green Room 2","Green Room 3"],
+  blue: ["Blue Room 1","Blue Room 2","Blue Room 3"],
+  gray: ["Gray Room 1","Gray Room 2","Gray Room 3"],
+  yellow: ["Yellow Room 1","Yellow Room 2","Yellow Room 3"]
+};
 
-// ===== build full set (hex grid 37 tiles) =====
-function buildFullSet(){
-  const set = new Set();
-  for(let q=-3;q<=3;q++){
-    for(let r=-3;r<=3;r++){
-      if(Math.abs(q+r)<=3) set.add(key(q,r));
-    }
-  }
-  return set;
-}
-
-// ===== candidate removal pairs =====
-function buildCandidatePairs(fullSet){
-  const arr = [...fullSet];
-  const pairs = [];
-  for(let i=0;i<arr.length;i++){
-    for(let j=i+1;j<arr.length;j++){
-      pairs.push([arr[i],arr[j]]);
-    }
-  }
-  return pairs;
-}
-
-// ===== basic connectivity check (approx) =====
-function isConnected(shape){
-  if(shape.size===0) return false;
-  const visited = new Set();
-  const keys = [...shape];
-  const stack = [keys[0]];
-  while(stack.length){
-    const k = stack.pop();
-    if(visited.has(k)) continue;
-    visited.add(k);
-    const {q,r} = unkey(k);
-    const neighbors = [
-      [q+1,r],[q-1,r],[q,r+1],[q,r-1],[q+1,r-1],[q-1,r+1]
-    ].map(([x,y])=>key(x,y)).filter(n=>shape.has(n));
-    neighbors.forEach(n=>stack.push(n));
-  }
-  return visited.size===shape.size;
-}
-
-// ===== minimal degree check (2+) =====
-function minDegreeAtLeast(shape,minDeg){
-  for(const k of shape){
-    const {q,r} = unkey(k);
-    const neighbors = [
-      [q+1,r],[q-1,r],[q,r+1],[q,r-1],[q+1,r-1],[q-1,r+1]
-    ].map(([x,y])=>key(x,y)).filter(n=>shape.has(n));
-    if(neighbors.length<minDeg) return false;
-  }
-  return true;
-}
-
-// ===== hole counts (approx) =====
-function holeNeighborCounts(fullSet,shape){
-  const holes4=0, holes5plus=0; // for simplicity, skip for now
-  return {holes4, holes5plus};
-}
-
-// ===== choose pairs randomly with retries =====
-function chooseRemovalPairCombination(fullSet,candidates,removePairsNeeded){
-  for(let attempt=0;attempt<MAX_PAIR_ATTEMPTS;attempt++){
-    const shuffled = shuffle([...candidates]);
-    const selected = shuffled.slice(0,removePairsNeeded);
-    const shape = new Set(fullSet);
-    selected.forEach(([a,b])=>{ shape.delete(a); shape.delete(b); });
-    if(!isConnected(shape)) continue;
-    if(!minDegreeAtLeast(shape,2)) continue;
-    const {holes5plus}=holeNeighborCounts(fullSet,shape);
-    if(holes5plus>0) continue;
-    return shape;
-  }
-  return null;
-}
-
-// ===== color assignment =====
-function assignColorsToShape(shapeSet,throneKey){
-  const nodes = [...shapeSet];
-  const colorOf = new Map();
-  const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
-  colorOf.set(key(0,0),'black'); counts.black--;
-  colorOf.set(throneKey,'purple'); counts.purple--;
-  const toColor = nodes.filter(n=>n!==key(0,0)&&n!==throneKey);
-  shuffle(toColor);
-  for(const n of toColor){
-    const avail = Object.keys(counts).filter(c=>counts[c]>0);
-    if(avail.length===0) return null;
-    const c = avail[0]; colorOf.set(n,c); counts[c]--;
-  }
-  return colorOf;
-}
-
-// ===== map rooms to positions =====
-const rooms = [
-  "Black Rose Room|black", "Throne Room|purple",
-  "Red Room 1|red","Red Room 2|red","Red Room 3|red",
-  "Green Room 1|green","Green Room 2|green","Green Room 3|green",
-  "Blue Room 1|blue","Blue Room 2|blue","Blue Room 3|blue",
-  "Gray Room 1|gray","Gray Room 2|gray","Gray Room 3|gray",
-  "Yellow Room 1|yellow","Yellow Room 2|yellow","Yellow Room 3|yellow",
-  "Purple Room 1|purple"
+// Axial directions for neighbors
+const directions = [
+  [1,0], [1,-1], [0,-1], [-1,0], [-1,1], [0,1]
 ];
-function mapRoomsToPositions(colorMap,throneKey){
-  const pools={};
-  for(const s of rooms){
-    const [name,col]=s.split('|').map(x=>x.trim());
-    if(!pools[col]) pools[col]=[];
-    pools[col].push(name);
+
+// Utility: shuffle array
+function shuffle(arr) {
+  for (let i = arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
   }
-  for(const col of Object.keys(pools)) shuffle(pools[col]);
-  const mapping = new Map();
-  mapping.set(key(0,0), {name:pools['black'].pop(), color:'black'});
-  mapping.set(throneKey, {name:pools['purple'].pop(), color:'purple'});
-  for(const pos of colorMap.keys()){
-    if(pos===key(0,0)||pos===throneKey) continue;
-    const col=colorMap.get(pos);
-    if(!pools[col]||pools[col].length===0) throw new Error("Not enough rooms");
-    mapping.set(pos,{name:pools[col].pop(), color:col});
-  }
-  return mapping;
+  return arr;
 }
 
-// ===== generate lodge =====
-function generateValidLodge(){
-  for(let lodgeAttempt=0;lodgeAttempt<MAX_LODGE_ATTEMPTS;lodgeAttempt++){
-    const fullSet = buildFullSet();
-    const candidates = buildCandidatePairs(fullSet);
-    const removePairsNeeded = (fullSet.size-19)/2;
-    const shape = chooseRemovalPairCombination(fullSet,candidates,removePairsNeeded);
-    if(!shape) continue;
-    const ring1 = [...shape].filter(k=>Math.abs(unkey(k).q)<=1 && Math.abs(unkey(k).r)<=1);
-    const throneKey = ring1[Math.floor(Math.random()*ring1.length)];
-    const colorMap = assignColorsToShape(shape,throneKey);
-    if(!colorMap) continue;
-    try{
-      const roomPositionMap = mapRoomsToPositions(colorMap,throneKey);
-      return {shape,colorMap,roomPositionMap,throneKey};
-    }catch(e){
-      continue;
+// Generate full set of 37 hexes
+function generateFullSet() {
+  let tiles = [];
+  for (let q=-3;q<=3;q++){
+    for (let r=Math.max(-3,-q-3); r<=Math.min(3,-q+3); r++){
+      tiles.push({q,r});
     }
   }
-  throw new Error("Failed to generate lodge after max attempts");
+  return tiles;
 }
 
-// ===== render =====
-const board = document.getElementById('board');
-function renderLodge(lodge){
-  board.innerHTML='';
-  const {shape,roomPositionMap,throneKey} = lodge;
-  const pts = [...shape].map(k=>{
-    const {q,r}=unkey(k);
-    const p=axialToPixel(q,r);
-    return {k,q,r,x:p.x,y:p.y};
+// Helper to get neighbors
+function neighbors(tile, tilesMap) {
+  let n = [];
+  directions.forEach(([dq,dr])=>{
+    const key = `${tile.q+dq},${tile.r+dr}`;
+    if (tilesMap[key]) n.push(tilesMap[key]);
   });
-  const minX=Math.min(...pts.map(p=>p.x));
-  const minY=Math.min(...pts.map(p=>p.y));
-  const maxX=Math.max(...pts.map(p=>p.x));
-  const maxY=Math.max(...pts.map(p=>p.y));
-  const groupW=(maxX-minX)+HEX_W;
-  const groupH=(maxY-minY)+HEX_H;
-  const offsetX=(board.clientWidth-groupW)/2 - minX;
-  const offsetY=(board.clientHeight-groupH)/2 - minY;
-  for(const p of pts){
-    const room=roomPositionMap.get(p.k);
-    const div=document.createElement('div');
-    div.className=`hex ${room.color}`+(p.k===throneKey?' throne':'');
-    div.style.left=`${Math.round(p.x+offsetX)}px`;
-    div.style.top=`${Math.round(p.y+offsetY)}px`;
-    const lbl=document.createElement('div');
-    lbl.className='label';
-    lbl.textContent=room.name;
-    div.appendChild(lbl);
+  return n;
+}
+
+// Check biconnectivity using DFS
+function isBiconnected(tilesMap) {
+  const keys = Object.keys(tilesMap);
+  if (keys.length <= 2) return true;
+  let visited = {};
+  let parent = {};
+  let low = {};
+  let disc = {};
+  let time = 0;
+  let hasArticulation = false;
+
+  function dfs(u, par) {
+    visited[u]=true;
+    disc[u]=low[u]=++time;
+    let children = 0;
+    neighbors(tilesMap[u], tilesMap).forEach(v=>{
+      const vk = `${v.q},${v.r}`;
+      if (!visited[vk]){
+        children++;
+        parent[vk]=u;
+        dfs(vk,u);
+        low[u]=Math.min(low[u],low[vk]);
+        if (par!==null && low[vk]>=disc[u]) hasArticulation=true;
+      } else if (vk!==par){
+        low[u]=Math.min(low[u],disc[vk]);
+      }
+    });
+    if (par===null && children>1) hasArticulation=true;
+  }
+  dfs(keys[0], null);
+  return !hasArticulation;
+}
+
+// Reduce to 19 tiles using random removal respecting connectivity
+function reduceTo19(fullTiles) {
+  let attempts=0;
+  while(true){
+    attempts++;
+    let tiles = [...fullTiles];
+    let tilesMap = {};
+    tiles.forEach(t=>tilesMap[`${t.q},${t.r}`]=t);
+    shuffle(tiles);
+    while (tiles.length>19){
+      const t = tiles.pop();
+      const key = `${t.q},${t.r}`;
+      delete tilesMap[key];
+      if (!isConnected(tilesMap) || !isBiconnected(tilesMap)) {
+        tiles.push(t); tilesMap[key]=t;
+        break;
+      }
+    }
+    if (tiles.length===19) return tiles;
+    if (attempts>1000) throw "Failed to generate lodge";
+  }
+}
+
+// Check connectivity
+function isConnected(tilesMap){
+  const keys = Object.keys(tilesMap);
+  if (keys.length===0) return true;
+  let visited={};
+  function dfs(k){
+    visited[k]=true;
+    neighbors(tilesMap[k], tilesMap).forEach(v=>{
+      const vk = `${v.q},${v.r}`;
+      if (!visited[vk]) dfs(vk);
+    });
+  }
+  dfs(keys[0]);
+  return Object.keys(visited).length===keys.length;
+}
+
+// Color assignment using backtracking
+function assignColors(tiles){
+  const counts = {black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3};
+  let tilesMap={}; tiles.forEach(t=>tilesMap[`${t.q},${t.r}`]=t);
+  let order = tiles.slice().sort((a,b)=>neighbors(b,tilesMap).length-neighbors(a,tilesMap).length);
+  let solution=null;
+
+  function backtrack(idx){
+    if (idx===order.length) {solution=true; return true;}
+    const t = order[idx];
+    for (let color in counts){
+      if (counts[color]<=0) continue;
+      const nbs = neighbors(t,tilesMap);
+      if (nbs.some(n=>n.color===color)) continue;
+      t.color=color; counts[color]--;
+      if (backtrack(idx+1)) return true;
+      t.color=null; counts[color]++;
+    }
+    return false;
+  }
+  // fix center and throne later
+  order[0].color="black"; counts.black--;
+  const ring1 = neighbors(order[0],tilesMap);
+  const throne = ring1[Math.floor(Math.random()*ring1.length)];
+  throne.color="purple"; counts.purple--;
+  backtrack(0);
+  return tiles;
+}
+
+// Assign room names
+function assignRooms(tiles){
+  let colorRooms={};
+  for (let color in rooms) colorRooms[color]=rooms[color].slice();
+  tiles.forEach(t=>{
+    const arr = colorRooms[t.color];
+    if (!arr || arr.length===0) t.room="Unknown";
+    else t.room=arr.splice(Math.floor(Math.random()*arr.length),1)[0];
+  });
+}
+
+// Render lodge
+function renderLodge(tiles){
+  const board = document.getElementById("board");
+  board.innerHTML="";
+  const offsetX = board.offsetWidth/2;
+  const offsetY = board.offsetHeight/2;
+  tiles.forEach(t=>{
+    const x = offsetX + hexSize * 3/2 * t.q;
+    const y = offsetY + hexSize * sqrt3 * (t.r + t.q/2);
+    const div = document.createElement("div");
+    div.className="hex "+t.color;
+    if (t.color==="purple" && t.room.includes("Throne")) div.classList.add("throne");
+    div.style.left=(x-hexSize)+"px";
+    div.style.top=(y-hexSize)+"px";
+    div.innerHTML=t.room;
     board.appendChild(div);
-  }
+  });
 }
 
-// ===== init =====
-function createAndRenderSilently(){
-  try{
-    const lodge=generateValidLodge();
-    renderLodge(lodge);
-  }catch(e){
-    console.error("Failed lodge generation", e);
-  }
+// Generate lodge
+function generateLodge(){
+  const fullSet = generateFullSet();
+  const tiles19 = reduceTo19(fullSet);
+  const coloredTiles = assignColors(tiles19);
+  assignRooms(coloredTiles);
+  renderLodge(coloredTiles);
 }
-document.getElementById('regen').addEventListener('click', createAndRenderSilently);
-createAndRenderSilently();
 
+// Initial generation
+generateLodge();
 </script>
 </body>
 </html>
