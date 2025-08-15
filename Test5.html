@@ -22,11 +22,10 @@
             grid-template-rows: repeat(13, 60px);
             grid-gap: 0;
             position: relative;
-            transform: translateY(20px);
         }
         .hexagon {
             width: 60px;
-            height: 69px;
+            height: 69.28px; /* Correct height for 60px flat-top width */
             position: relative;
             background: #555;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -99,7 +98,7 @@
             return array;
         }
 
-        // Axial coordinates to CSS Grid positions (for flat-top hexes)
+        // Correct axial coordinates to CSS Grid positions for flat-top hexes
         function toGrid(q, r) {
             const row = r + 6;
             const col = q + Math.floor(r/2) + 6;
@@ -151,7 +150,7 @@
             let rooms = [];
             let attemptCount = 0;
 
-            while (!validConfiguration && attemptCount < 200) {
+            while (!validConfiguration && attemptCount < 500) {
                 rooms = [];
                 const roomCoordinates = new Set();
                 
@@ -240,7 +239,7 @@
                 attemptCount++;
             }
             if (!validConfiguration) {
-                 console.error('Could not find a valid configuration after 200 attempts.');
+                 console.error('Could not find a valid configuration after 500 attempts.');
                  return;
             }
 
