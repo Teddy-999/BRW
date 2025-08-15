@@ -2,153 +2,168 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Symmetric Lodge Generator</title>
+<title>Symmetric Lodge</title>
 <style>
-body { display:flex; flex-direction:column; align-items:center; font-family:sans-serif; background:#f0f0f0; }
-#board { position:relative; width:800px; height:700px; margin-top:20px; }
-.hex { position:absolute; width:80px; height:70px;
-       clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-       display:flex; align-items:center; justify-content:center; color:white;
-       font-size:12px; text-align:center; border:2px solid #333; box-sizing:border-box; }
-.black { background:#000; } .purple { background:purple; } .red { background:red; } .green { background:green; }
-.blue { background:blue; } .gray { background:gray; } .yellow { background:goldenrod; }
-.throne { border:3px solid gold; }
-button { margin-top:20px; padding:10px 20px; font-size:16px; }
+  #board { position: relative; width: 800px; height: 600px; margin: auto; }
+  .hex {
+    position: absolute;
+    width: 80px; height: 46.19px; /* width = 2 * radius, height = sqrt(3)/2 * width */
+    background-color: lightgray;
+    clip-path: polygon(
+      25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    color: white;
+    font-weight: bold;
+  }
+  .black { background: black; }
+  .purple { background: purple; }
+  .red { background: red; }
+  .green { background: green; }
+  .blue { background: blue; }
+  .gray { background: gray; }
+  .yellow { background: goldenrod; }
 </style>
 </head>
 <body>
-<h1>Symmetric Lodge Generator</h1>
+
 <button onclick="generateLodge()">Regenerate Lodge</button>
 <div id="board"></div>
+
 <script>
-const hexSize = 40, sqrt3 = Math.sqrt(3);
-const directions = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+const HEX_SIZE = 40;
+const directions = [
+  [1,0], [1,-1], [0,-1], [-1,0], [-1,1], [0,1]
+];
 
-// Utility functions
-function key(q,r){ return `${q},${r}`; }
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-function neighbors(tile,map){ return directions.map(([dq,dr])=>map[key(tile.q+dq,tile.r+dr)]).filter(t=>t); }
-function hexDistance(q,r){ return Math.max(Math.abs(q), Math.abs(r), Math.abs(-q-r)); }
+// Rooms and color counts
+const colorCounts = {black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3};
+const roomsByColor = {
+  black: ["Black Rose Room"],
+  purple: ["Throne Room 1","Throne Room 2","Throne Room 3"],
+  red: ["Red Room 1","Red Room 2","Red Room 3"],
+  green: ["Green Room 1","Green Room 2","Green Room 3"],
+  blue: ["Blue Room 1","Blue Room 2","Blue Room 3"],
+  gray: ["Gray Room 1","Gray Room 2","Gray Room 3"],
+  yellow: ["Yellow Room 1","Yellow Room 2","Yellow Room 3"]
+};
 
-// --- 1. Grow symmetric lodge ---
-function buildLodge(){
-    let tilesMap = {};
-    let tiles = [];
-
-    // Center
-    let center = {q:0,r:0}; tilesMap[key(0,0)]=center; tiles.push(center);
-
-    // Ring 1 = 6 neighbors
-    for(let [dq,dr] of directions){
-        let t = {q:dq, r:dr}; tilesMap[key(dq,dr)] = t; tiles.push(t);
-    }
-
-    // Grow additional tiles symmetrically
-    let radius = 2;
-    while(tiles.length<19 && radius<=3){
-        let ringPositions = [];
-        for(let q=-radius;q<=radius;q++){
-            for(let r=Math.max(-radius,-q-radius); r<=Math.min(radius,-q+radius); r++){
-                if(!tilesMap[key(q,r)] && hexDistance(q,r)===radius){
-                    ringPositions.push({q,r});
-                }
-            }
-        }
-        shuffle(ringPositions);
-        for(let t of ringPositions){
-            if(tiles.length>=19) break;
-            // Minimum 2 neighbors check
-            let tempMap = {...tilesMap}; tempMap[key(t.q,t.r)] = t;
-            let n = neighbors(t,tempMap).length;
-            if(n>=2){
-                tilesMap[key(t.q,t.r)] = t;
-                tiles.push(t);
-            }
-        }
-        radius++;
-    }
-
-    return {tiles, tilesMap, center};
+function hexToPixel(q,r){
+  let x = HEX_SIZE * 3/2 * q;
+  let y = HEX_SIZE * Math.sqrt(3) * (r + q/2);
+  return [x, y];
 }
 
-// --- 2. Assign colors ---
-function assignColors(tiles, center){
-    const counts = {black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3};
-    let map = {}; tiles.forEach(t=>map[key(t.q,t.r)] = t);
-
-    // Center black
-    center.color = "black"; counts.black--;
-
-    // Throne Room = random from ring1 (neighbors of center)
-    let ring1 = neighbors(center,map);
-    shuffle(ring1);
-    let throne = ring1[0];
-    throne.color="purple"; counts.purple--;
-
-    // Order by descending degree
-    let order = tiles.slice().sort((a,b)=>neighbors(b,map).length - neighbors(a,map).length);
-
-    function bt(idx){
-        if(idx===order.length) return true;
-        let t = order[idx]; if(t.color) return bt(idx+1);
-        for(let color in counts){
-            if(counts[color]<=0) continue;
-            if(neighbors(t,map).some(n=>n.color===color)) continue;
-            t.color=color; counts[color]--; if(bt(idx+1)) return true; t.color=null; counts[color]++;
-        }
-        return false;
-    }
-
-    if(!bt(0)) throw new Error("Color assignment failed");
-    return {tiles, throne};
+function generateStructure(){
+  // Symmetric lodge centered at (0,0)
+  let tiles = [{q:0,r:0}]; // center
+  // Ring 1
+  for(let dir=0; dir<6; dir++){
+    let dq = directions[dir][0], dr = directions[dir][1];
+    tiles.push({q:dq,r:dr});
+  }
+  // Rings 2 and 3 (pick positions symmetrically)
+  let candidates = [
+    [2,0],[1,1],[0,2],[-1,2],[-2,1],[-2,0],[-1,-1],[0,-2],[1,-2],[2,-1]
+  ];
+  for(let c of candidates){
+    tiles.push({q:c[0], r:c[1]});
+    if(tiles.length >= 19) break;
+  }
+  return tiles;
 }
 
-// --- 3. Assign unique rooms ---
-function assignRooms(tiles, center, throne){
-    const fixedRooms = {black:"Black Rose Room", purple:"Throne Room"};
-    let otherRooms = [];
-    const colorCounts = {purple:2, red:3, green:3, blue:3, gray:3, yellow:3};
-    for(let c in colorCounts){
-        for(let i=1;i<=colorCounts[c];i++) otherRooms.push(`${c.charAt(0).toUpperCase()+c.slice(1)} Room ${i}`);
-    }
-    shuffle(otherRooms);
+function assignColorsAndRooms(tiles){
+  let tmap = {}; tiles.forEach(t => tmap[`${t.q},${t.r}`]=t);
+  
+  // Pre-assign center black and pick throne (any ring 1)
+  let center = tmap["0,0"];
+  center.color="black"; center.room = roomsByColor.black[0];
 
-    tiles.forEach(t=>{
-        if(t===center) t.room = fixedRooms.black;
-        else if(t===throne) t.room = fixedRooms.purple;
-        else t.room = otherRooms.pop();
-    });
+  let ring1 = tiles.filter(t=>Math.max(Math.abs(t.q),Math.abs(t.r),Math.abs(-t.q-t.r))===1);
+  let throneTile = ring1[Math.floor(Math.random()*ring1.length)];
+  throneTile.color="purple";
+  throneTile.room = roomsByColor.purple.shift();
+
+  // Assign remaining tiles
+  let remainingTiles = tiles.filter(t=>!t.color);
+  let remainingColors = [];
+  for(let color in colorCounts){
+    let count = colorCounts[color];
+    if(color==="black") continue;
+    if(color==="purple") count -= 1; // throne used
+    for(let i=0;i<count;i++) remainingColors.push(color);
+  }
+
+  function canPlace(tile,color){
+    for(let dir of directions){
+      let nq = tile.q+dir[0], nr = tile.r+dir[1];
+      let neighbor = tmap[`${nq},${nr}`];
+      if(neighbor && neighbor.color===color) return false;
+    }
+    return true;
+  }
+
+  function backtrack(idx){
+    if(idx>=remainingTiles.length) return true;
+    let tile = remainingTiles[idx];
+    shuffleArray(remainingColors);
+    for(let i=0;i<remainingColors.length;i++){
+      let color = remainingColors[i];
+      if(canPlace(tile,color)){
+        tile.color=color;
+        tile.room = roomsByColor[color].shift();
+        let saved = remainingColors.splice(i,1);
+        if(backtrack(idx+1)) return true;
+        remainingColors.splice(i,0,saved[0]);
+        tile.color=null;
+        tile.room=null;
+        roomsByColor[color].unshift(tile.room);
+      }
+    }
+    return false;
+  }
+  if(!backtrack(0)) console.error("Failed to assign colors/rooms");
 }
 
-// --- 4. Render ---
 function renderLodge(tiles){
-    const board = document.getElementById("board"); board.innerHTML="";
-    const offsetX = board.offsetWidth/2, offsetY = board.offsetHeight/2;
-    tiles.forEach(t=>{
-        const x = offsetX + hexSize*3/2*t.q;
-        const y = offsetY + hexSize*sqrt3*(t.r + t.q/2);
-        const div = document.createElement("div");
-        div.className = "hex " + t.color;
-        if(t.room.includes("Throne")) div.classList.add("throne");
-        div.style.left = (x-hexSize)+"px";
-        div.style.top = (y-hexSize)+"px";
-        div.innerHTML = t.room;
-        board.appendChild(div);
-    });
+  let board = document.getElementById("board");
+  board.innerHTML="";
+  // Centering
+  let xs = tiles.map(t=>hexToPixel(t.q,t.r)[0]);
+  let ys = tiles.map(t=>hexToPixel(t.q,t.r)[1]);
+  let minX = Math.min(...xs), maxX=Math.max(...xs);
+  let minY = Math.min(...ys), maxY=Math.max(...ys);
+  let offsetX = board.clientWidth/2 - (minX+maxX)/2;
+  let offsetY = board.clientHeight/2 - (minY+maxY)/2;
+
+  for(let t of tiles){
+    let [x,y] = hexToPixel(t.q,t.r);
+    let div = document.createElement("div");
+    div.className = `hex ${t.color}`;
+    div.style.left = (x+offsetX)+"px";
+    div.style.top = (y+offsetY)+"px";
+    div.innerHTML = t.room;
+    board.appendChild(div);
+  }
 }
 
-// --- Main ---
 function generateLodge(){
-    try{
-        let {tiles, tilesMap, center} = buildLodge();
-        let {tiles:coloredTiles, throne} = assignColors(tiles, center);
-        assignRooms(coloredTiles, center, throne);
-        renderLodge(coloredTiles);
-    }catch(e){
-        console.log("Retrying lodge generation...");
-        generateLodge();
-    }
+  let tiles = generateStructure();
+  assignColorsAndRooms(tiles);
+  renderLodge(tiles);
+}
+
+// Fisher-Yates shuffle
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
 }
 
 generateLodge();
