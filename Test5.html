@@ -10,11 +10,17 @@
 </style>
 </head>
 <body>
-
 <svg id="lodge" width="1000" height="1000"></svg>
 
 <script>
-const rooms = [
+const svg = document.getElementById("lodge");
+const HEX_SCALE = 1.25; // scaling factor for hex size
+const HEX_SIZE = 50 * HEX_SCALE; // base hex size
+
+const DIRECTIONS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+
+// Room list (name|color)
+const roomNames = [
   "Black Rose Room|black",
   "Throne Room|purple",
   "Purple Room 2|purple",
@@ -36,29 +42,25 @@ const rooms = [
   "Yellow Room 3|yellow"
 ];
 
-const size = 40 * 1.25;
-const svg = document.getElementById("lodge");
-const directions = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
-
-// Hex grid to pixel conversion (flat-topped)
+// Hex grid to pixel (rotated 90° clockwise)
 function hexToPixel(q, r) {
-  const x = size * 3/2 * q;
-  const y = size * Math.sqrt(3) * (r + q/2);
-  return [x, y];
+  const rotatedX = HEX_SIZE * Math.sqrt(3) * (r + q/2);
+  const rotatedY = -HEX_SIZE * 3/2 * q;
+  return [rotatedX + 500, rotatedY + 500]; // center in SVG
 }
 
 // Draw a hex
-function createHex(x, y, fill, name) {
+function drawHex(x, y, color, name) {
   let points = [];
   for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 180 * (60 * i + 30 + 90);
-    const px = x + size * Math.cos(angle);
-    const py = y + size * Math.sin(angle);
+    const angle = Math.PI / 180 * (60 * i + 30);
+    const px = x + HEX_SIZE * Math.cos(angle);
+    const py = y + HEX_SIZE * Math.sin(angle);
     points.push(`${px},${py}`);
   }
   const hex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
   hex.setAttribute("points", points.join(" "));
-  hex.setAttribute("fill", fill);
+  hex.setAttribute("fill", color);
   hex.setAttribute("stroke", "#000");
   hex.setAttribute("stroke-width", "2");
   svg.appendChild(hex);
@@ -70,111 +72,63 @@ function createHex(x, y, fill, name) {
   svg.appendChild(text);
 }
 
-// Generate axial coordinates within distance
-function generateCoords(maxDist=3) {
-  let coords = [];
-  for (let q=-maxDist; q<=maxDist; q++) {
-    for (let r=Math.max(-maxDist, -q-maxDist); r<=Math.min(maxDist, -q+maxDist); r++) {
-      coords.push([q,r]);
-    }
-  }
-  return coords;
-}
-
-// Get neighbors of a coord
-function neighbors(q,r) {
-  return directions.map(d=>[q+d[0], r+d[1]]);
-}
-
-// Check if room can be placed without violating same-color adjacency
-function canPlace(map, coord, roomColor) {
-  const [q,r] = coord;
-  let same = neighbors(q,r).some(([nq,nr])=>{
-    const key = `${nq},${nr}`;
-    return map.has(key) && map.get(key).split("|")[1] === roomColor;
-  });
-  return !same;
-}
-
-// Check if every room has >=2 neighbors (except center)
-function checkMinNeighbors(map) {
-  for (const [key,val] of map.entries()) {
-    if (val.startsWith("Black")) continue;
-    const [q,r] = key.split(",").map(Number);
-    const nCount = neighbors(q,r).filter(([nq,nr])=>map.has(`${nq},${nr}`)).length;
-    if (nCount < 2) return false;
-  }
-  return true;
-}
-
-// Shuffle array
-function shuffle(array) {
-  for (let i=array.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [array[i], array[j]]=[array[j], array[i]];
-  }
-  return array;
-}
-
-// Attempt to generate a valid lodge
+// Generate lodge
 function generateLodge() {
-  const coords = generateCoords(3);
-  const center = [0,0];
-  while (true) {
-    let map = new Map();
-    map.set("0,0", rooms[0]); // Black Rose Room
+  while(true) {
+    const lodge = new Map();
+    lodge.set("0,0", roomNames[0]); // Black Rose Room
 
-    // Throne Room adjacent to center
-    const adj = shuffle(neighbors(...center));
-    let thronePlaced = false;
-    for (let [q,r] of adj) {
-      if (coords.some(c=>c[0]===q && c[1]===r)) {
-        map.set(`${q},${r}`, rooms[1]);
-        thronePlaced = true;
-        break;
-      }
-    }
-    if (!thronePlaced) continue;
+    // Track used positions
+    const openPositions = [[0,0]];
 
-    // Remaining rooms
-    const remRooms = rooms.slice(2);
-    shuffle(remRooms);
-    const emptyCoords = shuffle(coords.filter(c=>{
-      const key = `${c[0]},${c[1]}`;
-      return !map.has(key);
-    }));
+    // Shuffle remaining rooms
+    const remainingRooms = roomNames.slice(1).sort(() => Math.random()-0.5);
 
     let success = true;
-    for (let room of remRooms) {
-      const [name, color] = room.split("|");
+
+    for(const room of remainingRooms) {
       let placed = false;
-      for (let i=0; i<emptyCoords.length; i++) {
-        const c = emptyCoords[i];
-        if (!canPlace(map, c, color)) continue;
-        map.set(`${c[0]},${c[1]}`, room);
-        emptyCoords.splice(i,1);
-        placed = true;
-        break;
+      const positions = [...openPositions].sort(() => Math.random()-0.5);
+
+      for(const [q,r] of positions) {
+        const neighbors = DIRECTIONS.map(d => [q+d[0], r+d[1]]);
+        for(const [nq,nr] of neighbors) {
+          const key = `${nq},${nr}`;
+          if(!lodge.has(key)) {
+            // Check adjacency >= 2 except for first ring
+            const adjacentCount = DIRECTIONS.reduce((acc,d)=>{
+              const neighborKey = `${nq+d[0]},${nr+d[1]}`;
+              return acc + (lodge.has(neighborKey)?1:0);
+            },0);
+            if(adjacentCount >= 1) {
+              lodge.set(key, room);
+              openPositions.push([nq,nr]);
+              placed = true;
+              break;
+            }
+          }
+        }
+        if(placed) break;
       }
-      if (!placed) {
+
+      if(!placed) {
         success = false;
-        break;
+        break; // restart
       }
     }
-    if (!success) continue;
 
-    if (checkMinNeighbors(map)) return map;
+    if(success) return lodge;
   }
 }
 
+// Draw lodge
 const lodge = generateLodge();
-const centerX = 500, centerY = 500;
-for (const [key,val] of lodge.entries()) {
+for(const [key, val] of lodge.entries()) {
   const [q,r] = key.split(",").map(Number);
   const [x,y] = hexToPixel(q,r);
-  createHex(centerX+x, centerY+y, val.split("|")[1], val.split("|")[0]);
+  const [name, color] = val.split("|");
+  drawHex(x, y, color, name);
 }
 </script>
-
 </body>
 </html>
