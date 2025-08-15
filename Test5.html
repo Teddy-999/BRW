@@ -9,7 +9,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #333;
             margin: 0;
             flex-direction: column;
@@ -46,7 +46,6 @@
         .hexagon:hover {
             transform: scale(1.1);
         }
-        /* The first row doesn't need the negative margin on its first tile */
         .hex-row:first-child .hexagon {
             margin-top: 5px;
         }
@@ -54,6 +53,12 @@
             background-color: #000;
             border-color: #f00;
             color: #f00;
+        }
+        .throne-room {
+            background-color: #a0a;
+            border-color: #fff;
+            color: #fff;
+            font-weight: bold;
         }
         .red { background-color: #a00; }
         .green { background-color: #0a0; }
@@ -102,46 +107,101 @@
             const gameBoard = document.getElementById('game-board');
             gameBoard.innerHTML = '';
 
-            const colors = ['red', 'red', 'red', 'green', 'green', 'green', 'yellow', 'yellow', 'yellow', 'blue', 'blue', 'blue', 'purple', 'purple', 'purple', 'gray', 'gray', 'gray'];
-            shuffle(colors);
+            const hexRowsLayout = [3, 4, 5, 6, 5, 4, 3];
+            let allTiles = [];
+            let tileId = 0;
 
-            // A 19-tile hexagonal grid has rows of 3, 4, 5, 4, and 3 tiles.
-            const hexRows = [3, 4, 5, 4, 3];
-            let colorIndex = 0;
-
-            hexRows.forEach((numTiles, rowIndex) => {
-                const hexRow = document.createElement('div');
-                hexRow.classList.add('hex-row');
-                gameBoard.appendChild(hexRow);
-
+            // Generate an array of tile objects with a unique ID and their position
+            hexRowsLayout.forEach((numTiles, rowIndex) => {
                 for (let i = 0; i < numTiles; i++) {
-                    const hexagon = document.createElement('div');
-                    hexagon.classList.add('hexagon');
-
-                    let roomName = '';
-                    let roomColor = '';
-
-                    // The center tile is in the third row (index 2) and the middle position (index 2)
-                    if (rowIndex === 2 && i === 2) {
-                        hexagon.classList.add('black-rose');
-                        roomName = 'Black Rose Room';
-                    } else {
-                        roomColor = colors[colorIndex];
-                        hexagon.classList.add(roomColor);
-                        roomName = `Room - ${roomColor}`;
-                        colorIndex++;
-                    }
-                    hexagon.textContent = roomName;
-                    hexRow.appendChild(hexagon);
+                    allTiles.push({ id: tileId++, row: rowIndex, col: i });
                 }
             });
-        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            createBoard();
-            document.getElementById('recreate-button').addEventListener('click', createBoard);
-        });
-    </script>
+            // Pre-calculate adjacency for all tiles
+            const getAdjacent = (tile) => {
+                const adj = [];
+                const directions = [
+                    {r: 0, c: 1}, {r: 0, c: -1}, {r: 1, c: 0}, {r: -1, c: 0},
+                    {r: 1, c: -1}, {r: -1, c: 1} // For even rows/odd rows
+                ];
+                // Adjust for flat-top hex grid logic
+                const odd_directions = [
+                    {r: 0, c: 1}, {r: 0, c: -1}, {r: 1, c: 0}, {r: -1, c: 0},
+                    {r: 1, c: -1}, {r: -1, c: -1}
+                ];
+                const even_directions = [
+                    {r: 0, c: 1}, {r: 0, c: -1}, {r: 1, c: 0}, {r: -1, c: 0},
+                    {r: 1, c: 1}, {r: -1, c: 1}
+                ];
+                
+                const neighbors = tile.row % 2 === 0 ? even_directions : odd_directions;
+                
+                neighbors.forEach(dir => {
+                    const neighbor = allTiles.find(t => t.row === tile.row + dir.r && t.col === tile.col + dir.c);
+                    if (neighbor) {
+                        adj.push(neighbor.id);
+                    }
+                });
+                return adj;
+            };
 
-</body>
-</html>
+            // Main loop to find a valid color configuration
+            let validConfiguration = false;
+            let rooms = {};
+
+            do {
+                // Reset state for a new attempt
+                rooms = {};
+                allTiles.forEach(t => rooms[t.id] = { id: t.id, adj: getAdjacent(t), color: null, name: null });
+
+                // Define tile roles
+                const blackRoseId = allTiles[12].id; // Center of the 37 tiles
+                const nonBlackRoseTiles = allTiles.filter(t => t.id !== blackRoseId);
+                const firstRingIds = rooms[blackRoseId].adj;
+                const otherRooms = nonBlackRoseTiles.filter(t => !firstRingIds.includes(t.id));
+
+                // 1. Assign Black Rose Room
+                rooms[blackRoseId].color = 'black';
+                rooms[blackRoseId].name = 'Black Rose Room';
+
+                // 2. Assign Throne Room (purple) to a random adjacent spot
+                const throneRoomId = shuffle([...firstRingIds])[0];
+                rooms[throneRoomId].color = 'purple';
+                rooms[throneRoomId].name = 'Throne Room';
+
+                // 3. Prepare remaining rooms and colors
+                const allRoomIdsToColor = otherRooms.map(t => t.id);
+                const colorPool = shuffle([
+                    'red', 'red', 'red', 'red', 'red', 'red',
+                    'green', 'green', 'green', 'green', 'green', 'green',
+                    'yellow', 'yellow', 'yellow', 'yellow', 'yellow', 'yellow',
+                    'blue', 'blue', 'blue', 'blue', 'blue', 'blue',
+                    'purple', 'purple', 'purple', 'purple', 'purple',
+                    'gray', 'gray', 'gray', 'gray', 'gray', 'gray'
+                ]);
+
+                // 4. Try to assign colors without adjacency issues
+                let success = true;
+                const shuffledRoomsToColor = shuffle(allRoomIdsToColor);
+                for (let i = 0; i < shuffledRoomsToColor.length; i++) {
+                    const roomId = shuffledRoomsToColor[i];
+                    let assigned = false;
+                    for (let j = 0; j < colorPool.length; j++) {
+                        const color = colorPool[j];
+                        let isAdjacent = false;
+                        for (const neighborId of rooms[roomId].adj) {
+                            if (rooms[neighborId].color === color) {
+                                isAdjacent = true;
+                                break;
+                            }
+                        }
+                        if (!isAdjacent) {
+                            rooms[roomId].color = color;
+                            rooms[roomId].name = `Room - ${color}`;
+                            colorPool.splice(j, 1);
+                            assigned = true;
+                            break;
+                        }
+                    }
+                    if (!assigned
