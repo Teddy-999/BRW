@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Symmetric Lodge Generator</title>
+<title>Random Symmetric Lodge</title>
 <style>
 body { display:flex; flex-direction:column; align-items:center; font-family:sans-serif; background:#f0f0f0; }
 #board { position:relative; width:800px; height:700px; margin-top:20px; }
@@ -18,88 +18,117 @@ button { margin-top:20px; padding:10px 20px; font-size:16px; }
 </style>
 </head>
 <body>
-<h1>Symmetric Lodge Generator</h1>
+<h1>Random Symmetric Lodge Generator</h1>
 <button onclick="generateLodge()">Regenerate Lodge</button>
 <div id="board"></div>
 <script>
-const hexSize=40, sqrt3=Math.sqrt(3);
-const directions=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
-const rooms={black:["Black Rose Room"],purple:["Throne Room 1","Throne Room 2","Throne Room 3"],
-red:["Red Room 1","Red Room 2","Red Room 3"],green:["Green Room 1","Green Room 2","Green Room 3"],
-blue:["Blue Room 1","Blue Room 2","Blue Room 3"],gray:["Gray Room 1","Gray Room 2","Gray Room 3"],
-yellow:["Yellow Room 1","Yellow Room 2","Yellow Room 3"]};
+const hexSize = 40, sqrt3 = Math.sqrt(3);
+const directions = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
 
-function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr;}
-function key(q,r){return `${q},${r}`;}
-function neighbors(tile,map){let n=[];directions.forEach(([dq,dr])=>{let k=key(tile.q+dq,tile.r+dr); if(map[k]) n.push(map[k]);}); return n;}
-function isConnected(map){let ks=Object.keys(map); if(!ks.length) return true; let visited={}; function dfs(k){visited[k]=true; neighbors(map[k],map).forEach(n=>{let nk=key(n.q,n.r); if(!visited[nk]) dfs(nk);}); } dfs(ks[0]); return Object.keys(visited).length===ks.length;}
-function isBiconnected(map){const ks=Object.keys(map); if(ks.length<=2) return true; let visited={}, parent={}, low={}, disc={}, time=0, hasArt=false; function dfs(u,par){visited[u]=true; disc[u]=low[u]=++time; let children=0; neighbors(map[u],map).forEach(v=>{let vk=key(v.q,v.r); if(!visited[vk]){children++; parent[vk]=u; dfs(vk,u); low[u]=Math.min(low[u],low[vk]); if(par!==null && low[vk]>=disc[u]) hasArt=true;} else if(vk!==par){low[u]=Math.min(low[u],disc[vk]);} }); if(par===null && children>1) hasArt=true;} dfs(ks[0],null); return !hasArt;}
+function key(q,r){ return `${q},${r}`; }
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function neighbors(tile,map){ return directions.map(([dq,dr])=>map[key(tile.q+dq,tile.r+dr)]).filter(t=>t); }
 
-// Build a symmetric 19-tile shape around center
-function buildSymmetricShape(){
-  let tilesMap={}, tiles=[{q:0,r:0}]; tilesMap[key(0,0)]={q:0,r:0};
-  let pairs=[ [ [1,0], [-1,0] ], [ [1,-1], [-1,1] ], [ [0,-1], [0,1] ], [ [2,0], [-2,0] ], [ [2,-1], [-2,1] ],
-              [ [1,-2], [-1,2] ], [ [0,-2], [0,2] ], [ [2,-2], [-2,2] ], [ [3,-1], [-3,1] ] ];
-  for(let [a,b] of pairs){
-    tiles.push({q:a[0],r:a[1]}); tiles.push({q:b[0],r:b[1]});
-    tilesMap[key(a[0],a[1])]={q:a[0],r:a[1]};
-    tilesMap[key(b[0],b[1])]={q:b[0],r:b[1]};
-    if(tiles.length>=19) break;
-  }
-  return tiles.slice(0,19);
+// --- 1. Build symmetric tile positions ---
+function buildRandomSymmetricShape(){
+    const tilesMap = {};
+    const tiles = [{q:0,r:0}]; 
+    tilesMap[key(0,0)] = tiles[0];
+    let frontier = [[1,0]]; // start first ring
+
+    while(tiles.length < 19){
+        if(frontier.length === 0) break;
+        const idx = Math.floor(Math.random() * frontier.length);
+        const [q,r] = frontier.splice(idx,1)[0];
+        const mirror = [-q,-r];
+        [[q,r], mirror].forEach(([mq,mr])=>{
+            const k = key(mq,mr);
+            if(!tilesMap[k] && tiles.length < 19){
+                let tile = {q:mq,r:mr};
+                tiles.push(tile);
+                tilesMap[k] = tile;
+                directions.forEach(([dq,dr])=>{
+                    const nk = key(mq+dq,mr+dr);
+                    if(!tilesMap[nk]) frontier.push([mq+dq,mr+dr]);
+                });
+            }
+        });
+    }
+    return tiles.slice(0,19);
 }
 
-// Assign colors
+// --- 2. Assign colors with adjacency constraints ---
 function assignColors(tiles){
-  const counts={black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3};
-  let map={}; tiles.forEach(t=>map[key(t.q,t.r)]=t);
-  let order=tiles.slice().sort((a,b)=>neighbors(b,map).length-neighbors(a,map).length);
-  order[0].color="black"; counts.black--;
-  let ring1=neighbors(order[0],map);
-  let throne=ring1[Math.floor(Math.random()*ring1.length)]; throne.color="purple"; counts.purple--;
-  function bt(idx){
-    if(idx===order.length) return true;
-    let t=order[idx]; if(t.color) return bt(idx+1);
-    for(let color in counts){
-      if(counts[color]<=0) continue;
-      if(neighbors(t,map).some(n=>n.color===color)) continue;
-      t.color=color; counts[color]--; if(bt(idx+1)) return true; t.color=null; counts[color]++;}
-    return false;
-  }
-  bt(0); return tiles;
+    const counts = {black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3};
+    let map = {}; tiles.forEach(t=>map[key(t.q,t.r)] = t);
+
+    // order by descending degree
+    let order = tiles.slice().sort((a,b)=>neighbors(b,map).length - neighbors(a,map).length);
+    order[0].color = "black"; counts.black--;
+
+    // throne randomly in first ring
+    let ring1 = neighbors(order[0], map);
+    let throne = ring1[Math.floor(Math.random()*ring1.length)];
+    throne.color = "purple"; counts.purple--;
+
+    function bt(idx){
+        if(idx === order.length) return true;
+        let t = order[idx]; if(t.color) return bt(idx+1);
+        for(let color in counts){
+            if(counts[color] <= 0) continue;
+            if(neighbors(t,map).some(n=>n.color===color)) continue;
+            t.color = color; counts[color]--; if(bt(idx+1)) return true; t.color=null; counts[color]++;
+        }
+        return false;
+    }
+    if(!bt(0)) throw new Error("Color assignment failed");
+    return tiles;
 }
 
-// Assign rooms
-function assignRooms(tiles){
-  let colorRooms={}; for(let c in rooms) colorRooms[c]=rooms[c].slice();
-  tiles.forEach(t=>{
-    let arr=colorRooms[t.color]; if(!arr || !arr.length) t.room="Unknown"; else t.room=arr.splice(Math.floor(Math.random()*arr.length),1)[0];
-  });
+// --- 3. Assign 19 unique rooms ---
+function assignRoomsUnique(tiles){
+    const fixedRooms = {black:"Black Rose Room", purple:"Throne Room"};
+    let otherRooms = [];
+    const colorCounts = {purple:2, red:3, green:3, blue:3, gray:3, yellow:3}; // remaining counts after fixed
+    for(let c in colorCounts){
+        for(let i=1;i<=colorCounts[c];i++) otherRooms.push(`${c.charAt(0).toUpperCase()+c.slice(1)} Room ${i}`);
+    }
+    shuffle(otherRooms);
+
+    tiles.forEach(t=>{
+        if(t.color==="black") t.room = fixedRooms.black;
+        else if(t.color==="purple" && !t.room) t.room = fixedRooms.purple;
+        else t.room = otherRooms.pop();
+    });
 }
 
-// Render
+// --- 4. Render ---
 function renderLodge(tiles){
-  const board=document.getElementById("board"); board.innerHTML="";
-  const offsetX=board.offsetWidth/2, offsetY=board.offsetHeight/2;
-  tiles.forEach(t=>{
-    const x=offsetX+hexSize*3/2*t.q;
-    const y=offsetY+hexSize*sqrt3*(t.r+t.q/2);
-    const div=document.createElement("div");
-    div.className="hex "+t.color; if(t.color==="purple" && t.room.includes("Throne")) div.classList.add("throne");
-    div.style.left=(x-hexSize)+"px"; div.style.top=(y-hexSize)+"px"; div.innerHTML=t.room;
-    board.appendChild(div);
-  });
+    const board = document.getElementById("board"); board.innerHTML="";
+    const offsetX = board.offsetWidth/2, offsetY = board.offsetHeight/2;
+    tiles.forEach(t=>{
+        const x = offsetX + hexSize*3/2*t.q;
+        const y = offsetY + hexSize*sqrt3*(t.r + t.q/2);
+        const div = document.createElement("div");
+        div.className = "hex " + t.color;
+        if(t.color==="purple" && t.room.includes("Throne")) div.classList.add("throne");
+        div.style.left = (x-hexSize)+"px";
+        div.style.top = (y-hexSize)+"px";
+        div.innerHTML = t.room;
+        board.appendChild(div);
+    });
 }
 
-// Main
+// --- 5. Main ---
 function generateLodge(){
-  let tiles=buildSymmetricShape();
-  tiles=assignColors(tiles);
-  assignRooms(tiles);
-  renderLodge(tiles);
+    let tiles = buildRandomSymmetricShape();
+    tiles = assignColors(tiles);
+    assignRoomsUnique(tiles);
+    renderLodge(tiles);
 }
 
 generateLodge();
 </script>
 </body>
 </html>
+
