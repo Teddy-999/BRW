@@ -17,9 +17,9 @@
             color: #eee;
         }
         #game-board {
-            display: grid;
-            grid-template-columns: repeat(5, 80px);
-            grid-gap: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .hex-row {
             display: flex;
@@ -27,10 +27,11 @@
         }
         .hexagon {
             width: 80px;
-            height: 92px; /* Adjusted height for flat-top hex */
+            height: 92px; /* Height for flat-top hex */
             position: relative;
             background: #555;
             margin: 5px;
+            margin-top: -24px; /* Correct margin for overlap */
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             display: flex;
             justify-content: center;
@@ -45,6 +46,10 @@
         .hexagon:hover {
             transform: scale(1.1);
         }
+        /* The first row doesn't need the negative margin on its first tile */
+        .hex-row:first-child .hexagon {
+            margin-top: 5px;
+        }
         .black-rose {
             background-color: #000;
             border-color: #f00;
@@ -57,7 +62,7 @@
         .purple { background-color: #a0a; }
         .gray { background-color: #777; }
         .button-container {
-            margin-top: 20px;
+            margin-top: 30px;
         }
         button {
             padding: 10px 20px;
@@ -100,6 +105,7 @@
             const colors = ['red', 'red', 'red', 'green', 'green', 'green', 'yellow', 'yellow', 'yellow', 'blue', 'blue', 'blue', 'purple', 'purple', 'purple', 'gray', 'gray', 'gray'];
             shuffle(colors);
 
+            // A 19-tile hexagonal grid has rows of 3, 4, 5, 4, and 3 tiles.
             const hexRows = [3, 4, 5, 4, 3];
             let colorIndex = 0;
 
@@ -115,7 +121,7 @@
                     let roomName = '';
                     let roomColor = '';
 
-                    // Check for the center tile
+                    // The center tile is in the third row (index 2) and the middle position (index 2)
                     if (rowIndex === 2 && i === 2) {
                         hexagon.classList.add('black-rose');
                         roomName = 'Black Rose Room';
