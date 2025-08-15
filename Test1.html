@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8" />
-<title>Black Rose Lodge — Symmetric Holes, No Adjacent Same Color</title>
+<title>Black Rose Lodge — Symmetric Holes, Min-Degree ≥ 2</title>
 <style>
   :root {
     /* 30% larger than 34px => ~44px */
@@ -83,7 +83,7 @@
 </style>
 </head>
 <body>
-  <h1>Black Rose Lodge (Radius 3, Symmetric Holes, No Adjacent Same Color)</h1>
+  <h1>Black Rose Lodge (Radius 3, Symmetric Holes, Min-Degree ≥ 2)</h1>
   <div class="toolbar">
     <button id="regen">Regenerate</button>
   </div>
@@ -181,96 +181,104 @@ function mirrorKey(k){
   const {q,r} = unkey(k);
   return key(-q,-r);
 }
+function buildAdjacency(keysSet){
+  const adj = new Map();
+  for (const k of keysSet) adj.set(k, []);
+  for (const k of keysSet) {
+    const {q,r} = unkey(k);
+    for (const [nq,nr] of neighbors(q,r)) {
+      const nk = key(nq,nr);
+      if (keysSet.has(nk)) adj.get(k).push(nk);
+    }
+  }
+  return adj;
+}
 function isConnected(setKeys){
   if (setKeys.size === 0) return true;
-  const start = CENTER_KEY;
-  if (!setKeys.has(start)) return false;
-  const q = [];
-  const seen = new Set([start]);
-  q.push(start);
+  if (!setKeys.has(CENTER_KEY)) return false;
+  const q = [CENTER_KEY];
+  const seen = new Set([CENTER_KEY]);
   while (q.length){
     const cur = q.shift();
-    const {q:Q, r:R} = unkey(cur);
-    for (const [nq,nr] of neighbors(Q,R)){
-      const nk = key(nq,nr);
-      if (setKeys.has(nk) && !seen.has(nk)){
-        seen.add(nk);
-        q.push(nk);
-      }
+    for (const nk of buildAdjacency(setKeys).get(cur)) {
+      if (!seen.has(nk)) { seen.add(nk); q.push(nk); }
     }
   }
   return seen.size === setKeys.size;
 }
+function minDegreeAtLeast(setKeys, minDeg){
+  const adj = buildAdjacency(setKeys);
+  for (const [k, ns] of adj) {
+    if (ns.length < minDeg) return false;
+  }
+  return true;
+}
 
 /* =========================
-   Shape with symmetric holes:
+   Shape with symmetric holes and min-degree≥2:
    - Start with full radius-3 set
    - Keep central ring (dist 1) fully intact
    - Pick random throne on the ring (dist 1)
    - Remove symmetric pairs from rings 2 and 3
-     until exactly 19 tiles remain, preserving connectivity
+     while preserving connectivity AND min-degree≥2
+     until exactly 19 tiles remain
    ========================= */
-function buildSymmetricShapeWithHoles() {
-  const all = buildRadius3Set();           // 37 tiles
-  const ring1 = new Set(ringKeys(1));      // 6 tiles
-  const ring2 = new Set(ringKeys(2));
-  const ring3 = new Set(ringKeys(3));
+function buildSymmetricShapeWithHoles_MinDeg2(maxRetries=200) {
+  for (let attempt=0; attempt<maxRetries; attempt++) {
+    const all = buildRadius3Set();           // 37 tiles
+    const ring1 = new Set(ringKeys(1));      // 6 tiles
 
-  // Pick random throne on ring 1
-  const ring1Arr = Array.from(ring1);
-  const throneKey = ring1Arr[Math.floor(Math.random()*ring1Arr.length)];
+    // throne on random ring-1 tile
+    const ring1Arr = shuffle(Array.from(ring1));
+    const throneKey = ring1Arr[0];
 
-  // We must keep: center + all ring1 (intact)
-  // We'll remove only from rings 2 and 3, in symmetric pairs
-  let shape = new Set(all); // copy
-  // target size
-  const TARGET = 19;
-  const toRemoveCount = shape.size - TARGET; // 18
+    // We keep center + all ring1 intact
+    let shape = new Set(all);
+    const TARGET = 19;
+    const toRemoveCount = shape.size - TARGET; // 18
 
-  // Build list of candidate symmetric pairs from ring2 and ring3
-  const cand = [];
-  const blocked = new Set([...ring1, CENTER_KEY]); // cannot remove
-  const seen = new Set();
-  for (const k of shape) {
-    if (blocked.has(k)) continue;
-    const mk = mirrorKey(k);
-    if (seen.has(k) || seen.has(mk)) continue;
-    if (!shape.has(mk)) continue; // just in case
-    // both must be in rings 2 or 3
-    const dist = axialDistance(unkey(k), {q:0,r:0});
-    const mdist = axialDistance(unkey(mk), {q:0,r:0});
-    if (dist >= 2 && dist <= 3 && mdist >= 2 && mdist <= 3) {
-      cand.push([k,mk]);
-      seen.add(k); seen.add(mk);
+    // Build candidate symmetric pairs from rings 2 and 3 (not ring1 or center)
+    const cand = [];
+    const blocked = new Set([...ring1, CENTER_KEY]);
+    const seen = new Set();
+    for (const k of shape) {
+      if (blocked.has(k)) continue;
+      const mk = mirrorKey(k);
+      if (seen.has(k) || seen.has(mk)) continue;
+      if (!shape.has(mk)) continue;
+      const d1 = axialDistance(unkey(k), {q:0,r:0});
+      const d2 = axialDistance(unkey(mk), {q:0,r:0});
+      if (d1 >= 2 && d1 <= 3 && d2 >= 2 && d2 <= 3) {
+        cand.push([k,mk]);
+        seen.add(k); seen.add(mk);
+      }
     }
-  }
-  shuffle(cand);
+    shuffle(cand);
 
-  // Greedily remove pairs while preserving connectivity
-  let removed = 0;
-  for (const [a,b] of cand) {
-    if (removed >= toRemoveCount) break;
-    // tentative removal
-    if (!shape.has(a) || !shape.has(b)) continue;
-    shape.delete(a);
-    shape.delete(b);
-    if (!isConnected(shape)) {
-      // revert if disconnects
-      shape.add(a);
-      shape.add(b);
-      continue;
+    let removed = 0;
+
+    // Greedy removal respecting connectivity AND min-degree≥2
+    while (removed < toRemoveCount && cand.length) {
+      const [a,b] = cand.pop();
+      if (!shape.has(a) || !shape.has(b)) continue;
+
+      // tentative removal
+      shape.delete(a); shape.delete(b);
+
+      if (!isConnected(shape) || !minDegreeAtLeast(shape, 2)) {
+        // revert if invalid
+        shape.add(a); shape.add(b);
+        continue;
+      }
+      removed += 2;
     }
-    removed += 2;
-  }
 
-  // In rare cases, we might not reach TARGET by greedy removal (very unlikely).
-  // Simple retry if needed.
-  if (shape.size !== TARGET) {
-    return buildSymmetricShapeWithHoles();
+    if (shape.size === TARGET && isConnected(shape) && minDegreeAtLeast(shape, 2)) {
+      return { shape, throneKey };
+    }
+    // else retry with a new shuffle
   }
-
-  // ensure throneKey is still present (ring1 intact so yes)
-  return { shape, throneKey };
+  throw new Error("Failed to build a valid symmetric shape with min-degree ≥ 2 after several attempts.");
 }
 
 /* =========================
@@ -290,25 +298,10 @@ const COLOR_COUNTS = {
   gold: 3
 };
 
-function buildAdjacency(keysSet){
-  const adj = new Map();
-  for (const k of keysSet) adj.set(k, []);
-  for (const k of keysSet) {
-    const {q,r} = unkey(k);
-    for (const [nq,nr] of neighbors(q,r)) {
-      const nk = key(nq,nr);
-      if (keysSet.has(nk)) {
-        adj.get(k).push(nk);
-      }
-    }
-  }
-  return adj;
-}
-
 function assignColors(shapeSet, throneKey){
   const adj = buildAdjacency(shapeSet);
 
-  // Order nodes by descending degree (harder first), but keep center first
+  // Order nodes by descending degree (harder first)
   const nodes = [...shapeSet];
   nodes.sort((a,b) => adj.get(b).length - adj.get(a).length);
 
@@ -316,50 +309,37 @@ function assignColors(shapeSet, throneKey){
   const colorOf = new Map();
   const counts = JSON.parse(JSON.stringify(COLOR_COUNTS)); // clone
 
-  colorOf.set(CENTER_KEY, 'black');
-  counts.black -= 1;
+  colorOf.set(CENTER_KEY, 'black'); counts.black -= 1;
+  colorOf.set(throneKey, 'purple'); counts.purple -= 1;
 
-  colorOf.set(throneKey, 'purple');
-  counts.purple -= 1;
-
-  // Build list of nodes to color (exclude fixed)
   const toColor = nodes.filter(k => k !== CENTER_KEY && k !== throneKey);
 
-  // Backtracking
   function backtrack(i){
     if (i >= toColor.length) return true;
     const node = toColor[i];
     const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
 
-    // Try all colors with remaining count and not used by neighbors
     const tryColors = Object.keys(counts)
       .filter(c => counts[c] > 0 && !used.has(c));
-    shuffle(tryColors); // randomize solutions
+    shuffle(tryColors);
 
     for (const c of tryColors) {
       colorOf.set(node, c);
       counts[c]--;
       if (backtrack(i+1)) return true;
-      // undo
       counts[c]++;
       colorOf.delete(node);
     }
     return false;
   }
 
-  const ok = backtrack(0);
-  if (!ok) {
-    // Retry by regenerating shape (rare) or reshuffling order
-    return null;
-  }
-  return colorOf;
+  return backtrack(0) ? colorOf : null;
 }
 
 /* =========================
    Map colors to specific rooms (unique)
    ========================= */
 function mapRooms(colorMap){
-  // Split room pools by color
   const pools = {};
   for (const r of ROOMS) {
     if (!pools[r.color]) pools[r.color] = [];
@@ -419,40 +399,15 @@ function render(boardEl, shapeSet, roomMap){
    Generate one valid lodge
    ========================= */
 function generateLodge(){
-  // Build shape with symmetric holes and ring-1 intact
-  const {shape, throneKey} = buildSymmetricShapeWithHoles();
-
-  // Assign colors with constraints. Retry a few times if needed.
-  let colorMap = null;
-  for (let tries=0; tries<25 && !colorMap; tries++){
-    colorMap = assignColors(shape, throneKey);
-    if (!colorMap) {
-      // if failed, rebuild shape and try again
-      const rebuilt = buildSymmetricShapeWithHoles();
-      shape.clear();
-      for (const k of rebuilt.shape) shape.add(k);
-      // throneKey becomes:
-      const tk = rebuilt.throneKey;
-      // reassign with new shape & throne
-      const attempt = assignColors(shape, tk);
-      if (attempt) {
-        colorMap = attempt;
-        // Also fix the throneKey in colorMap to match tk (it should already)
-        // Update reference for room mapping/render
-        return { shape, colorMap, throneKey: tk };
-      }
+  // Try multiple times to find a colorable shape
+  for (let tries=0; tries<50; tries++){
+    const { shape, throneKey } = buildSymmetricShapeWithHoles_MinDeg2();
+    const colorMap = assignColors(shape, throneKey);
+    if (colorMap) {
+      return { shape, colorMap };
     }
   }
-  if (!colorMap) {
-    // last resort: rebuild and force
-    const rebuilt = buildSymmetricShapeWithHoles();
-    const attempt = assignColors(rebuilt.shape, rebuilt.throneKey);
-    if (!attempt) {
-      throw new Error("Could not assign colors under constraints after several attempts.");
-    }
-    return { shape: rebuilt.shape, colorMap: attempt, throneKey: rebuilt.throneKey };
-  }
-  return { shape, colorMap, throneKey };
+  throw new Error("Could not assign colors under constraints after several attempts.");
 }
 
 function assignRoomsAndRender(){
