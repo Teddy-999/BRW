@@ -18,22 +18,19 @@
         }
         #game-board {
             display: grid;
-            grid-template-columns: repeat(5, 80px); /* Adjust column count for layout */
+            grid-template-columns: repeat(5, 80px);
             grid-gap: 5px;
-            transform: rotate(30deg); /* Rotate the grid to orient the hexagons */
         }
-        .hex-container {
-            width: 80px;
-            height: 80px;
-            transform: rotate(-30deg); /* Counter-rotate the hexagons */
+        .hex-row {
             display: flex;
             justify-content: center;
-            align-items: center;
         }
         .hexagon {
             width: 80px;
-            height: 80px;
-            background-color: #555;
+            height: 92px; /* Adjusted height for flat-top hex */
+            position: relative;
+            background: #555;
+            margin: 5px;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             display: flex;
             justify-content: center;
@@ -43,15 +40,36 @@
             box-sizing: border-box;
             border: 2px solid #444;
             transition: transform 0.2s ease-in-out;
+            cursor: pointer;
         }
         .hexagon:hover {
             transform: scale(1.1);
-            background-color: #777;
         }
         .black-rose {
-            background-color: #222;
-            border-color: #000;
+            background-color: #000;
+            border-color: #f00;
             color: #f00;
+        }
+        .red { background-color: #a00; }
+        .green { background-color: #0a0; }
+        .yellow { background-color: #aa0; }
+        .blue { background-color: #00a; }
+        .purple { background-color: #a0a; }
+        .gray { background-color: #777; }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #555;
+            color: #eee;
+            border: 1px solid #777;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #777;
         }
     </style>
 </head>
@@ -59,56 +77,63 @@
 
     <h1>Hexagonal Game Board</h1>
     <div id="game-board"></div>
+    <div class="button-container">
+        <button id="recreate-button">Recreate Lodge</button>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Fisher-Yates shuffle algorithm
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function createBoard() {
             const gameBoard = document.getElementById('game-board');
-            const boardData = [
-                // Rows of tiles, 'x' for empty space, 0 for tile
-                'xx000',
-                'x0000',
-                '00000',
-                '0000x',
-                '000xx'
-            ];
+            gameBoard.innerHTML = '';
 
-            const hexLayout = [
-                // Coordinates for a symmetric hexagonal grid of 19 tiles
-                // Top row
-                { row: 0, col: 2 }, { row: 0, col: 3 }, { row: 0, col: 4 },
-                // Second row
-                { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 }, { row: 1, col: 4 },
-                // Middle row
-                { row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 }, { row: 2, col: 3 }, { row: 2, col: 4 },
-                // Fourth row
-                { row: 3, col: 0 }, { row: 3, col: 1 }, { row: 3, col: 2 }, { row: 3, col: 3 },
-                // Bottom row
-                { row: 4, col: 0 }, { row: 4, col: 1 }, { row: 4, col: 2 }
-            ];
+            const colors = ['red', 'red', 'red', 'green', 'green', 'green', 'yellow', 'yellow', 'yellow', 'blue', 'blue', 'blue', 'purple', 'purple', 'purple', 'gray', 'gray', 'gray'];
+            shuffle(colors);
 
-            const totalRooms = 19;
-            let rooms = Array.from({ length: totalRooms }, (_, i) => i + 1);
-            const blackRoseIndex = Math.floor(totalRooms / 2); // Center tile is index 9 (0-indexed)
+            const hexRows = [3, 4, 5, 4, 3];
+            let colorIndex = 0;
 
-            hexLayout.forEach((pos, index) => {
-                const hexContainer = document.createElement('div');
-                hexContainer.classList.add('hex-container');
-                hexContainer.style.gridRow = pos.row + 1;
-                hexContainer.style.gridColumn = pos.col + 1;
+            hexRows.forEach((numTiles, rowIndex) => {
+                const hexRow = document.createElement('div');
+                hexRow.classList.add('hex-row');
+                gameBoard.appendChild(hexRow);
 
-                const hexagon = document.createElement('div');
-                hexagon.classList.add('hexagon');
-                
-                let roomName = 'Room ' + rooms[index];
-                if (index === blackRoseIndex) {
-                    hexagon.classList.add('black-rose');
-                    roomName = 'Black Rose Room';
+                for (let i = 0; i < numTiles; i++) {
+                    const hexagon = document.createElement('div');
+                    hexagon.classList.add('hexagon');
+
+                    let roomName = '';
+                    let roomColor = '';
+
+                    // Check for the center tile
+                    if (rowIndex === 2 && i === 2) {
+                        hexagon.classList.add('black-rose');
+                        roomName = 'Black Rose Room';
+                    } else {
+                        roomColor = colors[colorIndex];
+                        hexagon.classList.add(roomColor);
+                        roomName = `Room - ${roomColor}`;
+                        colorIndex++;
+                    }
+                    hexagon.textContent = roomName;
+                    hexRow.appendChild(hexagon);
                 }
-
-                hexagon.textContent = roomName;
-                hexContainer.appendChild(hexagon);
-                gameBoard.appendChild(hexContainer);
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createBoard();
+            document.getElementById('recreate-button').addEventListener('click', createBoard);
         });
     </script>
 
