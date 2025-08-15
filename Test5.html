@@ -1,172 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Symmetric Lodge</title>
-<style>
-  #board { position: relative; width: 800px; height: 600px; margin: auto; }
-  .hex {
-    position: absolute;
-    width: 80px; height: 46.19px; /* width = 2 * radius, height = sqrt(3)/2 * width */
-    background-color: lightgray;
-    clip-path: polygon(
-      25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%
-    );
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 12px;
-    color: white;
-    font-weight: bold;
-  }
-  .black { background: black; }
-  .purple { background: purple; }
-  .red { background: red; }
-  .green { background: green; }
-  .blue { background: blue; }
-  .gray { background: gray; }
-  .yellow { background: goldenrod; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexagonal Game Board</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            margin: 0;
+            flex-direction: column;
+            font-family: sans-serif;
+            color: #eee;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 80px); /* Adjust column count for layout */
+            grid-gap: 5px;
+            transform: rotate(30deg); /* Rotate the grid to orient the hexagons */
+        }
+        .hex-container {
+            width: 80px;
+            height: 80px;
+            transform: rotate(-30deg); /* Counter-rotate the hexagons */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .hexagon {
+            width: 80px;
+            height: 80px;
+            background-color: #555;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+            text-align: center;
+            box-sizing: border-box;
+            border: 2px solid #444;
+            transition: transform 0.2s ease-in-out;
+        }
+        .hexagon:hover {
+            transform: scale(1.1);
+            background-color: #777;
+        }
+        .black-rose {
+            background-color: #222;
+            border-color: #000;
+            color: #f00;
+        }
+    </style>
 </head>
 <body>
 
-<button onclick="generateLodge()">Regenerate Lodge</button>
-<div id="board"></div>
+    <h1>Hexagonal Game Board</h1>
+    <div id="game-board"></div>
 
-<script>
-const HEX_SIZE = 40;
-const directions = [
-  [1,0], [1,-1], [0,-1], [-1,0], [-1,1], [0,1]
-];
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameBoard = document.getElementById('game-board');
+            const boardData = [
+                // Rows of tiles, 'x' for empty space, 0 for tile
+                'xx000',
+                'x0000',
+                '00000',
+                '0000x',
+                '000xx'
+            ];
 
-// Rooms and color counts
-const colorCounts = {black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3};
-const roomsByColor = {
-  black: ["Black Rose Room"],
-  purple: ["Throne Room 1","Throne Room 2","Throne Room 3"],
-  red: ["Red Room 1","Red Room 2","Red Room 3"],
-  green: ["Green Room 1","Green Room 2","Green Room 3"],
-  blue: ["Blue Room 1","Blue Room 2","Blue Room 3"],
-  gray: ["Gray Room 1","Gray Room 2","Gray Room 3"],
-  yellow: ["Yellow Room 1","Yellow Room 2","Yellow Room 3"]
-};
+            const hexLayout = [
+                // Coordinates for a symmetric hexagonal grid of 19 tiles
+                // Top row
+                { row: 0, col: 2 }, { row: 0, col: 3 }, { row: 0, col: 4 },
+                // Second row
+                { row: 1, col: 1 }, { row: 1, col: 2 }, { row: 1, col: 3 }, { row: 1, col: 4 },
+                // Middle row
+                { row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 }, { row: 2, col: 3 }, { row: 2, col: 4 },
+                // Fourth row
+                { row: 3, col: 0 }, { row: 3, col: 1 }, { row: 3, col: 2 }, { row: 3, col: 3 },
+                // Bottom row
+                { row: 4, col: 0 }, { row: 4, col: 1 }, { row: 4, col: 2 }
+            ];
 
-function hexToPixel(q,r){
-  let x = HEX_SIZE * 3/2 * q;
-  let y = HEX_SIZE * Math.sqrt(3) * (r + q/2);
-  return [x, y];
-}
+            const totalRooms = 19;
+            let rooms = Array.from({ length: totalRooms }, (_, i) => i + 1);
+            const blackRoseIndex = Math.floor(totalRooms / 2); // Center tile is index 9 (0-indexed)
 
-function generateStructure(){
-  // Symmetric lodge centered at (0,0)
-  let tiles = [{q:0,r:0}]; // center
-  // Ring 1
-  for(let dir=0; dir<6; dir++){
-    let dq = directions[dir][0], dr = directions[dir][1];
-    tiles.push({q:dq,r:dr});
-  }
-  // Rings 2 and 3 (pick positions symmetrically)
-  let candidates = [
-    [2,0],[1,1],[0,2],[-1,2],[-2,1],[-2,0],[-1,-1],[0,-2],[1,-2],[2,-1]
-  ];
-  for(let c of candidates){
-    tiles.push({q:c[0], r:c[1]});
-    if(tiles.length >= 19) break;
-  }
-  return tiles;
-}
+            hexLayout.forEach((pos, index) => {
+                const hexContainer = document.createElement('div');
+                hexContainer.classList.add('hex-container');
+                hexContainer.style.gridRow = pos.row + 1;
+                hexContainer.style.gridColumn = pos.col + 1;
 
-function assignColorsAndRooms(tiles){
-  let tmap = {}; tiles.forEach(t => tmap[`${t.q},${t.r}`]=t);
-  
-  // Pre-assign center black and pick throne (any ring 1)
-  let center = tmap["0,0"];
-  center.color="black"; center.room = roomsByColor.black[0];
+                const hexagon = document.createElement('div');
+                hexagon.classList.add('hexagon');
+                
+                let roomName = 'Room ' + rooms[index];
+                if (index === blackRoseIndex) {
+                    hexagon.classList.add('black-rose');
+                    roomName = 'Black Rose Room';
+                }
 
-  let ring1 = tiles.filter(t=>Math.max(Math.abs(t.q),Math.abs(t.r),Math.abs(-t.q-t.r))===1);
-  let throneTile = ring1[Math.floor(Math.random()*ring1.length)];
-  throneTile.color="purple";
-  throneTile.room = roomsByColor.purple.shift();
+                hexagon.textContent = roomName;
+                hexContainer.appendChild(hexagon);
+                gameBoard.appendChild(hexContainer);
+            });
+        });
+    </script>
 
-  // Assign remaining tiles
-  let remainingTiles = tiles.filter(t=>!t.color);
-  let remainingColors = [];
-  for(let color in colorCounts){
-    let count = colorCounts[color];
-    if(color==="black") continue;
-    if(color==="purple") count -= 1; // throne used
-    for(let i=0;i<count;i++) remainingColors.push(color);
-  }
-
-  function canPlace(tile,color){
-    for(let dir of directions){
-      let nq = tile.q+dir[0], nr = tile.r+dir[1];
-      let neighbor = tmap[`${nq},${nr}`];
-      if(neighbor && neighbor.color===color) return false;
-    }
-    return true;
-  }
-
-  function backtrack(idx){
-    if(idx>=remainingTiles.length) return true;
-    let tile = remainingTiles[idx];
-    shuffleArray(remainingColors);
-    for(let i=0;i<remainingColors.length;i++){
-      let color = remainingColors[i];
-      if(canPlace(tile,color)){
-        tile.color=color;
-        tile.room = roomsByColor[color].shift();
-        let saved = remainingColors.splice(i,1);
-        if(backtrack(idx+1)) return true;
-        remainingColors.splice(i,0,saved[0]);
-        tile.color=null;
-        tile.room=null;
-        roomsByColor[color].unshift(tile.room);
-      }
-    }
-    return false;
-  }
-  if(!backtrack(0)) console.error("Failed to assign colors/rooms");
-}
-
-function renderLodge(tiles){
-  let board = document.getElementById("board");
-  board.innerHTML="";
-  // Centering
-  let xs = tiles.map(t=>hexToPixel(t.q,t.r)[0]);
-  let ys = tiles.map(t=>hexToPixel(t.q,t.r)[1]);
-  let minX = Math.min(...xs), maxX=Math.max(...xs);
-  let minY = Math.min(...ys), maxY=Math.max(...ys);
-  let offsetX = board.clientWidth/2 - (minX+maxX)/2;
-  let offsetY = board.clientHeight/2 - (minY+maxY)/2;
-
-  for(let t of tiles){
-    let [x,y] = hexToPixel(t.q,t.r);
-    let div = document.createElement("div");
-    div.className = `hex ${t.color}`;
-    div.style.left = (x+offsetX)+"px";
-    div.style.top = (y+offsetY)+"px";
-    div.innerHTML = t.room;
-    board.appendChild(div);
-  }
-}
-
-function generateLodge(){
-  let tiles = generateStructure();
-  assignColorsAndRooms(tiles);
-  renderLodge(tiles);
-}
-
-// Fisher-Yates shuffle
-function shuffleArray(arr){
-  for(let i=arr.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-}
-
-generateLodge();
-</script>
 </body>
 </html>
