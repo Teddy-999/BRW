@@ -110,18 +110,10 @@
             {q: 1, r: -1}, {q: -1, r: 1}
         ];
 
-        // Maps hex coordinates to a linear index and an adjacency list for easy lookup
-        const hexBoard = {
-            adj: {},
-            map: {},
-            rooms: []
-        };
-
-        function getNeighbors(roomCoords) {
+        function getNeighbors(roomCoords, allRooms) {
             const neighbors = [];
             for (const dir of directions) {
-                const neighborKey = `${roomCoords.q + dir.q},${roomCoords.r + dir.r}`;
-                const neighbor = hexBoard.rooms.find(r => `${r.q},${r.r}` === neighborKey);
+                const neighbor = allRooms.find(r => r.q === roomCoords.q + dir.q && r.r === roomCoords.r + dir.r);
                 if (neighbor) {
                     neighbors.push(neighbor);
                 }
@@ -137,7 +129,7 @@
 
             while (queue.length > 0) {
                 const current = queue.shift();
-                const neighbors = getNeighbors(current);
+                const neighbors = getNeighbors(current, rooms);
                 for (const neighbor of neighbors) {
                     const coordString = `${neighbor.q},${neighbor.r}`;
                     if (!visited.has(coordString)) {
@@ -152,12 +144,13 @@
         function createBoard() {
             const gameBoard = document.getElementById('game-board');
             gameBoard.innerHTML = '';
-
+            
             let validConfiguration = false;
             let rooms = [];
             let attemptCount = 0;
+            const maxAttempts = 2000;
 
-            while (!validConfiguration && attemptCount < 500) {
+            while (!validConfiguration && attemptCount < maxAttempts) {
                 rooms = [];
                 const roomCoordinates = new Set();
                 
@@ -166,9 +159,7 @@
                 rooms.push({q: blackRosePos.q, r: blackRosePos.r, color: 'black-rose', name: 'Black Rose Room'});
                 roomCoordinates.add(JSON.stringify(blackRosePos));
                 
-                const ring1 = [];
                 for (const dir of directions) {
-                    ring1.push({q: dir.q, r: dir.r});
                     rooms.push({q: dir.q, r: dir.r, color: null, name: null});
                     roomCoordinates.add(JSON.stringify({q: dir.q, r: dir.r}));
                 }
@@ -179,7 +170,6 @@
                     for (let r = -3; r <= 3; r++) {
                         const s = -q - r;
                         if (Math.abs(q) + Math.abs(r) + Math.abs(s) > 6) continue;
-
                         const pos1 = {q: q, r: r};
                         const pos2 = {q: -q, r: -r};
 
@@ -223,9 +213,10 @@
                     let assignmentSuccess = true;
                     for (const room of remainingRooms) {
                         let assigned = false;
+                        const neighbors = getNeighbors(room, rooms);
                         for (let i = 0; i < colorPool.length; i++) {
                             const color = colorPool[i];
-                            const isAdjacent = getNeighbors(room.q, room.r, rooms).some(neighbor => neighbor.color === color);
+                            const isAdjacent = neighbors.some(neighbor => neighbor.color === color);
                             if (!isAdjacent) {
                                 room.color = color;
                                 room.name = `Room - ${color}`;
@@ -245,9 +236,13 @@
                 }
                 attemptCount++;
             }
+
             if (!validConfiguration) {
-                 console.error('Could not find a valid configuration after 500 attempts.');
+                 console.error(`Could not find a valid configuration after ${maxAttempts} attempts. Retrying...`);
+                 createBoard(); // Recursively retry if max attempts reached
                  return;
+            } else {
+                console.log(`Successfully generated a valid board after ${attemptCount} attempts.`);
             }
 
             // 5. Render the board
@@ -266,10 +261,6 @@
                 const hexRowDiv = document.createElement('div');
                 hexRowDiv.classList.add('hex-row');
                 
-                if (row % 2 !== 0) {
-                    hexRowDiv.classList.add('offset');
-                }
-
                 const sortedRooms = hexRows[row].sort((a, b) => a.q - b.q);
                 for (const room of sortedRooms) {
                     const hexagon = document.createElement('div');
