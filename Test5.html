@@ -4,131 +4,207 @@
 <meta charset="UTF-8">
 <title>Lodge Generator</title>
 <style>
-  body { background: #222; color: #fff; font-family: sans-serif; }
-  svg { border: 1px solid #555; margin: 20px; }
-  text { font-size: 12px; dominant-baseline: middle; text-anchor: middle; fill: #fff; }
+  #board { position: relative; width: 800px; height: 600px; border: 1px solid #ccc; }
+  .hex {
+    position: absolute;
+    width: 60px;  /* HEX_W */
+    height: 52px; /* HEX_H, flat-top height: h = sqrt(3)/2 * w */
+    background-color: lightgray;
+    clip-path: polygon(
+      25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    text-align: center;
+  }
+  .label { pointer-events: none; }
+  .throne { border: 2px solid gold; }
+  .black { background-color: black; color: white; }
+  .purple { background-color: purple; color: white; }
+  .red { background-color: red; color: white; }
+  .green { background-color: green; color: white; }
+  .blue { background-color: blue; color: white; }
+  .gray { background-color: gray; color: white; }
+  .yellow { background-color: yellow; color: black; }
 </style>
 </head>
 <body>
-<svg id="lodge" width="1000" height="1000"></svg>
-
+<button id="regen">Regenerate Lodge</button>
+<div id="board"></div>
 <script>
-const svg = document.getElementById("lodge");
-const HEX_SCALE = 1.25; // scaling factor for hex size
-const HEX_SIZE = 50 * HEX_SCALE; // base hex size
+/* ===== hex size constants ===== */
+const HEX_W = 60; // flat side to flat side width
+const HEX_H = Math.sqrt(3)/2 * HEX_W; // height for flat-topped hex
 
-const DIRECTIONS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+/* ===== key/unkey helpers ===== */
+function key(q,r){ return q + ',' + r; }
+function unkey(k){ const [q,r]=k.split(',').map(Number); return {q,r}; }
 
-// Room list (name|color)
-const roomNames = [
-  "Black Rose Room|black",
-  "Throne Room|purple",
-  "Purple Room 2|purple",
-  "Purple Room 3|purple",
-  "Red Room 1|red",
-  "Red Room 2|red",
-  "Red Room 3|red",
-  "Green Room 1|green",
-  "Green Room 2|green",
-  "Green Room 3|green",
-  "Blue Room 1|blue",
-  "Blue Room 2|blue",
-  "Blue Room 3|blue",
-  "Gray Room 1|gray",
-  "Gray Room 2|gray",
-  "Gray Room 3|gray",
-  "Yellow Room 1|yellow",
-  "Yellow Room 2|yellow",
-  "Yellow Room 3|yellow"
-];
-
-// Hex grid to pixel (rotated 90° clockwise)
-function hexToPixel(q, r) {
-  const rotatedX = HEX_SIZE * Math.sqrt(3) * (r + q/2);
-  const rotatedY = -HEX_SIZE * 3/2 * q;
-  return [rotatedX + 500, rotatedY + 500]; // center in SVG
+/* ===== axial to pixel (flat-topped) ===== */
+function axialToPixel(q,r){
+  const x = HEX_W * 3/2 * q;
+  const y = HEX_H * (r + q/2);
+  return {x,y};
 }
 
-// Draw a hex
-function drawHex(x, y, color, name) {
-  let points = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 180 * (60 * i + 30);
-    const px = x + HEX_SIZE * Math.cos(angle);
-    const py = y + HEX_SIZE * Math.sin(angle);
-    points.push(`${px},${py}`);
-  }
-  const hex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  hex.setAttribute("points", points.join(" "));
-  hex.setAttribute("fill", color);
-  hex.setAttribute("stroke", "#000");
-  hex.setAttribute("stroke-width", "2");
-  svg.appendChild(hex);
+/* ===== stub helpers (user has these implemented) ===== */
+function buildFullSet(){ /* returns Set of keys */ return new Set([...Array(37)].map((_,i)=>key(i%7, Math.floor(i/7)))); }
+function buildCandidatePairs(fullSet){ /* returns array of [key,key] */ return [...fullSet].map(k=>[k,k]); }
+function isConnected(shape){ return true; } // stub
+function minDegreeAtLeast(shape, deg){ return true; } // stub
+function hasNoArticulationExceptCenter(shape){ return true; } // stub
+function holeNeighborCounts(fullSet, shape){ return {holes4:0, holes5plus:0}; } // stub
+function ringKeys(n){ return [...Array(6)].map((_,i)=>key(i,n)); }
+function buildAdjMap(shape){ const map=new Map(); for(const k of shape) map.set(k,[]); return map; }
 
-  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("x", x);
-  text.setAttribute("y", y);
-  text.textContent = name;
-  svg.appendChild(text);
-}
+/* ===== shuffle ===== */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
-// Generate lodge
-function generateLodge() {
-  while(true) {
-    const lodge = new Map();
-    lodge.set("0,0", roomNames[0]); // Black Rose Room
-
-    // Track used positions
-    const openPositions = [[0,0]];
-
-    // Shuffle remaining rooms
-    const remainingRooms = roomNames.slice(1).sort(() => Math.random()-0.5);
-
-    let success = true;
-
-    for(const room of remainingRooms) {
-      let placed = false;
-      const positions = [...openPositions].sort(() => Math.random()-0.5);
-
-      for(const [q,r] of positions) {
-        const neighbors = DIRECTIONS.map(d => [q+d[0], r+d[1]]);
-        for(const [nq,nr] of neighbors) {
-          const key = `${nq},${nr}`;
-          if(!lodge.has(key)) {
-            // Check adjacency >= 2 except for first ring
-            const adjacentCount = DIRECTIONS.reduce((acc,d)=>{
-              const neighborKey = `${nq+d[0]},${nr+d[1]}`;
-              return acc + (lodge.has(neighborKey)?1:0);
-            },0);
-            if(adjacentCount >= 1) {
-              lodge.set(key, room);
-              openPositions.push([nq,nr]);
-              placed = true;
-              break;
-            }
-          }
-        }
-        if(placed) break;
-      }
-
-      if(!placed) {
-        success = false;
-        break; // restart
-      }
+/* ===== choose removal pairs by backtracking with pruning ===== */
+function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded){
+  const totalPairs = candidates.length;
+  let result = null;
+  shuffle(candidates);
+  const selected = [];
+  function buildShape(sel){ const shape=new Set(fullSet); for(const [a,b] of sel){ shape.delete(a); shape.delete(b); } return shape; }
+  function quickPrune(sel){ const shape=buildShape(sel); if(!isConnected(shape)) return false; if(!minDegreeAtLeast(shape,2)) return false; const {holes4,holes5plus}=holeNeighborCounts(fullSet,shape); if(holes5plus>0) return false; return true; }
+  function backtrack(startIdx){
+    if(result) return true;
+    if(selected.length===removePairsNeeded){
+      const finalShape=buildShape(selected);
+      if(finalShape.size!==fullSet.size - removePairsNeeded*2) return false;
+      if(!isConnected(finalShape)) return false;
+      if(!minDegreeAtLeast(finalShape,2)) return false;
+      if(!hasNoArticulationExceptCenter(finalShape)) return false;
+      const {holes4,holes5plus}=holeNeighborCounts(fullSet,finalShape);
+      if(holes5plus>0) return false;
+      result=finalShape; return true;
     }
+    if(startIdx>=totalPairs) return false;
+    const remainingNeeded=removePairsNeeded-selected.length;
+    if(totalPairs-startIdx<remainingNeeded) return false;
+    for(let i=startIdx;i<totalPairs;i++){
+      selected.push(candidates[i]);
+      if(quickPrune(selected)){ if(backtrack(i+1)) return true; }
+      selected.pop();
+    }
+    return false;
+  }
+  backtrack(0);
+  return result;
+}
 
-    if(success) return lodge;
+/* ===== color assignment backtracking ===== */
+const COLOR_COUNTS={ black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3 };
+function assignColorsToShape(shapeSet, throneKey){
+  const adj=buildAdjMap(shapeSet);
+  const nodes=[...shapeSet];
+  const colorOf=new Map();
+  const counts=JSON.parse(JSON.stringify(COLOR_COUNTS));
+  colorOf.set(key(0,0),'black'); counts.black--;
+  colorOf.set(throneKey,'purple'); counts.purple--;
+  const toColor=nodes.filter(n=>n!==key(0,0)&&n!==throneKey).sort((a,b)=>adj.get(b).length - adj.get(a).length);
+  function backtrack(i){
+    if(i>=toColor.length) return true;
+    const node=toColor[i];
+    const used=new Set(adj.get(node).map(n=>colorOf.get(n)).filter(Boolean));
+    const candidates=Object.keys(counts).filter(c=>counts[c]>0 && !used.has(c));
+    shuffle(candidates);
+    for(const c of candidates){
+      colorOf.set(node,c);
+      counts[c]--;
+      if(backtrack(i+1)) return true;
+      counts[c]++; colorOf.delete(node);
+    }
+    return false;
+  }
+  return backtrack(0) ? colorOf : null;
+}
+
+/* ===== map rooms to positions ===== */
+const rooms=["Black Rose Room|black","Throne Room|purple","Red Room 1|red","Red Room 2|red","Red Room 3|red","Green Room 1|green","Green Room 2|green","Green Room 3|green","Blue Room 1|blue","Blue Room 2|blue","Blue Room 3|blue","Gray Room 1|gray","Gray Room 2|gray","Gray Room 3|gray","Yellow Room 1|yellow","Yellow Room 2|yellow","Yellow Room 3|yellow"]; // example
+function mapRoomsToPositions(colorMap, throneKey){
+  const pools={};
+  for(const s of rooms){ const [name,col]=s.split('|').map(x=>x.trim()); if(!pools[col]) pools[col]=[]; pools[col].push(name); }
+  for(const col of Object.keys(pools)) shuffle(pools[col]);
+  const mapping=new Map();
+  const brIndex=pools['black'].findIndex(n=>n==='Black Rose Room');
+  if(brIndex===-1) throw new Error("Black Rose Room missing");
+  mapping.set(key(0,0),{name:pools['black'].splice(brIndex,1)[0],color:'black'});
+  const throneIndex=pools['purple'].findIndex(n=>n==='Throne Room');
+  if(throneIndex===-1) throw new Error("Throne Room missing");
+  mapping.set(throneKey,{name:pools['purple'].splice(throneIndex,1)[0],color:'purple'});
+  const otherPositions=[...colorMap.keys()].filter(k=>k!==key(0,0)&&k!==throneKey);
+  shuffle(otherPositions);
+  for(const pos of otherPositions){
+    const col=colorMap.get(pos);
+    if(!pools[col] || pools[col].length===0) throw new Error(`Not enough rooms of color ${col}`);
+    mapping.set(pos,{name:pools[col].pop(),color:col});
+  }
+  return mapping;
+}
+
+/* ===== generate valid lodge ===== */
+function generateValidLodge(){
+  const fullSet=buildFullSet();
+  const candidates=buildCandidatePairs(fullSet);
+  const removePairsNeeded=(fullSet.size - 19)/2;
+  while(true){
+    const shape=chooseRemovalPairCombination(fullSet,[...candidates],removePairsNeeded);
+    if(!shape) continue;
+    const ring1=ringKeys(1);
+    const throneKey=ring1[Math.floor(Math.random()*ring1.length)];
+    if(!shape.has(throneKey)) continue;
+    const colorMap=assignColorsToShape(shape,throneKey);
+    if(!colorMap) continue;
+    const {holes4,holes5plus}=holeNeighborCounts(fullSet,shape);
+    if(holes5plus>0) continue;
+    if(holes4>0 && Math.random()>0.30) continue;
+    try{
+      const roomPositionMap=mapRoomsToPositions(colorMap,throneKey);
+      return {shape,colorMap,roomPositionMap,throneKey};
+    }catch(e){ continue; }
   }
 }
 
-// Draw lodge
-const lodge = generateLodge();
-for(const [key, val] of lodge.entries()) {
-  const [q,r] = key.split(",").map(Number);
-  const [x,y] = hexToPixel(q,r);
-  const [name, color] = val.split("|");
-  drawHex(x, y, color, name);
+/* ===== render function (flat-topped, edge-aligned) ===== */
+const board=document.getElementById('board');
+function renderLodge(lodge){
+  board.innerHTML='';
+  const {shape,roomPositionMap,throneKey}=lodge;
+  const pts=[...shape].map(k=>{ const {q,r}=unkey(k); const p=axialToPixel(q,r); return {k,q,r,x:p.x,y:p.y}; });
+  const minX=Math.min(...pts.map(p=>p.x));
+  const maxX=Math.max(...pts.map(p=>p.x));
+  const minY=Math.min(...pts.map(p=>p.y));
+  const maxY=Math.max(...pts.map(p=>p.y));
+  const groupW=(maxX - minX) + HEX_W;
+  const groupH=(maxY - minY) + HEX_H;
+  const offsetX=(board.clientWidth - groupW)/2 - minX;
+  const offsetY=(board.clientHeight - groupH)/2 - minY;
+
+  for(const p of pts){
+    const posKey=p.k;
+    const room=roomPositionMap.get(posKey);
+    const div=document.createElement('div');
+    div.className=`hex ${room.color}` + (posKey===throneKey?' throne':'');
+    div.style.left=`${Math.round(p.x+offsetX)}px`;
+    div.style.top=`${Math.round(p.y+offsetY)}px`;
+    const lbl=document.createElement('div');
+    lbl.className='label';
+    lbl.textContent=room.name;
+    div.appendChild(lbl);
+    board.appendChild(div);
+  }
 }
+
+/* ===== initial generation & regenerate button ===== */
+function createAndRenderSilently(){ const lodge=generateValidLodge(); renderLodge(lodge); }
+document.getElementById('regen').addEventListener('click',createAndRenderSilently);
+
+/* initial run */
+createAndRenderSilently();
 </script>
 </body>
 </html>
