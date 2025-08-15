@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Random Symmetric Lodge</title>
+<title>Symmetric Lodge Generator</title>
 <style>
 body { display:flex; flex-direction:column; align-items:center; font-family:sans-serif; background:#f0f0f0; }
 #board { position:relative; width:800px; height:700px; margin-top:20px; }
@@ -18,7 +18,7 @@ button { margin-top:20px; padding:10px 20px; font-size:16px; }
 </style>
 </head>
 <body>
-<h1>Random Symmetric Lodge Generator</h1>
+<h1>Symmetric Lodge Generator</h1>
 <button onclick="generateLodge()">Regenerate Lodge</button>
 <div id="board"></div>
 <script>
@@ -29,32 +29,33 @@ function key(q,r){ return `${q},${r}`; }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 function neighbors(tile,map){ return directions.map(([dq,dr])=>map[key(tile.q+dq,tile.r+dr)]).filter(t=>t); }
 
-// --- 1. Build symmetric tile positions ---
-function buildRandomSymmetricShape(){
-    const tilesMap = {};
-    const tiles = [{q:0,r:0}]; 
-    tilesMap[key(0,0)] = tiles[0];
-    let frontier = [[1,0]]; // start first ring
+// --- 1. Build symmetric tile structure within distance 3 ---
+function buildSymmetricLodge(){
+    let tilesMap = {};
+    let tiles = [];
 
-    while(tiles.length < 19){
-        if(frontier.length === 0) break;
-        const idx = Math.floor(Math.random() * frontier.length);
-        const [q,r] = frontier.splice(idx,1)[0];
-        const mirror = [-q,-r];
-        [[q,r], mirror].forEach(([mq,mr])=>{
-            const k = key(mq,mr);
-            if(!tilesMap[k] && tiles.length < 19){
-                let tile = {q:mq,r:mr};
-                tiles.push(tile);
-                tilesMap[k] = tile;
-                directions.forEach(([dq,dr])=>{
-                    const nk = key(mq+dq,mr+dr);
-                    if(!tilesMap[nk]) frontier.push([mq+dq,mr+dr]);
-                });
-            }
-        });
+    // generate all positions in radius 3
+    for(let q=-3;q<=3;q++){
+        for(let r=Math.max(-3,-q-3);r<=Math.min(3,-q+3);r++){
+            tilesMap[key(q,r)] = {q,r};
+        }
     }
-    return tiles.slice(0,19);
+    tiles = Object.values(tilesMap);
+
+    // Randomly remove tiles symmetrically until 19 remain
+    function symmetricRemove(){
+        let positions = tiles.map(t=>[t.q,t.r]).filter(([q,r]) => !(q===0 && r===0));
+        shuffle(positions);
+        while(tiles.length > 19){
+            let [q,r] = positions.pop();
+            let mirror = [-q,-r];
+            tiles = tiles.filter(t=>!( (t.q===q && t.r===r) || (t.q===mirror[0] && t.r===mirror[1]) ));
+        }
+        tiles.forEach(t=>tilesMap[key(t.q,t.r)] = t);
+        return tiles;
+    }
+
+    return symmetricRemove();
 }
 
 // --- 2. Assign colors with adjacency constraints ---
@@ -68,19 +69,21 @@ function assignColors(tiles){
 
     // throne randomly in first ring
     let ring1 = neighbors(order[0], map);
-    let throne = ring1[Math.floor(Math.random()*ring1.length)];
+    shuffle(ring1);
+    let throne = ring1[0];
     throne.color = "purple"; counts.purple--;
 
     function bt(idx){
-        if(idx === order.length) return true;
+        if(idx===order.length) return true;
         let t = order[idx]; if(t.color) return bt(idx+1);
         for(let color in counts){
-            if(counts[color] <= 0) continue;
+            if(counts[color]<=0) continue;
             if(neighbors(t,map).some(n=>n.color===color)) continue;
-            t.color = color; counts[color]--; if(bt(idx+1)) return true; t.color=null; counts[color]++;
+            t.color=color; counts[color]--; if(bt(idx+1)) return true; t.color=null; counts[color]++;
         }
         return false;
     }
+
     if(!bt(0)) throw new Error("Color assignment failed");
     return tiles;
 }
@@ -121,14 +124,18 @@ function renderLodge(tiles){
 
 // --- 5. Main ---
 function generateLodge(){
-    let tiles = buildRandomSymmetricShape();
-    tiles = assignColors(tiles);
-    assignRoomsUnique(tiles);
-    renderLodge(tiles);
+    try{
+        let tiles = buildSymmetricLodge();
+        tiles = assignColors(tiles);
+        assignRoomsUnique(tiles);
+        renderLodge(tiles);
+    }catch(e){
+        console.log("Retrying lodge generation...");
+        generateLodge();
+    }
 }
 
 generateLodge();
 </script>
 </body>
 </html>
-
