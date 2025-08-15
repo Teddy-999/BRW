@@ -26,13 +26,16 @@
             display: flex;
             justify-content: center;
         }
+        .hex-row:nth-child(even) {
+            margin-left: 46px; /* Correct offset for 80px wide hexes */
+        }
         .hexagon {
             width: 80px;
-            height: 92px; /* For flat-top hex */
+            height: 92px;
             position: relative;
             background: #555;
-            margin: 5px;
-            margin-top: -24px;
+            margin: 0 4px; /* Space between hexes */
+            margin-top: -23px; /* Correct overlap */
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             display: flex;
             justify-content: center;
@@ -45,7 +48,7 @@
             cursor: pointer;
         }
         .hex-row:first-child .hexagon {
-            margin-top: 5px;
+            margin-top: 0;
         }
         .black-rose {
             background-color: #000;
@@ -118,9 +121,9 @@
             const neighbors = [];
             for (const dir of directions) {
                 const neighborKey = `${roomCoords.q + dir.q},${roomCoords.r + dir.r}`;
-                const neighborId = hexBoard.map[neighborKey];
-                if (neighborId !== undefined) {
-                    neighbors.push(hexBoard.rooms[neighborId]);
+                const neighbor = hexBoard.rooms.find(r => `${r.q},${r.r}` === neighborKey);
+                if (neighbor) {
+                    neighbors.push(neighbor);
                 }
             }
             return neighbors;
@@ -263,6 +266,10 @@
                 const hexRowDiv = document.createElement('div');
                 hexRowDiv.classList.add('hex-row');
                 
+                if (row % 2 !== 0) {
+                    hexRowDiv.classList.add('offset');
+                }
+
                 const sortedRooms = hexRows[row].sort((a, b) => a.q - b.q);
                 for (const room of sortedRooms) {
                     const hexagon = document.createElement('div');
