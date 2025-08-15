@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lodge Generator</title>
+<style>
+  body { background: #222; color: #fff; font-family: sans-serif; }
+  svg { border: 1px solid #555; margin: 20px; }
+  text { font-size: 12px; dominant-baseline: middle; text-anchor: middle; fill: #fff; }
+</style>
+</head>
+<body>
+
+<svg id="lodge" width="1000" height="1000"></svg>
+
+<script>
+const rooms = [
+  "Black Rose Room|black",
+  "Throne Room|purple",
+  "Purple Room 2|purple",
+  "Purple Room 3|purple",
+  "Red Room 1|red",
+  "Red Room 2|red",
+  "Red Room 3|red",
+  "Green Room 1|green",
+  "Green Room 2|green",
+  "Green Room 3|green",
+  "Blue Room 1|blue",
+  "Blue Room 2|blue",
+  "Blue Room 3|blue",
+  "Gray Room 1|gray",
+  "Gray Room 2|gray",
+  "Gray Room 3|gray",
+  "Yellow Room 1|yellow",
+  "Yellow Room 2|yellow",
+  "Yellow Room 3|yellow"
+];
+
+const size = 40 * 1.25; // 25% larger
+const svg = document.getElementById("lodge");
+
+function hexToPixel(q, r) {
+  const x = size * 3/2 * q;
+  const y = size * Math.sqrt(3) * (r + q/2);
+  return [x, y];
+}
+
+function createHex(x, y, fill, name) {
+  let points = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i + 30 + 90); // 90 deg rotated
+    const px = x + size * Math.cos(angle);
+    const py = y + size * Math.sin(angle);
+    points.push(`${px},${py}`);
+  }
+  const hex = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  hex.setAttribute("points", points.join(" "));
+  hex.setAttribute("fill", fill);
+  hex.setAttribute("stroke", "#000");
+  hex.setAttribute("stroke-width", "2");
+  svg.appendChild(hex);
+
+  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  text.setAttribute("x", x);
+  text.setAttribute("y", y);
+  text.textContent = name;
+  svg.appendChild(text);
+}
+
+// Axial directions for neighbors
+const directions = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+
+function generateLodge() {
+  while (true) {
+    const map = new Map();
+    const used = new Set();
+    let queue = [[0,0]];
+    map.set("0,0", rooms[0]); // Black Rose Room
+    used.add(0);
+
+    // Place Throne Room randomly next to black
+    const tDir = directions[Math.floor(Math.random()*6)];
+    const tx = tDir[0], ty = tDir[1];
+    map.set(`${tx},${ty}`, rooms[1]);
+    used.add(1);
+    queue.push([tx, ty]);
+
+    // Helper for colors
+    function colorCounts() {
+      const counts = {};
+      for (const r of rooms.slice(2)) {
+        counts[r.split("|")[1]] = 0;
+      }
+      for (const v of map.values()) {
+        const c = v.split("|")[1];
+        if (c !== "black") counts[c]++;
+      }
+      return counts;
+    }
+
+    // BFS expansion
+    let idx = 2;
+    let success = true;
+    while (queue.length && idx < rooms.length) {
+      const [q, r] = queue.shift();
+      for (const [dq, dr] of directions) {
+        const nq = q + dq, nr = r + dr;
+        const key = `${nq},${nr}`;
+        if (map.has(key)) continue;
+        if (Math.max(Math.abs(nq), Math.abs(nr), Math.abs(-nq-nr)) > 3) continue;
+
+        // No same color neighbor
+        const neighbors = directions.map(d=>`${nq+d[0]},${nr+d[1]}`).filter(k=>map.has(k));
+        if (neighbors.some(k=>map.get(k).split("|")[1]===rooms[idx].split("|")[1])) continue;
+
+        map.set(key, rooms[idx]);
+        used.add(idx);
+        queue.push([nq,nr]);
+        idx++;
+        if (idx >= rooms.length) break;
+      }
+    }
+
+    if (map.size === rooms.length) {
+      // Check all rooms have >=2 neighbors except black (central)
+      let valid = true;
+      for (const [key,val] of map.entries()) {
+        if (val.startsWith("Black")) continue;
+        const [q,r] = key.split(",").map(Number);
+        const n = directions.filter(d=>map.has(`${q+d[0]},${r+d[1]}`)).length;
+        if (n < 2) valid = false;
+      }
+      if (valid) return map;
+    }
+    // otherwise retry silently
+  }
+}
+
+const lodge = generateLodge();
+const centerX = 500, centerY = 500;
+for (const [key, val] of lodge.entries()) {
+  const [q, r] = key.split(",").map(Number);
+  const [x, y] = hexToPixel(q, r);
+  createHex(centerX+x, centerY+y, val.split("|")[1], val.split("|")[0]);
+}
+</script>
+</body>
+</html>
