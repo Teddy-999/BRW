@@ -127,89 +127,83 @@
             const gameBoard = document.getElementById('game-board');
             gameBoard.innerHTML = '';
 
-            let validConfiguration = false;
             let rooms = [];
-            let attemptCount = 0;
+            
+            // 1. Place the Black Rose and its 6 adjacent rooms
+            const blackRosePos = {q: 0, r: 0};
+            rooms.push({q: blackRosePos.q, r: blackRosePos.r, color: 'black-rose', name: 'Black Rose Room'});
+            
+            const ring1 = [];
+            for (const dir of directions) {
+                ring1.push({q: dir.q, r: dir.r});
+                rooms.push({q: dir.q, r: dir.r, color: null, name: null});
+            }
 
-            // Loop until a valid, symmetric, and correctly colored board is found
-            while (!validConfiguration && attemptCount < 100) {
-                rooms = [];
-                const roomCoordinates = new Set();
-                
-                // 1. Place the Black Rose and its 6 adjacent rooms
-                const blackRosePos = {q: 0, r: 0};
-                roomCoordinates.add(JSON.stringify(blackRosePos));
-                
-                const ring1 = [];
-                for (const dir of directions) {
-                    ring1.push({q: dir.q, r: dir.r});
-                    roomCoordinates.add(JSON.stringify({q: dir.q, r: dir.r}));
-                }
+            // 2. Find all possible symmetric pairs within a distance of 3
+            const possibleSymmetricPairs = [];
+            const occupiedCoords = new Set(rooms.map(r => JSON.stringify({q: r.q, r: r.r})));
+            
+            for (let q = -3; q <= 3; q++) {
+                for (let r = -3; r <= 3; r++) {
+                    const s = -q - r;
+                    if (Math.abs(q) + Math.abs(r) + Math.abs(s) > 6) continue;
 
-                // 2. Find all possible symmetric pairs within a distance of 3
-                const possibleSymmetricPairs = [];
-                for (let q = -3; q <= 3; q++) {
-                    for (let r = -3; r <= 3; r++) {
-                        // Check if within distance 3
-                        const s = -q - r;
-                        if (Math.abs(q) + Math.abs(r) + Math.abs(s) > 6) continue;
+                    const pos1 = JSON.stringify({q: q, r: r});
+                    const pos2 = JSON.stringify({q: -q, r: -r});
 
-                        const pos1 = JSON.stringify({q: q, r: r});
-                        const pos2 = JSON.stringify({q: -q, r: -r});
-
-                        // Check if positions are available and a symmetric pair
-                        if (!roomCoordinates.has(pos1) && !roomCoordinates.has(pos2)) {
-                            if (q !== 0 || r !== 0) {
-                                if (q > 0 || (q === 0 && r > 0)) { // Add each pair only once
-                                    possibleSymmetricPairs.push([{q: q, r: r}, {q: -q, r: -r}]);
-                                }
-                            }
+                    if (!occupiedCoords.has(pos1) && !occupiedCoords.has(pos2)) {
+                        if (q > 0 || (q === 0 && r > 0)) {
+                            possibleSymmetricPairs.push([{q: q, r: r}, {q: -q, r: -r}]);
                         }
                     }
                 }
-                
-                // 3. Select 6 random symmetric pairs for the remaining 12 rooms
-                shuffle(possibleSymmetricPairs);
-                const selectedRooms = possibleSymmetricPairs.slice(0, 6);
-                selectedRooms.forEach(pair => {
-                    roomCoordinates.add(JSON.stringify(pair[0]));
-                    roomCoordinates.add(JSON.stringify(pair[1]));
-                });
-                
-                // 4. Create the final room objects
-                rooms = Array.from(roomCoordinates).map(coords => {
-                    const {q, r} = JSON.parse(coords);
-                    return {q, r, color: null, name: null};
-                });
-                
-                // 5. Assign colors with adjacency check
-                const colorPool = [];
-                const allColors = ['red', 'green', 'yellow', 'blue', 'purple', 'gray'];
-                for (const color of allColors) {
-                    for (let i = 0; i < 3; i++) {
-                        colorPool.push(color);
+            }
+            
+            // 3. Select 6 random symmetric pairs for the remaining 12 rooms
+            shuffle(possibleSymmetricPairs);
+            const selectedPairs = possibleSymmetricPairs.slice(0, 6);
+            selectedPairs.forEach(pair => {
+                rooms.push({q: pair[0].q, r: pair[0].r, color: null, name: null});
+                rooms.push({q: pair[1].q, r: pair[1].r, color: null, name: null});
+            });
+            
+            // 4. Assign colors with a retry loop to ensure no two are adjacent
+            let validConfiguration = false;
+            let attemptCount = 0;
+
+            while (!validConfiguration && attemptCount < 100) {
+                // Reset colors for a new attempt
+                rooms.forEach(room => {
+                    if (room.color !== 'black-rose') {
+                        room.color = null;
+                        room.name = null;
                     }
-                }
-                shuffle(colorPool);
+                });
 
-                const blackRoseRoom = rooms.find(r => r.q === 0 && r === 0);
-                blackRoseRoom.color = 'black-rose';
-                blackRoseRoom.name = 'Black Rose Room';
-
-                const adjacentRooms = getNeighbors(0, 0, rooms);
-                const throneRoom = shuffle(adjacentRooms.filter(r => r.q !== 0 || r !== 0))[0];
+                // Place the Throne Room
+                const throneRoom = shuffle(getNeighbors(0, 0, rooms))[0];
                 throneRoom.color = 'purple';
                 throneRoom.name = 'Throne Room';
 
+                // Create color pool and shuffle remaining rooms
+                const colorPool = [];
+                for (const color of ['red', 'green', 'yellow', 'blue', 'purple', 'gray']) {
+                    if (color === 'purple') {
+                        colorPool.push('purple', 'purple');
+                    } else {
+                        colorPool.push(color, color, color);
+                    }
+                }
+                
                 const remainingRooms = rooms.filter(r => r.color === null);
+                shuffle(remainingRooms);
+
                 let assignmentSuccess = true;
-                for (const room of shuffle(remainingRooms)) {
+                for (const room of remainingRooms) {
                     let assigned = false;
                     for (let i = 0; i < colorPool.length; i++) {
                         const color = colorPool[i];
-                        const isAdjacent = getNeighbors(room.q, room.r, rooms).some(neighbor => {
-                            return (neighbor.color === color) || (neighbor.name === 'Throne Room' && color === 'purple');
-                        });
+                        const isAdjacent = getNeighbors(room.q, room.r, rooms).some(neighbor => neighbor.color === color);
                         if (!isAdjacent) {
                             room.color = color;
                             room.name = `Room - ${color}`;
@@ -223,7 +217,6 @@
                         break;
                     }
                 }
-
                 if (assignmentSuccess) {
                     validConfiguration = true;
                 }
@@ -231,17 +224,18 @@
             }
 
             if (!validConfiguration) {
-                console.error('Could not find a valid color configuration after 100 attempts.');
-                return;
+                 console.error('Could not find a valid color configuration after 100 attempts.');
+                 return;
             }
 
-            // 6. Render the board
+            // 5. Render the board
             for (const room of rooms) {
                 const hexagon = document.createElement('div');
                 hexagon.classList.add('hexagon');
                 const { row, col } = toGrid(room.q, room.r);
                 hexagon.style.gridRow = row + 1;
                 hexagon.style.gridColumn = col + 1;
+                
                 hexagon.textContent = room.name.includes('Room') ? room.name.replace('Room - ', '') : room.name;
 
                 if (room.color === 'black-rose') {
