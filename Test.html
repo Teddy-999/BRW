@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Black Rose Lodge Generator</title>
+<style>
+  body {
+    background: #222;
+    color: white;
+    font-family: sans-serif;
+    text-align: center;
+  }
+  h1 { margin-top: 20px; }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(11, 60px);
+    grid-auto-rows: 52px;
+    justify-content: center;
+    position: relative;
+    margin-top: 20px;
+  }
+  .hex {
+    width: 60px;
+    height: 52px;
+    clip-path: polygon(
+      50% 0%,
+      93% 25%,
+      93% 75%,
+      50% 100%,
+      7% 75%,
+      7% 25%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 3px black;
+    padding: 2px;
+  }
+</style>
+</head>
+<body>
+<h1>Black Rose Lodge</h1>
+<div class="board" id="board"></div>
+
+<script>
+const rooms = [
+  {name: "Black Rose Room", color: "black"},
+  {name: "Throne Room", color: "purple"},
+  {name: "Amethyst Library", color: "purple"},
+  {name: "Violet Sanctum", color: "purple"},
+  {name: "Ruby Forge", color: "red"},
+  {name: "Crimson Hall", color: "red"},
+  {name: "Scarlet Observatory", color: "red"},
+  {name: "Emerald Garden", color: "green"},
+  {name: "Verdant Chapel", color: "green"},
+  {name: "Jade Gallery", color: "green"},
+  {name: "Azure Pool", color: "blue"},
+  {name: "Cobalt Tower", color: "blue"},
+  {name: "Sapphire Crypt", color: "blue"},
+  {name: "Iron Workshop", color: "gray"},
+  {name: "Steel Armory", color: "gray"},
+  {name: "Silver Vault", color: "gray"},
+  {name: "Golden Treasury", color: "gold"},
+  {name: "Amber Dome", color: "gold"},
+  {name: "Topaz Chamber", color: "gold"}
+];
+
+const directions = [
+  [1, 0], [1, -1], [0, -1],
+  [-1, 0], [-1, 1], [0, 1]
+];
+
+function axialDistance(a, b) {
+  return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function generateShape() {
+  const coords = [];
+  const radius = 5;
+  for (let q = -radius; q <= radius; q++) {
+    for (let r = -radius; r <= radius; r++) {
+      if (Math.abs(q + r) <= radius) {
+        coords.push({q, r});
+      }
+    }
+  }
+  coords.sort((a, b) => axialDistance(a, {q:0, r:0}) - axialDistance(b, {q:0, r:0}));
+  return coords;
+}
+
+function generateLodge() {
+  const coordsAll = generateShape();
+  const placed = new Map();
+  const toKey = (q, r) => `${q},${r}`;
+
+  // Place center
+  placed.set(toKey(0, 0), rooms[0]);
+
+  // Throne Room next to center
+  const neighbors = directions.map(([dq, dr]) => ({q: dq, r: dr}));
+  const thronePos = neighbors[Math.floor(Math.random() * neighbors.length)];
+  placed.set(toKey(thronePos.q, thronePos.r), rooms[1]);
+
+  // Remaining coordinates
+  const availableCoords = coordsAll.filter(c => !placed.has(toKey(c.q, c.r)));
+  shuffle(availableCoords);
+
+  let chosenCoords = [{q:0, r:0}, thronePos];
+
+  while (chosenCoords.length < 19 && availableCoords.length) {
+    // pick a coord adjacent to >= 2 placed tiles
+    const nextIndex = availableCoords.findIndex(c => {
+      let neighborsCount = 0;
+      for (const [dq, dr] of directions) {
+        const key = toKey(c.q + dq, c.r + dr);
+        if (placed.has(key)) neighborsCount++;
+      }
+      return neighborsCount >= 2;
+    });
+    if (nextIndex >= 0) {
+      const coord = availableCoords[nextIndex];
+      chosenCoords.push(coord);
+      availableCoords.splice(nextIndex, 1);
+      // Temporarily mark as placed to help counting neighbors for next picks
+      placed.set(toKey(coord.q, coord.r), {temp: true});
+    } else {
+      break; // no more eligible tiles
+    }
+  }
+
+  // Remove temporary placeholders, keep actual placed
+  for (const [key, val] of placed) {
+    if (val.temp) placed.delete(key);
+  }
+
+  // Assign remaining rooms
+  const remainingRooms = rooms.slice(2);
+  shuffle(remainingRooms);
+  for (const c of chosenCoords) {
+    const key = toKey(c.q, c.r);
+    if (!placed.has(key)) {
+      placed.set(key, remainingRooms.pop());
+    }
+  }
+
+  return {coords: coordsAll, placed};
+}
+
+function drawBoard(lodge) {
+  const {coords, placed} = lodge;
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
+  for (let r = -5; r <= 5; r++) {
+    for (let q = -5; q <= 5; q++) {
+      if (Math.abs(q + r) <= 5) {
+        const key = `${q},${r}`;
+        const div = document.createElement("div");
+        div.className = "hex";
+        const room = placed.get(key);
+        if (room) {
+          div.style.backgroundColor = room.color;
+          div.textContent = room.name;
+        } else {
+          div.style.opacity = 0; // fully invisible
+        }
+        board.appendChild(div);
+      }
+    }
+  }
+}
+
+const lodge = generateLodge();
+drawBoard(lodge);
+</script>
+</body>
+</html>
