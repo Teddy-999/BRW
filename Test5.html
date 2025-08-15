@@ -18,7 +18,7 @@
         }
         #game-board {
             display: grid;
-            grid-template-columns: repeat(13, 60px); /* Grid size to fit a range-3 hex */
+            grid-template-columns: repeat(13, 60px);
             grid-template-rows: repeat(13, 60px);
             grid-gap: 0;
             position: relative;
@@ -26,7 +26,7 @@
         }
         .hexagon {
             width: 60px;
-            height: 69px; /* Height for flat-top hex */
+            height: 69px;
             position: relative;
             background: #555;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -99,10 +99,10 @@
             return array;
         }
 
-        // Axial coordinates to CSS Grid positions
+        // Axial coordinates to CSS Grid positions (for flat-top hexes)
         function toGrid(q, r) {
             const row = r + 6;
-            const col = q + Math.floor(r / 2) + 6;
+            const col = q + Math.floor(r/2) + 6;
             return { row, col };
         }
 
@@ -123,108 +123,124 @@
             return neighbors;
         }
 
+        function isConnected(rooms) {
+            if (rooms.length === 0) return true;
+            const visited = new Set();
+            const queue = [rooms[0]];
+            visited.add(JSON.stringify({q: rooms[0].q, r: rooms[0].r}));
+
+            while (queue.length > 0) {
+                const current = queue.shift();
+                const neighbors = getNeighbors(current.q, current.r, rooms);
+                for (const neighbor of neighbors) {
+                    const coordString = JSON.stringify({q: neighbor.q, r: neighbor.r});
+                    if (!visited.has(coordString)) {
+                        visited.add(coordString);
+                        queue.push(neighbor);
+                    }
+                }
+            }
+            return visited.size === rooms.length;
+        }
+
         function createBoard() {
             const gameBoard = document.getElementById('game-board');
             gameBoard.innerHTML = '';
 
-            let rooms = [];
-            
-            // 1. Place the Black Rose and its 6 adjacent rooms
-            const blackRosePos = {q: 0, r: 0};
-            rooms.push({q: blackRosePos.q, r: blackRosePos.r, color: 'black-rose', name: 'Black Rose Room'});
-            
-            const ring1 = [];
-            for (const dir of directions) {
-                ring1.push({q: dir.q, r: dir.r});
-                rooms.push({q: dir.q, r: dir.r, color: null, name: null});
-            }
-
-            // 2. Find all possible symmetric pairs within a distance of 3
-            const possibleSymmetricPairs = [];
-            const occupiedCoords = new Set(rooms.map(r => JSON.stringify({q: r.q, r: r.r})));
-            
-            for (let q = -3; q <= 3; q++) {
-                for (let r = -3; r <= 3; r++) {
-                    const s = -q - r;
-                    if (Math.abs(q) + Math.abs(r) + Math.abs(s) > 6) continue;
-
-                    const pos1 = JSON.stringify({q: q, r: r});
-                    const pos2 = JSON.stringify({q: -q, r: -r});
-
-                    if (!occupiedCoords.has(pos1) && !occupiedCoords.has(pos2)) {
-                        if (q > 0 || (q === 0 && r > 0)) {
-                            possibleSymmetricPairs.push([{q: q, r: r}, {q: -q, r: -r}]);
-                        }
-                    }
-                }
-            }
-            
-            // 3. Select 6 random symmetric pairs for the remaining 12 rooms
-            shuffle(possibleSymmetricPairs);
-            const selectedPairs = possibleSymmetricPairs.slice(0, 6);
-            selectedPairs.forEach(pair => {
-                rooms.push({q: pair[0].q, r: pair[0].r, color: null, name: null});
-                rooms.push({q: pair[1].q, r: pair[1].r, color: null, name: null});
-            });
-            
-            // 4. Assign colors with a retry loop to ensure no two are adjacent
             let validConfiguration = false;
+            let rooms = [];
             let attemptCount = 0;
 
-            while (!validConfiguration && attemptCount < 100) {
-                // Reset colors for a new attempt
-                rooms.forEach(room => {
-                    if (room.color !== 'black-rose') {
-                        room.color = null;
-                        room.name = null;
-                    }
-                });
+            while (!validConfiguration && attemptCount < 200) {
+                rooms = [];
+                const roomCoordinates = new Set();
+                
+                // 1. Place the Black Rose and its 6 adjacent rooms
+                const blackRosePos = {q: 0, r: 0};
+                rooms.push({q: blackRosePos.q, r: blackRosePos.r, color: 'black-rose', name: 'Black Rose Room'});
+                roomCoordinates.add(JSON.stringify(blackRosePos));
+                
+                const ring1 = [];
+                for (const dir of directions) {
+                    ring1.push({q: dir.q, r: dir.r});
+                    rooms.push({q: dir.q, r: dir.r, color: null, name: null});
+                    roomCoordinates.add(JSON.stringify({q: dir.q, r: dir.r}));
+                }
 
-                // Place the Throne Room
-                const throneRoom = shuffle(getNeighbors(0, 0, rooms))[0];
-                throneRoom.color = 'purple';
-                throneRoom.name = 'Throne Room';
+                // 2. Find all possible symmetric pairs within a distance of 3
+                const possibleSymmetricPairs = [];
+                for (let q = -3; q <= 3; q++) {
+                    for (let r = -3; r <= 3; r++) {
+                        const s = -q - r;
+                        if (Math.abs(q) + Math.abs(r) + Math.abs(s) > 6) continue;
 
-                // Create color pool and shuffle remaining rooms
-                const colorPool = [];
-                for (const color of ['red', 'green', 'yellow', 'blue', 'purple', 'gray']) {
-                    if (color === 'purple') {
-                        colorPool.push('purple', 'purple');
-                    } else {
-                        colorPool.push(color, color, color);
+                        const pos1 = {q: q, r: r};
+                        const pos2 = {q: -q, r: -r};
+
+                        if (!roomCoordinates.has(JSON.stringify(pos1)) && !roomCoordinates.has(JSON.stringify(pos2))) {
+                            if (q > 0 || (q === 0 && r > 0)) {
+                                possibleSymmetricPairs.push([pos1, pos2]);
+                            }
+                        }
                     }
                 }
                 
-                const remainingRooms = rooms.filter(r => r.color === null);
-                shuffle(remainingRooms);
+                // 3. Select 6 random symmetric pairs for the remaining 12 rooms
+                shuffle(possibleSymmetricPairs);
+                const selectedPairs = possibleSymmetricPairs.slice(0, 6);
+                selectedPairs.forEach(pair => {
+                    rooms.push({q: pair[0].q, r: pair[0].r, color: null, name: null});
+                    rooms.push({q: pair[1].q, r: pair[1].r, color: null, name: null});
+                });
+                
+                // 4. Check for connectivity and color assignment
+                if (isConnected(rooms)) {
+                    // Place the Throne Room
+                    const throneRoom = shuffle(getNeighbors(0, 0, rooms))[0];
+                    throneRoom.color = 'purple';
+                    throneRoom.name = 'Throne Room';
 
-                let assignmentSuccess = true;
-                for (const room of remainingRooms) {
-                    let assigned = false;
-                    for (let i = 0; i < colorPool.length; i++) {
-                        const color = colorPool[i];
-                        const isAdjacent = getNeighbors(room.q, room.r, rooms).some(neighbor => neighbor.color === color);
-                        if (!isAdjacent) {
-                            room.color = color;
-                            room.name = `Room - ${color}`;
-                            colorPool.splice(i, 1);
-                            assigned = true;
+                    // Create color pool and shuffle remaining rooms
+                    const colorPool = [];
+                    for (const color of ['red', 'green', 'yellow', 'blue', 'purple', 'gray']) {
+                        if (color === 'purple') {
+                            colorPool.push('purple', 'purple');
+                        } else {
+                            colorPool.push(color, color, color);
+                        }
+                    }
+                    
+                    const remainingRooms = rooms.filter(r => r.color === null);
+                    shuffle(remainingRooms);
+                    shuffle(colorPool);
+
+                    let assignmentSuccess = true;
+                    for (const room of remainingRooms) {
+                        let assigned = false;
+                        for (let i = 0; i < colorPool.length; i++) {
+                            const color = colorPool[i];
+                            const isAdjacent = getNeighbors(room.q, room.r, rooms).some(neighbor => neighbor.color === color);
+                            if (!isAdjacent) {
+                                room.color = color;
+                                room.name = `Room - ${color}`;
+                                colorPool.splice(i, 1);
+                                assigned = true;
+                                break;
+                            }
+                        }
+                        if (!assigned) {
+                            assignmentSuccess = false;
                             break;
                         }
                     }
-                    if (!assigned) {
-                        assignmentSuccess = false;
-                        break;
+                    if (assignmentSuccess) {
+                        validConfiguration = true;
                     }
-                }
-                if (assignmentSuccess) {
-                    validConfiguration = true;
                 }
                 attemptCount++;
             }
-
             if (!validConfiguration) {
-                 console.error('Could not find a valid color configuration after 100 attempts.');
+                 console.error('Could not find a valid configuration after 200 attempts.');
                  return;
             }
 
