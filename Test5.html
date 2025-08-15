@@ -1,112 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Lodge Generator</title>
 <style>
-  #board { position: relative; width: 800px; height: 600px; border: 1px solid #aaa; margin: 20px auto; }
-  .hex {
-    position: absolute;
-    width: 80px; height: 70px;
-    clip-path: polygon(
-      25% 0%, 75% 0%,
-      100% 50%, 75% 100%,
-      25% 100%, 0% 50%
-    );
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 10px;
-    text-align: center;
-  }
-  .black { background: black; }
-  .purple { background: purple; }
-  .red { background: red; }
-  .green { background: green; }
-  .blue { background: blue; }
-  .gray { background: gray; }
-  .yellow { background: yellow; }
-  .throne { border: 2px solid gold; }
-  .label { pointer-events: none; }
+#board { position: relative; width: 800px; height: 600px; background: #eee; }
+.hex { position: absolute; width: 80px; height: 70px; clip-path: polygon(
+  25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%
+); display: flex; align-items: center; justify-content: center; text-align:center; border:1px solid #333; }
+.label { font-size: 10px; }
+.black { background:#000; color:#fff; } 
+.purple { background:#800080; color:#fff; } 
+.red { background:#c00; color:#fff; } 
+.green { background:#0a0; color:#fff; } 
+.blue { background:#00c; color:#fff; } 
+.gray { background:#888; color:#fff; } 
+.yellow { background:#ff0; color:#000; } 
+.throne { border:3px solid gold; }
 </style>
 </head>
 <body>
 <div id="board"></div>
 <button id="regen">Regenerate Lodge</button>
-
 <script>
-const HEX_W = 80, HEX_H = 70;
+const HEX_W = 80;
+const HEX_H = 70;
 
-// ===== Helper functions =====
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function key(q,r){return `${q},${r}`;}
-function unkey(k){const [q,r]=k.split(',').map(Number);return {q,r};}
-function axialToPixel(q,r){const x=HEX_W*0.75*q; const y=HEX_H*(r+0.5*(q&1)); return {x,y};}
+// helpers to convert axial to pixel for flat-topped hexes
+function axialToPixel(q,r){ return {x: HEX_W*3/4*q, y: HEX_H*(r+q/2)}; }
+function key(q,r){ return `${q},${r}`; }
+function unkey(k){ const [q,r]=k.split(',').map(Number); return {q,r}; }
 
-// ===== Full set / candidate generation =====
-function buildFullSet(){ // example 37 hexes in hexagon
+// full lodge set 37 tiles, arranged as 0,0 center + rings
+function buildFullSet(){
   const set = new Set();
-  for(let q=-3;q<=3;q++){
-    for(let r=-3;r<=3;r++){
-      if(Math.abs(q+r)<=3) set.add(key(q,r));
+  set.add(key(0,0));
+  for(let q=-2;q<=2;q++){
+    for(let r=Math.max(-2,-q-2); r<=Math.min(2,-q+2); r++){
+      if(q!==0 || r!==0) set.add(key(q,r));
     }
   }
   return set;
 }
+
+// generate all candidate pairs (simplified: adjacent pairs)
 function buildCandidatePairs(fullSet){
-  const arr=[...fullSet], pairs=[];
-  for(let i=0;i<arr.length;i++){
-    for(let j=i+1;j<arr.length;j++){
-      pairs.push([arr[i],arr[j]]);
+  const pairs=[];
+  const dirs=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
+  for(const k of fullSet){
+    const {q,r}=unkey(k);
+    for(const [dq,dr] of dirs){
+      const nk=key(q+dq,r+dr);
+      if(fullSet.has(nk) && k<nk) pairs.push([k,nk]);
     }
   }
   return pairs;
 }
 
-// ===== Placeholder connectivity / degree / hole checks =====
-function isConnected(shape){return true;} // implement your actual check
-function minDegreeAtLeast(shape,n){return true;} // implement your actual check
-function hasNoArticulationExceptCenter(shape){return true;} // implement actual check
-function holeNeighborCounts(fullSet,shape){return {holes4:0,holes5plus:0};} // implement actual
-
-// ===== Choose removal pairs =====
-function chooseRemovalPairCombination(fullSet,candidates,removePairsNeeded){
-  const totalPairs=candidates.length; let result=null;
-  shuffle(candidates); const selected=[];
-  function buildShape(sel){const s=new Set(fullSet);for(const [a,b] of sel){s.delete(a);s.delete(b);}return s;}
-  function quickPrune(sel){const s=buildShape(sel); if(!isConnected(s)) return false; if(!minDegreeAtLeast(s,2)) return false; const {holes4,holes5plus}=holeNeighborCounts(fullSet,s); if(holes5plus>0) return false; return true;}
-  function backtrack(startIdx){
-    if(result) return true;
-    if(selected.length===removePairsNeeded){
-      const finalShape=buildShape(selected);
-      if(finalShape.size!==(fullSet.size-removePairsNeeded*2)) return false;
-      if(!isConnected(finalShape)) return false;
-      if(!minDegreeAtLeast(finalShape,2)) return false;
-      if(!hasNoArticulationExceptCenter(finalShape)) return false;
-      const {holes4,holes5plus}=holeNeighborCounts(fullSet,finalShape);
-      if(holes5plus>0) return false;
-      result=finalShape;
-      return true;
-    }
-    if(startIdx>=totalPairs) return false;
-    const remainingNeeded=removePairsNeeded-selected.length;
-    if(totalPairs-startIdx<remainingNeeded) return false;
-    for(let i=startIdx;i<totalPairs;i++){
-      selected.push(candidates[i]);
-      if(quickPrune(selected)) if(backtrack(i+1)) return true;
-      selected.pop();
-    }
-    return false;
+// connectivity check via BFS
+function isConnected(set){
+  if(set.size===0) return true;
+  const start=set.values().next().value;
+  const visited=new Set();
+  const queue=[start];
+  while(queue.length){
+    const k=queue.shift();
+    if(visited.has(k)) continue;
+    visited.add(k);
+    const {q,r}=unkey(k);
+    [[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]].forEach(([dq,dr])=>{
+      const nk=key(q+dq,r+dr);
+      if(set.has(nk) && !visited.has(nk)) queue.push(nk);
+    });
   }
-  backtrack(0);
-  return result;
+  return visited.size===set.size;
 }
 
-// ===== Color assignment =====
-const COLOR_COUNTS={black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3};
-function buildAdjMap(shapeSet){ const map=new Map(); for(const k of shapeSet) map.set(k,[]); return map; } // implement adjacency properly
-function assignColorsToShape(shapeSet,throneKey){
+// min-degree check
+function minDegreeAtLeast(set,minDeg){
+  for(const k of set){
+    const {q,r}=unkey(k);
+    let deg=0;
+    [[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]].forEach(([dq,dr])=>{
+      if(set.has(key(q+dq,r+dr))) deg++;
+    });
+    if(deg<minDeg) return false;
+  }
+  return true;
+}
+
+// count holes 4/5+ neighbors
+function holeNeighborCounts(fullSet,shape){
+  let holes4=0, holes5plus=0;
+  for(const k of fullSet){
+    if(shape.has(k)) continue;
+    const {q,r}=unkey(k);
+    let n=0;
+    [[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]].forEach(([dq,dr])=>{
+      if(shape.has(key(q+dq,r+dr))) n++;
+    });
+    if(n===4) holes4++;
+    if(n>=5) holes5plus++;
+  }
+  return {holes4,holes5plus};
+}
+
+// shuffle helper
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a;}
+
+// choose removal pairs with retries (avoid endless loop)
+function chooseRemovalPairCombination(fullSet,candidates,removePairsNeeded){
+  const maxAttempts=25;
+  for(let attempt=0;attempt<maxAttempts;attempt++){
+    const sel=[];
+    const shuffled=shuffle([...candidates]);
+    const shape=new Set(fullSet);
+    for(const [a,b] of shuffled){
+      if(sel.length>=removePairsNeeded) break;
+      if(!shape.has(a) || !shape.has(b)) continue;
+      shape.delete(a); shape.delete(b);
+      sel.push([a,b]);
+      if(!isConnected(shape) || !minDegreeAtLeast(shape,2)) { shape.add(a); shape.add(b); sel.pop(); }
+      const {holes5plus}=holeNeighborCounts(fullSet,shape);
+      if(holes5plus>0){ shape.add(a); shape.add(b); sel.pop(); }
+    }
+    if(shape.size===fullSet.size-removePairsNeeded*2 && isConnected(shape) && minDegreeAtLeast(shape,2)){
+      const {holes5plus}=holeNeighborCounts(fullSet,shape);
+      if(holes5plus===0) return shape;
+    }
+  }
+  return null; // failed after maxAttempts
+}
+
+// simple adjacency map
+function buildAdjMap(shape){
+  const adj=new Map();
+  for(const k of shape){ adj.set(k,[]); }
+  for(const k of shape){
+    const {q,r}=unkey(k);
+    [[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]].forEach(([dq,dr])=>{
+      const nk=key(q+dq,r+dr);
+      if(shape.has(nk)) adj.get(k).push(nk);
+    });
+  }
+  return adj;
+}
+
+// color assignment backtracking
+const COLOR_COUNTS={ black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+function assignColorsToShape(shapeSet, throneKey){
   const adj=buildAdjMap(shapeSet);
   const nodes=[...shapeSet];
   const colorOf=new Map();
@@ -120,107 +160,101 @@ function assignColorsToShape(shapeSet,throneKey){
     const used=new Set(adj.get(node).map(n=>colorOf.get(n)).filter(Boolean));
     const candidates=Object.keys(counts).filter(c=>counts[c]>0 && !used.has(c));
     shuffle(candidates);
-    for(const c of candidates){ colorOf.set(node,c); counts[c]--; if(backtrack(i+1)) return true; counts[c]++; colorOf.delete(node);}
+    for(const c of candidates){
+      colorOf.set(node,c); counts[c]--;
+      if(backtrack(i+1)) return true;
+      counts[c]++; colorOf.delete(node);
+    }
     return false;
   }
   return backtrack(0)?colorOf:null;
 }
 
-// ===== Map rooms =====
+// room mapping
 const rooms=[
-  "Black Rose Room | black",
-  "Throne Room | purple",
-  "Red Room 1 | red","Red Room 2 | red","Red Room 3 | red",
-  "Green Room 1 | green","Green Room 2 | green","Green Room 3 | green",
-  "Blue Room 1 | blue","Blue Room 2 | blue","Blue Room 3 | blue",
-  "Gray Room 1 | gray","Gray Room 2 | gray","Gray Room 3 | gray",
-  "Yellow Room 1 | yellow","Yellow Room 2 | yellow","Yellow Room 3 | yellow",
+  "Black Rose Room|black",
+  "Throne Room|purple",
+  "Purple Room1|purple","Purple Room2|purple",
+  "Red Room1|red","Red Room2|red","Red Room3|red",
+  "Green Room1|green","Green Room2|green","Green Room3|green",
+  "Blue Room1|blue","Blue Room2|blue","Blue Room3|blue",
+  "Gray Room1|gray","Gray Room2|gray","Gray Room3|gray",
+  "Yellow Room1|yellow","Yellow Room2|yellow","Yellow Room3|yellow"
 ];
-function mapRoomsToPositions(colorMap,throneKey){
+function mapRoomsToPositions(colorMap, throneKey){
   const pools={};
-  for(const s of rooms){ const [name,col]=s.split('|').map(x=>x.trim()); if(!pools[col]) pools[col]=[]; pools[col].push(name); }
-  for(const col in pools) shuffle(pools[col]);
+  for(const s of rooms){
+    const [name,col]=s.split('|').map(x=>x.trim());
+    if(!pools[col]) pools[col]=[];
+    pools[col].push(name);
+  }
+  for(const col of Object.keys(pools)) shuffle(pools[col]);
   const mapping=new Map();
+  // center
   const brIndex=pools['black'].findIndex(n=>n==='Black Rose Room');
-  if(brIndex===-1) throw new Error("Black Rose Room missing");
   mapping.set(key(0,0),{name:pools['black'].splice(brIndex,1)[0],color:'black'});
+  // throne
   const throneIndex=pools['purple'].findIndex(n=>n==='Throne Room');
-  if(throneIndex===-1) throw new Error("Throne Room missing");
   mapping.set(throneKey,{name:pools['purple'].splice(throneIndex,1)[0],color:'purple'});
+  // others
   const otherPositions=[...colorMap.keys()].filter(k=>k!==key(0,0)&&k!==throneKey);
   shuffle(otherPositions);
   for(const pos of otherPositions){
     const col=colorMap.get(pos);
-    if(!pools[col] || pools[col].length===0) throw new Error(`Not enough rooms of color ${col}`);
+    if(!pools[col]||pools[col].length===0) throw new Error(`Not enough rooms of color ${col}`);
     mapping.set(pos,{name:pools[col].pop(),color:col});
   }
   return mapping;
 }
 
-// ===== Safe lodge generator =====
-function generateValidLodge(maxAttempts=25){
-  let totalAttempts=0;
-  while(totalAttempts<100){
-    totalAttempts++;
-    for(let attempt=0; attempt<maxAttempts; attempt++){
-      const fullSet=buildFullSet();
-      const candidates=buildCandidatePairs(fullSet);
-      const removePairsNeeded=(fullSet.size-19)/2;
-      const shape=chooseRemovalPairCombination(fullSet,candidates,removePairsNeeded);
-      if(!shape) continue;
-
-      const ring1=[...shape].filter(k=>{const {q,r}=unkey(k); return Math.abs(q)<=1 && Math.abs(r)<=1 && !(q===0&&r===0);});
-      if(ring1.length===0) continue;
-      shuffle(ring1);
-      const throneKey=ring1[0];
-
-      const colorMap=assignColorsToShape(shape,throneKey);
-      if(!colorMap) continue;
-
-      try{
-        const roomMap=mapRoomsToPositions(colorMap,throneKey);
-        return {shape,colorMap,roomMap,throneKey};
-      }catch(e){ continue; }
-    }
-    console.warn("Max attempts reached, retrying...");
+// generate lodge with safe retry
+function generateValidLodge(){
+  const fullSet=buildFullSet();
+  const candidates=buildCandidatePairs(fullSet);
+  const removePairsNeeded=(fullSet.size-19)/2;
+  while(true){
+    const shape=chooseRemovalPairCombination(fullSet,[...candidates],removePairsNeeded);
+    if(!shape) continue;
+    const ring1=[...fullSet].filter(k=>k!=='0,0'); // simplify ring1
+    const throneKey=ring1[Math.floor(Math.random()*ring1.length)];
+    if(!shape.has(throneKey)) continue;
+    const colorMap=assignColorsToShape(shape,throneKey);
+    if(!colorMap) continue;
+    const {holes4,holes5plus}=holeNeighborCounts(fullSet,shape);
+    if(holes5plus>0) continue;
+    if(holes4>0 && Math.random()>0.3) continue;
+    try{
+      const roomPositionMap=mapRoomsToPositions(colorMap,throneKey);
+      return {shape,colorMap,roomPositionMap,throneKey};
+    }catch(e){ continue; }
   }
-  throw new Error("Could not generate lodge after 100 total attempts");
 }
 
-// ===== Render lodge =====
+// render function
 const board=document.getElementById('board');
 function renderLodge(lodge){
   board.innerHTML='';
-  const {shape,roomMap,throneKey}=lodge;
-  const pts=[...shape].map(k=>{const {q,r}=unkey(k);const p=axialToPixel(q,r);return {k,q,r,x:p.x,y:p.y};});
-  const minX=Math.min(...pts.map(p=>p.x));
-  const maxX=Math.max(...pts.map(p=>p.x));
-  const minY=Math.min(...pts.map(p=>p.y));
-  const maxY=Math.max(...pts.map(p=>p.y));
-  const groupW=(maxX-minX)+HEX_W;
-  const groupH=(maxY-minY)+HEX_H;
-  const offsetX=(board.clientWidth-groupW)/2-minX;
-  const offsetY=(board.clientHeight-groupH)/2-minY;
-
-  for(const p of pts){
-    const posKey=p.k;
-    const room=roomMap.get(posKey);
+  for(const [k,data] of lodge.roomPositionMap.entries()){
+    const {x,y}=axialToPixel(...Object.values(unkey(k)));
     const div=document.createElement('div');
-    div.className=`hex ${room.color}`+(posKey===throneKey?' throne':'');
-    div.style.left=`${Math.round(p.x+offsetX)}px`;
-    div.style.top=`${Math.round(p.y+offsetY)}px`;
-    div.innerHTML=`<div class="label">${room.name}</div>`;
+    div.className='hex';
+    if(k===lodge.throneKey) div.classList.add('throne');
+    div.style.left=`${x+400-HEX_W/2}px`;
+    div.style.top=`${y+300-HEX_H/2}px`;
+    div.classList.add(data.color);
+    div.innerHTML=`<div class="label">${data.name}</div>`;
     board.appendChild(div);
   }
 }
 
-// ===== Init / regen =====
-function initLodge(){
-  const lodge=generateValidLodge();
-  renderLodge(lodge);
-}
-document.getElementById('regen').addEventListener('click',initLodge);
-initLodge();
+// initial render
+let currentLodge=generateValidLodge();
+renderLodge(currentLodge);
+
+document.getElementById('regen').onclick=()=>{
+  currentLodge=generateValidLodge();
+  renderLodge(currentLodge);
+};
 </script>
 </body>
 </html>
