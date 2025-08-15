@@ -235,25 +235,49 @@ function ringKeys(r){
   return arr;
 }
 
-function generateValidLodge(){
-  const fullSet=buildFullSet();
-  const candidates=buildCandidatePairs(fullSet);
-  const removePairsNeeded=(fullSet.size-19)/2;
-  while(true){
-    const shape=chooseRemovalPairCombination(fullSet,[...candidates],removePairsNeeded);
-    if(!shape) continue;
-    const ring1=ringKeys(1);
-    const throneKey=ring1[Math.floor(Math.random()*ring1.length)];
-    if(!shape.has(throneKey)) continue;
-    const colorMap=assignColorsToShape(shape,throneKey);
-    if(!colorMap) continue;
-    const {holes4, holes5plus}=holeNeighborCounts(fullSet,shape);
-    if(holes5plus>0) continue;
-    if(holes4>0 && Math.random()>0.3) continue;
-    try{
-      const roomPositionMap=mapRoomsToPositions(colorMap, throneKey);
-      return {shape,colorMap,roomPositionMap,throneKey};
-    }catch(e){ continue; }
+function generateValidLodge() {
+  const fullSet = buildFullSet(); // 37 tiles
+  const candidates = buildCandidatePairs(fullSet);
+  const removePairsNeeded = (fullSet.size - 19) / 2; // 9 pairs
+
+  while (true) { // outer retry until success
+    let shape = null;
+
+    // Limit internal attempts
+    const MAX_ATTEMPTS = 25;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      shape = chooseRemovalPairCombination(fullSet, [...candidates], removePairsNeeded);
+      if (shape) break; // found a candidate shape
+    }
+
+    if (!shape) {
+      console.warn("25 attempts failed, restarting lodge generation from scratch...");
+      continue; // restart entire lodge generation
+    }
+
+    // Choose throne from ring1
+    const ring1 = ringKeys(1);
+    const throneKey = ring1[Math.floor(Math.random() * ring1.length)];
+    if (!shape.has(throneKey)) continue;
+
+    // Color assignment
+    const colorMap = assignColorsToShape(shape, throneKey);
+    if (!colorMap) continue;
+
+    // Hole checks & probabilistic acceptance
+    const { holes4, holes5plus } = holeNeighborCounts(fullSet, shape);
+    if (holes5plus > 0) continue;
+
+    if (holes4 > 0 && Math.random() > 0.30) continue; // 30% chance accept if holes4 exist
+
+    // Map rooms
+    try {
+      const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
+      return { shape, colorMap, roomPositionMap, throneKey };
+    } catch (e) {
+      console.warn("Room mapping failed, restarting lodge generation...", e);
+      continue;
+    }
   }
 }
 
