@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Black Rose Lodge — Biconnected Symmetric Generator</title>
+<style>
+  :root { --hex-size: 44px; } /* 30% larger than 34px -> 44px */
+  body {
+    background: #111;
+    color: #eee;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 12px;
+  }
+  h1 { margin: 0; font-size: 20px; }
+  .toolbar { display:flex; gap:8px; }
+  button {
+    background:#222; color:#eee; border:1px solid #444; padding:8px 12px;
+    border-radius:8px; cursor:pointer;
+  }
+  .board {
+    position: relative;
+    width: 980px;
+    height: 720px;
+    border-radius: 12px;
+    background: linear-gradient(#141414,#0a0a0a);
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .hex {
+    position: absolute;
+    width: calc(var(--hex-size) * 1.732); /* sqrt(3)*size */
+    height: calc(var(--hex-size) * 2);
+    clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:6px; box-sizing:border-box;
+    color:#fff; font-size:12px; line-height:1.1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 0 8px rgba(255,255,255,0.03);
+    user-select:none;
+    transition: transform .12s;
+  }
+  .hex:hover { transform: translateY(-4px); }
+  .label {
+    background: rgba(0,0,0,0.28); border-radius:6px; padding:2px 6px;
+  }
+  .black  { background:#000; }
+  .purple { background: rebeccapurple; }
+  .red    { background: #b11; }
+  .green  { background: #197a2b; }
+  .blue   { background: #1f4ea3; }
+  .gray   { background: #676e78; }
+  .yellow { background: #d6b500; }
+
+  /* highlight throne */
+  .throne {
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.6);
+    border: 2px solid rgba(255,255,255,0.06);
+  }
+
+  .note { font-size:13px; color:#bbb; }
+</style>
+</head>
+<body>
+  <h1>Black Rose Lodge — generator</h1>
+  <div class="toolbar">
+    <button id="regen">Regenerate</button>
+    <div class="note">Rules: radius 3, symmetric holes, central ring intact, biconnected (no gateways), exact color counts, no adjacent same color.</div>
+  </div>
+  <div class="board" id="board"></div>
+
+<script>
+/* ============================
+   CONFIG: one-dimensional rooms[] strings "Name|color"
+   Replace these placeholders with your real room names if desired.
+   Must include exactly 19 entries and exactly one "Black Rose Room|black"
+   and exactly one "Throne Room|purple".
+   Colors allowed: black, purple, red, green, blue, gray, yellow
+   ============================ */
+const rooms = [
+  "Black Rose Room|black",
+  "Throne Room|purple",
+  "Amethyst Library|purple",
+  "Violet Sanctum|purple",
+  "Ruby Forge|red",
+  "Crimson Hall|red",
+  "Scarlet Observatory|red",
+  "Emerald Garden|green",
+  "Verdant Chapel|green",
+  "Jade Gallery|green",
+  "Azure Pool|blue",
+  "Cobalt Tower|blue",
+  "Sapphire Crypt|blue",
+  "Iron Workshop|gray",
+  "Steel Armory|gray",
+  "Silver Vault|gray",
+  "Golden Treasury|yellow",
+  "Amber Dome|yellow",
+  "Topaz Chamber|yellow"
+];
+
+/* ======= Validation of rooms[] counts ======= */
+const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+(function validateRoomList() {
+  if (!Array.isArray(rooms) || rooms.length !== 19) {
+    throw new Error("rooms[] must be an array of 19 strings in format 'Name|color'.");
+  }
+  const parsed = rooms.map(s => {
+    if (typeof s !== 'string' || !s.includes('|')) throw new Error("Each rooms[] entry must be 'Name|color'.");
+    const [name, color] = s.split('|').map(x=>x.trim());
+    return {name, color};
+  });
+  const counts = {};
+  parsed.forEach(r => { counts[r.color] = (counts[r.color]||0) + 1; });
+  for (const col of Object.keys(REQUIRED_COUNTS)) {
+    if ((counts[col] || 0) !== REQUIRED_COUNTS[col]) {
+      throw new Error(`Color counts mismatch: need ${REQUIRED_COUNTS[col]} ${col} rooms (found ${counts[col]||0}).`);
+    }
+  }
+  // Ensure exactly one Black Rose Room and one Throne Room by name
+  const names = parsed.map(p=>p.name);
+  if (names.filter(n => n === "Black Rose Room").length !== 1) throw new Error("Must include exactly one 'Black Rose Room' entry.");
+  if (parsed.filter(p => p.name === "Throne Room" && p.color === "purple").length !== 1) throw new Error("Must include exactly one 'Throne Room|purple' entry.");
+})();
+
+/* =========================
+   Hex utilities (axial coords, pointy)
+   ========================= */
+const DIRS = [ [1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1] ];
+function key(q,r){ return `${q},${r}`; }
+function unkey(k){ const [q,r] = k.split(',').map(Number); return {q,r}; }
+function neighbors(q,r){ return DIRS.map(([dq,dr]) => [q+dq, r+dr]); }
+function axialDistance(a,b){ const dq=a.q-b.q, dr=a.r-b.r, ds=-a.q-a.r + b.q + b.r; return (Math.abs(dq)+Math.abs(dr)+Math.abs(ds))/2; }
+const MAX_RADIUS = 3;
+function withinRadius(q,r){ return axialDistance({q,r},{q:0,r:0}) <= MAX_RADIUS; }
+
+/* Axial -> pixel (pointy topped) */
+const HEX_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hex-size'));
+const HEX_W = Math.sqrt(3)*HEX_SIZE;
+const HEX_H = 2*HEX_SIZE;
+function axialToPixel(q,r){
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+  const y = HEX_SIZE * 1.5 * r;
+  return {x,y};
+}
+
+/* ===== build full radius-3 set and rings ===== */
+function buildFullSet(){
+  const set = new Set();
+  for (let q=-MAX_RADIUS;q<=MAX_RADIUS;q++){
+    for (let r=-MAX_RADIUS;r<=MAX_RADIUS;r++){
+      if (withinRadius(q,r)) set.add(key(q,r));
+    }
+  }
+  return set; // should be 37 keys
+}
+function ringKeys(dist){
+  const out = [];
+  for (const k of buildFullSet()){
+    const {q,r}=unkey(k);
+    if (axialDistance({q,r},{q:0,r:0}) === dist) out.push(k);
+  }
+  return out;
+}
+
+/* ===== helper graph functions (for small graphs; simple BFS checks) ===== */
+function buildAdjMap(keysSet){
+  const adj = new Map();
+  for (const k of keysSet) adj.set(k, []);
+  for (const k of keysSet){
+    const {q,r} = unkey(k);
+    for (const [nq,nr] of neighbors(q,r)){
+      const nk = key(nq,nr);
+      if (keysSet.has(nk)) adj.get(k).push(nk);
+    }
+  }
+  return adj;
+}
+function isConnected(keysSet){
+  if (keysSet.size === 0) return true;
+  if (!keysSet.has(key(0,0))) return false;
+  const adj = buildAdjMap(keysSet);
+  const start = key(0,0);
+  const seen = new Set([start]); const stack = [start];
+  while (stack.length){
+    const cur = stack.pop();
+    for (const nb of adj.get(cur)){
+      if (!seen.has(nb)) { seen.add(nb); stack.push(nb); }
+    }
+  }
+  return seen.size === keysSet.size;
+}
+function minDegreeAtLeast(keysSet, minDeg){
+  const adj = buildAdjMap(keysSet);
+  for (const [k, nb] of adj){
+    if (k === key(0,0)) continue; // allow center exemption if you want; but center will usually have many neighbors
+    if (nb.length < minDeg) return false;
+  }
+  return true;
+}
+/* articulation check: brute-force for small graph: removing one node and test connectivity */
+function hasNoArticulationExceptCenter(keysSet){
+  if (!isConnected(keysSet)) return false;
+  for (const k of keysSet){
+    if (k === key(0,0)) continue;
+    const copy = new Set(keysSet);
+    copy.delete(k);
+    if (!isConnected(copy)) return false;
+  }
+  return true;
+}
+
+/* hole isolation rule:
+   For every removed cell (in fullSet but not in shape), it must not be surrounded by all 6 present tiles.
+   i.e., at least one of its 6 neighbors must also be missing or outside radius
+*/
+function noIsolatedHole(fullSet, shapeSet){
+  for (const k of fullSet){
+    if (shapeSet.has(k)) continue; // only examine holes
+    const {q,r} = unkey(k);
+    let neighborsPresent = 0;
+    for (const [nq,nr] of neighbors(q,r)){
+      const nk = key(nq,nr);
+      if (shapeSet.has(nk)) neighborsPresent++;
+    }
+    if (neighborsPresent === 6) return false; // isolated hole
+  }
+  return true;
+}
+
+/* ========= Build candidate mirror pairs in rings 2 & 3 ========= */
+function buildCandidatePairs(fullSet){
+  const candidates = [];
+  const blocked = new Set([key(0,0), ...ringKeys(1)]); // never remove center or ring1
+  const visited = new Set();
+  for (const k of fullSet){
+    if (blocked.has(k)) continue;
+    if (visited.has(k)) continue;
+    const {q,r} = unkey(k);
+    const mk = key(-q,-r);
+    if (!fullSet.has(mk)) continue; // safety
+    visited.add(k); visited.add(mk);
+    // canonical ordering to avoid duplicates: only add if k < mk lexicographically
+    if (k < mk) candidates.push([k,mk]);
+    else candidates.push([mk,k]); // still ensure unique pair
+  }
+  return candidates; // should be 15 pairs (since 30 removable tiles)
+}
+
+/* ====== Choose exactly removePairsNeeded mirror pairs such that final shape meets graph constraints ====== */
+function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded){
+  // backtracking choose subset of candidates size removePairsNeeded
+  // we try to prune aggressively: after partial selection, ensure current tentative shape has no vertex deg<2 (because removing more won't increase degree)
+  // and remains connected.
+  const totalPairs = candidates.length;
+
+  // Shuffle candidate order to vary results
+  shuffle(candidates);
+
+  const selected = [];
+  let result = null;
+  const targetRemovals = removePairsNeeded * 2;
+
+  function buildShapeFromSelected(selPairs){
+    const shape = new Set(fullSet);
+    for (const [a,b] of selPairs){
+      shape.delete(a); shape.delete(b);
+    }
+    return shape;
+  }
+
+  function pruneCheck(selPairs){
+    const shape = buildShapeFromSelected(selPairs);
+    // quick prune: if any non-center vertex already has degree < 2 -> cannot be fixed later
+    if (!minDegreeAtLeast(shape, 2)) return false;
+    // must remain connected at this partial stage as well
+    if (!isConnected(shape)) return false;
+    // hole-isolation check for currently removed holes:
+    // For any removed cell, if it's isolated (all 6 neighbors present in shape), it's a bad hole already (cannot be fixed)
+    const full = fullSet;
+    if (!noIsolatedHole(full, shape)) return false;
+    // OK so far
+    return true;
+  }
+
+  function backtrack(startIndex){
+    if (result) return true;
+    if (selected.length === removePairsNeeded){
+      // final shape
+      const finalShape = buildShapeFromSelected(selected);
+      if (finalShape.size !== (fullSet.size - targetRemovals)) return false;
+      // final checks: connectivity already checked earlier; do biconnectivity test (no articulation except center)
+      if (!hasNoArticulationExceptCenter(finalShape)) return false;
+      // final hole check
+      if (!noIsolatedHole(fullSet, finalShape)) return false;
+      result = finalShape;
+      return true;
+    }
+    // If not enough candidates left to fill slots -> prune
+    if (startIndex >= totalPairs) return false;
+    const need = removePairsNeeded - selected.length;
+    if (totalPairs - startIndex < need) return false;
+
+    for (let i = startIndex; i < totalPairs; i++){
+      selected.push(candidates[i]);
+      // prune
+      if (pruneCheck(selected)){
+        if (backtrack(i+1)) return true;
+      }
+      selected.pop();
+    }
+    return false;
+  }
+
+  if (backtrack(0)) return result;
+  return null;
+}
+
+/* ===== color assignment backtracking ===== */
+const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+function assignColorsToShape(shapeSet, throneKey){
+  const nodes = [...shapeSet];
+  const adj = buildAdjMap(shapeSet);
+
+  // fixed assignments
+  const colorOf = new Map();
+  const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+  colorOf.set(key(0,0), 'black'); counts.black--;
+  colorOf.set(throneKey, 'purple'); counts.purple--;
+
+  // sort nodes by degree descending, but ensure center and throne excluded
+  const toColor = nodes.filter(n => n !== key(0,0) && n !== throneKey)
+                       .sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+  function backtrack(i){
+    if (i >= toColor.length) return true;
+    const node = toColor[i];
+    const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+    // try colors with remaining counts and not used by adjacent
+    const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+    // randomize order a bit to generate varied layouts
+    shuffle(choices);
+    for (const c of choices){
+      colorOf.set(node, c);
+      counts[c]--;
+      // early neighbor-same-color constraint satisfied by used set already
+      // Also quick feasibility: ensure remainings counts can fill remaining nodes (trivial here)
+      if (backtrack(i+1)) return true;
+      counts[c]++; colorOf.delete(node);
+    }
+    return false;
+  }
+
+  return backtrack(0) ? colorOf : null;
+}
+
+/* ===== mapping room strings to positions (preserve Throne and Black Rose exactly) ===== */
+function mapRoomsToPositions(colorMap, throneKey){
+  // parse rooms[] into pools
+  const pools = {}; // color -> array of names
+  for (const s of rooms){
+    const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
+    if (!pools[colorRaw]) pools[colorRaw] = [];
+    pools[colorRaw].push(nameRaw);
+  }
+  // ensure Black Rose Room assigned to center
+  const roomByPos = new Map();
+  // center:
+  const centerList = pools['black'] || [];
+  const brIndex = centerList.findIndex(n => n === "Black Rose Room");
+  if (brIndex === -1) throw new Error("Black Rose Room missing from rooms[]");
+  const blackName = centerList.splice(brIndex,1)[0];
+  roomByPos.set(key(0,0), {name: blackName, color:'black'});
+
+  // throne:
+  const thronePool = pools['purple'] || [];
+  const throneIndex = thronePool.findIndex(n => n === "Throne Room");
+  if (throneIndex === -1) throw new Error("Throne Room|purple missing from rooms[]");
+  const throneName = thronePool.splice(throneIndex,1)[0];
+  roomByPos.set(throneKey, {name: throneName, color:'purple'});
+
+  // now for remaining colorMap positions, distribute randomly from pools
+  // build list of positions (excluding center and throne)
+  const remainingPositions = [...colorMap.keys()].filter(k => k !== key(0,0) && k !== throneKey);
+  shuffle(remainingPositions);
+
+  // shuffle pools
+  for (const c of Object.keys(pools)) shuffle(pools[c]);
+
+  for (const pos of remainingPositions){
+    const color = colorMap.get(pos);
+    if (!pools[color] || pools[color].length === 0) {
+      throw new Error(`Not enough rooms available for color ${color} while mapping.`);
+    }
+    const name = pools[color].pop();
+    roomByPos.set(pos, {name, color});
+  }
+  return roomByPos;
+}
+
+/* ===== Main generator that ties everything together ===== */
+function generateValidLodge(){
+  const fullSet = buildFullSet(); // 37 keys
+  const candidates = buildCandidatePairs(fullSet); // ~15 pairs
+  const removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+
+  // Try candidate combinations; search returns a shapeSet or null
+  const shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded);
+  if (!shape) throw new Error("Failed to find a symmetric removal combination that satisfies graph constraints.");
+
+  // Choose random throne key from ring 1 (central ring intact)
+  const ring1 = ringKeys(1);
+  const throneKey = ring1[Math.floor(Math.random()*ring1.length)];
+
+  // ensure throneKey is present in shape (ring1 is never removed, so yes)
+  if (!shape.has(throneKey)) throw new Error("Chosen throneKey missing from shape — shouldn't happen.");
+
+  // Now assign colors to shape (backtracking)
+  const colorMap = assignColorsToShape(shape, throneKey);
+  if (!colorMap) throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
+
+  // map room names to positions (ensuring black and throne rooms placed exactly)
+  const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
+  return { shape, colorMap, roomPositionMap, throneKey };
+}
+
+/* ======== Rendering ======= */
+const board = document.getElementById('board');
+
+function renderLodge(lodge){
+  board.innerHTML = '';
+  const {shape, roomPositionMap, throneKey} = lodge;
+
+  // compute pixel positions and bounding box
+  const pts = [...shape].map(k => {
+    const {q,r} = unkey(k);
+    const p = axialToPixel(q,r);
+    return {k, q, r, x:p.x, y:p.y};
+  });
+  const minX = Math.min(...pts.map(p => p.x));
+  const maxX = Math.max(...pts.map(p => p.x));
+  const minY = Math.min(...pts.map(p => p.y));
+  const maxY = Math.max(...pts.map(p => p.y));
+
+  const groupW = (maxX - minX) + HEX_W;
+  const groupH = (maxY - minY) + HEX_H;
+  const offsetX = (board.clientWidth - groupW)/2 - minX;
+  const offsetY = (board.clientHeight - groupH)/2 - minY;
+
+  for (const p of pts){
+    const posKey = p.k;
+    const room = roomPositionMap.get(posKey);
+    const div = document.createElement('div');
+    div.className = `hex ${room.color}` + (posKey === throneKey ? ' throne' : '');
+    div.style.left = `${Math.round(p.x + offsetX)}px`;
+    div.style.top  = `${Math.round(p.y + offsetY)}px`;
+    const lbl = document.createElement('div');
+    lbl.className = 'label';
+    lbl.textContent = room.name;
+    div.appendChild(lbl);
+    board.appendChild(div);
+  }
+}
+
+/* ===== randomize helper ===== */
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ===== initial render & regen button ===== */
+function createAndRender(){
+  try {
+    const lodge = generateValidLodge();
+    renderLodge(lodge);
+  } catch (e) {
+    alert("Generator error: " + e.message);
+    console.error(e);
+  }
+}
+document.getElementById('regen').addEventListener('click', createAndRender);
+
+createAndRender();
+</script>
+</body>
+</html>
