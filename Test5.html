@@ -25,61 +25,63 @@ button { margin-top:20px; padding:10px 20px; font-size:16px; }
 const hexSize = 40, sqrt3 = Math.sqrt(3);
 const directions = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
 
+// Utility functions
 function key(q,r){ return `${q},${r}`; }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 function neighbors(tile,map){ return directions.map(([dq,dr])=>map[key(tile.q+dq,tile.r+dr)]).filter(t=>t); }
-
-// Hex distance
 function hexDistance(q,r){ return Math.max(Math.abs(q), Math.abs(r), Math.abs(-q-r)); }
 
-// --- 1. Build symmetric lodge ---
+// --- 1. Grow symmetric lodge ---
 function buildLodge(){
     let tilesMap = {};
     let tiles = [];
 
-    // Generate all positions with distance <=3
-    for(let q=-3;q<=3;q++){
-        for(let r=Math.max(-3,-q-3); r<=Math.min(3,-q+3); r++){
-            tilesMap[key(q,r)] = {q,r};
-        }
-    }
-
     // Center
-    let center = tilesMap["0,0"];
-    tiles.push(center);
+    let center = {q:0,r:0}; tilesMap[key(0,0)]=center; tiles.push(center);
 
-    // First ring (distance=1) = always 6 tiles
-    let ring1 = neighbors(center, tilesMap);
-    tiles.push(...ring1);
-
-    // Collect candidates from rings 2 & 3
-    let candidates = [];
-    for(let t of Object.values(tilesMap)){
-        let d = hexDistance(t.q,t.r);
-        if(d>=2 && d<=3) candidates.push(t);
+    // Ring 1 = 6 neighbors
+    for(let [dq,dr] of directions){
+        let t = {q:dq, r:dr}; tilesMap[key(dq,dr)] = t; tiles.push(t);
     }
 
-    shuffle(candidates);
-    // Need 19 tiles in total: already have 7 (center+ring1)
-    while(tiles.length < 19 && candidates.length){
-        let t = candidates.pop();
-        tiles.push(t);
+    // Grow additional tiles symmetrically
+    let radius = 2;
+    while(tiles.length<19 && radius<=3){
+        let ringPositions = [];
+        for(let q=-radius;q<=radius;q++){
+            for(let r=Math.max(-radius,-q-radius); r<=Math.min(radius,-q+radius); r++){
+                if(!tilesMap[key(q,r)] && hexDistance(q,r)===radius){
+                    ringPositions.push({q,r});
+                }
+            }
+        }
+        shuffle(ringPositions);
+        for(let t of ringPositions){
+            if(tiles.length>=19) break;
+            // Minimum 2 neighbors check
+            let tempMap = {...tilesMap}; tempMap[key(t.q,t.r)] = t;
+            let n = neighbors(t,tempMap).length;
+            if(n>=2){
+                tilesMap[key(t.q,t.r)] = t;
+                tiles.push(t);
+            }
+        }
+        radius++;
     }
 
-    // Build map for neighbor lookup
-    let map = {}; tiles.forEach(t=>map[key(t.q,t.r)] = t);
-    return {tiles, map, center, ring1};
+    return {tiles, tilesMap, center};
 }
 
-// --- 2. Assign colors with adjacency constraints ---
-function assignColors(tiles, center, ring1){
+// --- 2. Assign colors ---
+function assignColors(tiles, center){
     const counts = {black:1,purple:3,red:3,green:3,blue:3,gray:3,yellow:3};
     let map = {}; tiles.forEach(t=>map[key(t.q,t.r)] = t);
 
     // Center black
     center.color = "black"; counts.black--;
 
-    // Throne Room = random from first ring
+    // Throne Room = random from ring1 (neighbors of center)
+    let ring1 = neighbors(center,map);
     shuffle(ring1);
     let throne = ring1[0];
     throne.color="purple"; counts.purple--;
@@ -139,8 +141,8 @@ function renderLodge(tiles){
 // --- Main ---
 function generateLodge(){
     try{
-        let {tiles, map, center, ring1} = buildLodge();
-        let {tiles:coloredTiles, throne} = assignColors(tiles, center, ring1);
+        let {tiles, tilesMap, center} = buildLodge();
+        let {tiles:coloredTiles, throne} = assignColors(tiles, center);
         assignRooms(coloredTiles, center, throne);
         renderLodge(coloredTiles);
     }catch(e){
