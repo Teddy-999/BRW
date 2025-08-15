@@ -110,10 +110,10 @@
             {q: 1, r: -1}, {q: -1, r: 1}
         ];
 
-        function getNeighbors(roomCoords, allRooms) {
+        function getNeighbors(room, allRooms) {
             const neighbors = [];
             for (const dir of directions) {
-                const neighbor = allRooms.find(r => r.q === roomCoords.q + dir.q && r.r === roomCoords.r + dir.r);
+                const neighbor = allRooms.find(r => r.q === room.q + dir.q && r.r === room.r + dir.r);
                 if (neighbor) {
                     neighbors.push(neighbor);
                 }
@@ -140,13 +140,43 @@
             }
             return visited.size === rooms.length;
         }
+        
+        // Backtracking algorithm for color assignment
+        function solveColoring(rooms, roomIndex, colorPool) {
+            if (roomIndex === rooms.length) {
+                return true; // All rooms successfully colored
+            }
+
+            const room = rooms[roomIndex];
+            const availableColors = [...colorPool];
+            shuffle(availableColors);
+
+            for (const color of availableColors) {
+                const isAdjacentSameColor = getNeighbors(room, rooms).some(neighbor => neighbor.color === color);
+                
+                if (!isAdjacentSameColor && colorPool.includes(color)) {
+                    room.color = color;
+                    const colorIndex = colorPool.indexOf(color);
+                    colorPool.splice(colorIndex, 1);
+
+                    if (solveColoring(rooms, roomIndex + 1, colorPool)) {
+                        return true;
+                    }
+
+                    // Backtrack
+                    room.color = null;
+                    colorPool.push(color);
+                }
+            }
+            return false;
+        }
 
         function createBoard() {
             const gameBoard = document.getElementById('game-board');
             gameBoard.innerHTML = '';
             
-            let validConfiguration = false;
             let rooms = [];
+            let validConfiguration = false;
             let attemptCount = 0;
             const maxAttempts = 2000;
 
@@ -191,12 +221,10 @@
                 
                 // 4. Check for connectivity and color assignment
                 if (isConnected(rooms)) {
-                    // Place the Throne Room
-                    const throneRoom = shuffle(getNeighbors(0, 0, rooms))[0];
+                    const throneRoom = shuffle(getNeighbors({q: 0, r: 0}, rooms))[0];
                     throneRoom.color = 'purple';
                     throneRoom.name = 'Throne Room';
 
-                    // Create color pool and shuffle remaining rooms
                     const colorPool = [];
                     for (const color of ['red', 'green', 'yellow', 'blue', 'purple', 'gray']) {
                         if (color === 'purple') {
@@ -207,30 +235,8 @@
                     }
                     
                     const remainingRooms = rooms.filter(r => r.color === null);
-                    shuffle(remainingRooms);
-                    shuffle(colorPool);
-
-                    let assignmentSuccess = true;
-                    for (const room of remainingRooms) {
-                        let assigned = false;
-                        const neighbors = getNeighbors(room, rooms);
-                        for (let i = 0; i < colorPool.length; i++) {
-                            const color = colorPool[i];
-                            const isAdjacent = neighbors.some(neighbor => neighbor.color === color);
-                            if (!isAdjacent) {
-                                room.color = color;
-                                room.name = `Room - ${color}`;
-                                colorPool.splice(i, 1);
-                                assigned = true;
-                                break;
-                            }
-                        }
-                        if (!assigned) {
-                            assignmentSuccess = false;
-                            break;
-                        }
-                    }
-                    if (assignmentSuccess) {
+                    
+                    if (solveColoring(remainingRooms, 0, colorPool)) {
                         validConfiguration = true;
                     }
                 }
@@ -238,8 +244,7 @@
             }
 
             if (!validConfiguration) {
-                 console.error(`Could not find a valid configuration after ${maxAttempts} attempts. Retrying...`);
-                 createBoard(); // Recursively retry if max attempts reached
+                 console.error(`Could not find a valid configuration after ${maxAttempts} attempts.`);
                  return;
             } else {
                 console.log(`Successfully generated a valid board after ${attemptCount} attempts.`);
