@@ -207,26 +207,50 @@ function mapRoomsToPositions(colorMap, throneKey){
   return mapping;
 }
 
-// generate lodge with safe retry
-function generateValidLodge(){
-  const fullSet=buildFullSet();
-  const candidates=buildCandidatePairs(fullSet);
-  const removePairsNeeded=(fullSet.size-19)/2;
-  while(true){
-    const shape=chooseRemovalPairCombination(fullSet,[...candidates],removePairsNeeded);
-    if(!shape) continue;
-    const ring1=[...fullSet].filter(k=>k!=='0,0'); // simplify ring1
-    const throneKey=ring1[Math.floor(Math.random()*ring1.length)];
-    if(!shape.has(throneKey)) continue;
-    const colorMap=assignColorsToShape(shape,throneKey);
-    if(!colorMap) continue;
-    const {holes4,holes5plus}=holeNeighborCounts(fullSet,shape);
-    if(holes5plus>0) continue;
-    if(holes4>0 && Math.random()>0.3) continue;
-    try{
-      const roomPositionMap=mapRoomsToPositions(colorMap,throneKey);
-      return {shape,colorMap,roomPositionMap,throneKey};
-    }catch(e){ continue; }
+/* ===== hex distance helper ===== */
+function hexDistance(aKey, bKey) {
+  const {q: q1, r: r1} = unkey(aKey);
+  const {q: q2, r: r2} = unkey(bKey);
+  const dq = q2 - q1;
+  const dr = r2 - r1;
+  return (Math.abs(dq) + Math.abs(dq + dr) + Math.abs(dr)) / 2;
+}
+
+/* ===== generate valid lodge: retry until success ===== */
+function generateValidLodge() {
+  const fullSet = buildFullSet(); // 37
+  const candidates = buildCandidatePairs(fullSet);
+  const removePairsNeeded = (fullSet.size - 19) / 2; // 9
+
+  while (true) {
+    const shape = chooseRemovalPairCombination(fullSet, [...candidates], removePairsNeeded);
+    if (!shape) continue; // retry
+
+    // choose random throneKey from ring1
+    const ring1 = ringKeys(1);
+    const throneKey = ring1[Math.floor(Math.random() * ring1.length)];
+    if (!shape.has(throneKey)) continue;
+
+    // enforce distance <= 3 from Black Rose
+    const maxDistance = 3;
+    const blackRoseKey = key(0,0);
+    const farTiles = [...shape].filter(k => k !== blackRoseKey && k !== throneKey && hexDistance(k, blackRoseKey) > maxDistance);
+    if (farTiles.length > 0) continue; // reject shape if any tile is too far
+
+    const colorMap = assignColorsToShape(shape, throneKey);
+    if (!colorMap) continue;
+
+    const {holes4, holes5plus} = holeNeighborCounts(fullSet, shape);
+    if (holes5plus > 0) continue;
+
+    if (holes4 > 0 && Math.random() > 0.3) continue; // probabilistic acceptance
+
+    try {
+      const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
+      return { shape, colorMap, roomPositionMap, throneKey };
+    } catch (e) {
+      continue;
+    }
   }
 }
 
