@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Black Rose Lodge — Symmetric Holes, No Adjacent Same Color</title>
+<style>
+  :root {
+    /* 30% larger than 34px => ~44px */
+    --hex-size: 44px; /* hex radius (corner to center), pointy-topped hexes */
+  }
+  body {
+    background: #111;
+    color: #eee;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  h1 { margin: 0; font-size: 20px; font-weight: 700; }
+  .toolbar { display: flex; gap: 8px; align-items: center; }
+  button {
+    background: #333;
+    color: #eee;
+    border: 1px solid #444;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  button:hover { background: #3a3a3a; }
+
+  .board {
+    position: relative;
+    width: 1000px;
+    height: 800px;
+    border-radius: 16px;
+    background: radial-gradient(ellipse at center, #1a1a1a, #0c0c0c);
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  .hex {
+    position: absolute;
+    width: calc(var(--hex-size) * 1.732); /* √3 * size */
+    height: calc(var(--hex-size) * 2);
+    clip-path: polygon(
+      50% 0%,
+      93% 25%,
+      93% 75%,
+      50% 100%,
+      7% 75%,
+      7% 25%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px;
+    font-size: 12px;
+    line-height: 1.1;
+    color: #fff;
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.35),
+      inset 0 0 12px rgba(255,255,255,0.05);
+    user-select: none;
+  }
+  .hex .label {
+    padding: 2px 4px;
+    background: rgba(0,0,0,0.28);
+    border-radius: 6px;
+  }
+
+  /* Colors */
+  .black  { background: #000; }
+  .purple { background: rebeccapurple; }
+  .red    { background: #b11; }
+  .green  { background: #197a2b; }
+  .blue   { background: #1f4ea3; }
+  .gray   { background: #676e78; }
+  .gold   { background: #b58900; }
+</style>
+</head>
+<body>
+  <h1>Black Rose Lodge (Radius 3, Symmetric Holes, No Adjacent Same Color)</h1>
+  <div class="toolbar">
+    <button id="regen">Regenerate</button>
+  </div>
+  <div class="board" id="board"></div>
+
+<script>
+/* =========================
+   Hex axial utilities
+   ========================= */
+const DIRS = [
+  [ 1,  0], [ 1, -1], [ 0, -1],
+  [-1,  0], [-1,  1], [ 0,  1]
+];
+const CENTER_KEY = '0,0';
+function key(q,r){ return `${q},${r}`; }
+function unkey(k){ const [q,r] = k.split(',').map(Number); return {q,r}; }
+function neighbors(q,r){ return DIRS.map(([dq,dr]) => [q+dq, r+dr]); }
+function axialDistance(a,b){
+  const dq = a.q - b.q, dr = a.r - b.r, ds = -a.q - a.r + b.q + b.r;
+  return (Math.abs(dq)+Math.abs(dr)+Math.abs(ds))/2;
+}
+const MAX_RADIUS = 3;
+function withinRadius(q,r,rad=MAX_RADIUS){ return axialDistance({q,r},{q:0,r:0}) <= rad; }
+
+/* Axial -> pixel (pointy topped) */
+const HEX_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hex-size'));
+const HEX_W = Math.sqrt(3) * HEX_SIZE;   // width
+const HEX_H = 2 * HEX_SIZE;              // height
+function axialToPixel(q,r){
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+  const y = HEX_SIZE * 1.5 * r;
+  return {x, y};
+}
+
+/* =========================
+   Rooms (19 unique, exact counts)
+   ========================= */
+const ROOMS = [
+  {name: "Black Rose Room", color: "black"}, // fixed center
+  {name: "Throne Room",     color: "purple"},// fixed adjacent (random side)
+  // two more purple
+  {name: "Amethyst Library",   color: "purple"},
+  {name: "Violet Sanctum",     color: "purple"},
+  // reds
+  {name: "Ruby Forge",         color: "red"},
+  {name: "Crimson Hall",       color: "red"},
+  {name: "Scarlet Observatory",color: "red"},
+  // greens
+  {name: "Emerald Garden",     color: "green"},
+  {name: "Verdant Chapel",     color: "green"},
+  {name: "Jade Gallery",       color: "green"},
+  // blues
+  {name: "Azure Pool",         color: "blue"},
+  {name: "Cobalt Tower",       color: "blue"},
+  {name: "Sapphire Crypt",     color: "blue"},
+  // grays
+  {name: "Iron Workshop",      color: "gray"},
+  {name: "Steel Armory",       color: "gray"},
+  {name: "Silver Vault",       color: "gray"},
+  // yellows (gold)
+  {name: "Golden Treasury",    color: "gold"},
+  {name: "Amber Dome",         color: "gold"},
+  {name: "Topaz Chamber",      color: "gold"}
+];
+
+/* =========================
+   Helpers
+   ========================= */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function buildRadius3Set() {
+  const S = new Set();
+  for (let q=-MAX_RADIUS; q<=MAX_RADIUS; q++) {
+    for (let r=-MAX_RADIUS; r<=MAX_RADIUS; r++) {
+      if (withinRadius(q,r)) S.add(key(q,r));
+    }
+  }
+  return S; // size 37
+}
+function ringKeys(dist){
+  const res = [];
+  for (let q=-MAX_RADIUS; q<=MAX_RADIUS; q++) {
+    for (let r=-MAX_RADIUS; r<=MAX_RADIUS; r++) {
+      if (withinRadius(q,r) && axialDistance({q,r},{q:0,r:0}) === dist) res.push(key(q,r));
+    }
+  }
+  return res;
+}
+function mirrorKey(k){
+  const {q,r} = unkey(k);
+  return key(-q,-r);
+}
+function isConnected(setKeys){
+  if (setKeys.size === 0) return true;
+  const start = CENTER_KEY;
+  if (!setKeys.has(start)) return false;
+  const q = [];
+  const seen = new Set([start]);
+  q.push(start);
+  while (q.length){
+    const cur = q.shift();
+    const {q:Q, r:R} = unkey(cur);
+    for (const [nq,nr] of neighbors(Q,R)){
+      const nk = key(nq,nr);
+      if (setKeys.has(nk) && !seen.has(nk)){
+        seen.add(nk);
+        q.push(nk);
+      }
+    }
+  }
+  return seen.size === setKeys.size;
+}
+
+/* =========================
+   Shape with symmetric holes:
+   - Start with full radius-3 set
+   - Keep central ring (dist 1) fully intact
+   - Pick random throne on the ring (dist 1)
+   - Remove symmetric pairs from rings 2 and 3
+     until exactly 19 tiles remain, preserving connectivity
+   ========================= */
+function buildSymmetricShapeWithHoles() {
+  const all = buildRadius3Set();           // 37 tiles
+  const ring1 = new Set(ringKeys(1));      // 6 tiles
+  const ring2 = new Set(ringKeys(2));
+  const ring3 = new Set(ringKeys(3));
+
+  // Pick random throne on ring 1
+  const ring1Arr = Array.from(ring1);
+  const throneKey = ring1Arr[Math.floor(Math.random()*ring1Arr.length)];
+
+  // We must keep: center + all ring1 (intact)
+  // We'll remove only from rings 2 and 3, in symmetric pairs
+  let shape = new Set(all); // copy
+  // target size
+  const TARGET = 19;
+  const toRemoveCount = shape.size - TARGET; // 18
+
+  // Build list of candidate symmetric pairs from ring2 and ring3
+  const cand = [];
+  const blocked = new Set([...ring1, CENTER_KEY]); // cannot remove
+  const seen = new Set();
+  for (const k of shape) {
+    if (blocked.has(k)) continue;
+    const mk = mirrorKey(k);
+    if (seen.has(k) || seen.has(mk)) continue;
+    if (!shape.has(mk)) continue; // just in case
+    // both must be in rings 2 or 3
+    const dist = axialDistance(unkey(k), {q:0,r:0});
+    const mdist = axialDistance(unkey(mk), {q:0,r:0});
+    if (dist >= 2 && dist <= 3 && mdist >= 2 && mdist <= 3) {
+      cand.push([k,mk]);
+      seen.add(k); seen.add(mk);
+    }
+  }
+  shuffle(cand);
+
+  // Greedily remove pairs while preserving connectivity
+  let removed = 0;
+  for (const [a,b] of cand) {
+    if (removed >= toRemoveCount) break;
+    // tentative removal
+    if (!shape.has(a) || !shape.has(b)) continue;
+    shape.delete(a);
+    shape.delete(b);
+    if (!isConnected(shape)) {
+      // revert if disconnects
+      shape.add(a);
+      shape.add(b);
+      continue;
+    }
+    removed += 2;
+  }
+
+  // In rare cases, we might not reach TARGET by greedy removal (very unlikely).
+  // Simple retry if needed.
+  if (shape.size !== TARGET) {
+    return buildSymmetricShapeWithHoles();
+  }
+
+  // ensure throneKey is still present (ring1 intact so yes)
+  return { shape, throneKey };
+}
+
+/* =========================
+   Color assignment (no adjacent same color, exact counts)
+   - center: black (fixed)
+   - throneKey: purple (consumes 1 purple)
+   - remaining colors with exact counts
+   - backtracking on graph
+   ========================= */
+const COLOR_COUNTS = {
+  black: 1,
+  purple: 3,
+  red: 3,
+  green: 3,
+  blue: 3,
+  gray: 3,
+  gold: 3
+};
+
+function buildAdjacency(keysSet){
+  const adj = new Map();
+  for (const k of keysSet) adj.set(k, []);
+  for (const k of keysSet) {
+    const {q,r} = unkey(k);
+    for (const [nq,nr] of neighbors(q,r)) {
+      const nk = key(nq,nr);
+      if (keysSet.has(nk)) {
+        adj.get(k).push(nk);
+      }
+    }
+  }
+  return adj;
+}
+
+function assignColors(shapeSet, throneKey){
+  const adj = buildAdjacency(shapeSet);
+
+  // Order nodes by descending degree (harder first), but keep center first
+  const nodes = [...shapeSet];
+  nodes.sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+  // Fixed assignments
+  const colorOf = new Map();
+  const counts = JSON.parse(JSON.stringify(COLOR_COUNTS)); // clone
+
+  colorOf.set(CENTER_KEY, 'black');
+  counts.black -= 1;
+
+  colorOf.set(throneKey, 'purple');
+  counts.purple -= 1;
+
+  // Build list of nodes to color (exclude fixed)
+  const toColor = nodes.filter(k => k !== CENTER_KEY && k !== throneKey);
+
+  // Backtracking
+  function backtrack(i){
+    if (i >= toColor.length) return true;
+    const node = toColor[i];
+    const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+
+    // Try all colors with remaining count and not used by neighbors
+    const tryColors = Object.keys(counts)
+      .filter(c => counts[c] > 0 && !used.has(c));
+    shuffle(tryColors); // randomize solutions
+
+    for (const c of tryColors) {
+      colorOf.set(node, c);
+      counts[c]--;
+      if (backtrack(i+1)) return true;
+      // undo
+      counts[c]++;
+      colorOf.delete(node);
+    }
+    return false;
+  }
+
+  const ok = backtrack(0);
+  if (!ok) {
+    // Retry by regenerating shape (rare) or reshuffling order
+    return null;
+  }
+  return colorOf;
+}
+
+/* =========================
+   Map colors to specific rooms (unique)
+   ========================= */
+function mapRooms(colorMap){
+  // Split room pools by color
+  const pools = {};
+  for (const r of ROOMS) {
+    if (!pools[r.color]) pools[r.color] = [];
+    pools[r.color].push(r);
+  }
+  Object.values(pools).forEach(shuffle);
+
+  const roomByPos = new Map();
+  for (const [pos, color] of colorMap.entries()){
+    const room = pools[color].pop();
+    roomByPos.set(pos, room);
+  }
+  return roomByPos;
+}
+
+/* =========================
+   Render
+   ========================= */
+function render(boardEl, shapeSet, roomMap){
+  boardEl.innerHTML = ""; // clear
+
+  // Compute bounding box to center the group
+  const pts = [...shapeSet].map(k => {
+    const {q,r} = unkey(k);
+    const {x,y} = axialToPixel(q,r);
+    return {k, x, y};
+  });
+  const minX = Math.min(...pts.map(p => p.x));
+  const maxX = Math.max(...pts.map(p => p.x));
+  const minY = Math.min(...pts.map(p => p.y));
+  const maxY = Math.max(...pts.map(p => p.y));
+
+  const boardRect = boardEl.getBoundingClientRect();
+  const groupW = (maxX - minX) + HEX_W;
+  const groupH = (maxY - minY) + HEX_H;
+
+  const offsetX = (boardRect.width - groupW)/2 - minX;
+  const offsetY = (boardRect.height - groupH)/2 - minY;
+
+  for (const {k,x,y} of pts){
+    const room = roomMap.get(k);
+    const div = document.createElement('div');
+    div.className = `hex ${room.color}`;
+    div.style.left = `${x + offsetX}px`;
+    div.style.top  = `${y + offsetY}px`;
+
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = room.name;
+    div.appendChild(label);
+
+    boardEl.appendChild(div);
+  }
+}
+
+/* =========================
+   Generate one valid lodge
+   ========================= */
+function generateLodge(){
+  // Build shape with symmetric holes and ring-1 intact
+  const {shape, throneKey} = buildSymmetricShapeWithHoles();
+
+  // Assign colors with constraints. Retry a few times if needed.
+  let colorMap = null;
+  for (let tries=0; tries<25 && !colorMap; tries++){
+    colorMap = assignColors(shape, throneKey);
+    if (!colorMap) {
+      // if failed, rebuild shape and try again
+      const rebuilt = buildSymmetricShapeWithHoles();
+      shape.clear();
+      for (const k of rebuilt.shape) shape.add(k);
+      // throneKey becomes:
+      const tk = rebuilt.throneKey;
+      // reassign with new shape & throne
+      const attempt = assignColors(shape, tk);
+      if (attempt) {
+        colorMap = attempt;
+        // Also fix the throneKey in colorMap to match tk (it should already)
+        // Update reference for room mapping/render
+        return { shape, colorMap, throneKey: tk };
+      }
+    }
+  }
+  if (!colorMap) {
+    // last resort: rebuild and force
+    const rebuilt = buildSymmetricShapeWithHoles();
+    const attempt = assignColors(rebuilt.shape, rebuilt.throneKey);
+    if (!attempt) {
+      throw new Error("Could not assign colors under constraints after several attempts.");
+    }
+    return { shape: rebuilt.shape, colorMap: attempt, throneKey: rebuilt.throneKey };
+  }
+  return { shape, colorMap, throneKey };
+}
+
+function assignRoomsAndRender(){
+  const board = document.getElementById('board');
+  const { shape, colorMap } = generateLodge();
+  const roomMap = mapRooms(colorMap);
+  render(board, shape, roomMap);
+}
+
+/* UI */
+document.getElementById('regen').addEventListener('click', assignRoomsAndRender);
+
+/* Initial render */
+assignRoomsAndRender();
+</script>
+</body>
+</html>
