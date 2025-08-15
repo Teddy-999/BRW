@@ -1,296 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hexagonal Game Board</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #333;
-            margin: 0;
-            flex-direction: column;
-            font-family: sans-serif;
-            color: #eee;
-        }
-        #game-board {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow: hidden;
-        }
-        .hex-row {
-            display: flex;
-            justify-content: center;
-        }
-        .hex-row:nth-child(even) {
-            margin-left: 46px; /* Correct offset for 80px wide hexes */
-        }
-        .hexagon {
-            width: 80px;
-            height: 92px;
-            position: relative;
-            background: #555;
-            margin: 0 4px; /* Space between hexes */
-            margin-top: -23px; /* Correct overlap */
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 10px;
-            text-align: center;
-            box-sizing: border-box;
-            border: 2px solid #444;
-            transition: transform 0.2s ease-in-out;
-            cursor: pointer;
-        }
-        .hex-row:first-child .hexagon {
-            margin-top: 0;
-        }
-        .black-rose {
-            background-color: #000;
-            border-color: #f00;
-            color: #f00;
-        }
-        .throne-room {
-            background-color: #a0a;
-            border-color: #fff;
-            color: #fff;
-            font-weight: bold;
-        }
-        .red { background-color: #a00; }
-        .green { background-color: #0a0; }
-        .yellow { background-color: #aa0; }
-        .blue { background-color: #00a; }
-        .purple { background-color: #a0a; }
-        .gray { background-color: #777; }
-        .button-container {
-            margin-top: 30px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #555;
-            color: #eee;
-            border: 1px solid #777;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #777;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Lodge Generator</title>
+<style>
+  #board { position: relative; width: 900px; height: 700px; background: #f0f0f0; margin: auto; }
+  .hex { position: absolute; width: 80px; height: 69.28px; background: #ccc; clip-path: polygon(
+    25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); display: flex; align-items: center; justify-content: center; text-align: center; }
+  .black { background: black; color: white; }
+  .purple { background: purple; color: white; }
+  .red { background: red; color: white; }
+  .green { background: green; color: white; }
+  .blue { background: blue; color: white; }
+  .gray { background: gray; color: white; }
+  .yellow { background: yellow; color: black; }
+  .throne { border: 3px solid gold; }
+  .label { font-size: 10px; pointer-events: none; }
+</style>
 </head>
 <body>
+<div id="board"></div>
+<button id="regen">Regenerate Lodge</button>
+<script>
+// ===== Helpers =====
+function key(q,r){return `${q},${r}`;}
+function unkey(k){const [q,r]=k.split(',').map(Number);return {q,r};}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
+const HEX_W=80, HEX_H=69.28; // flat-topped
+function axialToPixel(q,r){const x=HEX_W*3/4*q; const y=HEX_H*(r + q/2); return {x,y};}
 
-    <h1>Random Symmetric Lodge</h1>
-    <div id="game-board"></div>
-    <div class="button-container">
-        <button id="recreate-button">Recreate Lodge</button>
-    </div>
+// ===== Full set and candidates =====
+function buildFullSet(){
+  const set=new Set();
+  for(let q=-3;q<=3;q++){
+    for(let r=-3;r<=3;r++){
+      const s=-q-r;
+      if(Math.abs(s)<=3) set.add(key(q,r));
+    }
+  }
+  return set;
+}
+function buildCandidatePairs(fullSet){
+  const arr=[...fullSet];
+  const pairs=[];
+  for(let i=0;i<arr.length;i++){
+    for(let j=i+1;j<arr.length;j++){
+      pairs.push([arr[i],arr[j]]);
+    }
+  }
+  return pairs;
+}
 
-    <script>
-        // Fisher-Yates shuffle algorithm
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex != 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
-        }
+// ===== Adjacency helpers =====
+const directions=[[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
+function neighbors(k){const {q,r}=unkey(k);return directions.map(d=>key(q+d[0],r+d[1]));}
+function buildAdjMap(shape){const map=new Map();for(const k of shape){map.set(k, neighbors(k).filter(n=>shape.has(n)));}return map;}
+function isConnected(shape){if(shape.size===0) return false; const adj=buildAdjMap(shape); const visited=new Set(); const stack=[shape.values().next().value]; while(stack.length){const n=stack.pop();if(visited.has(n)) continue; visited.add(n); for(const nb of adj.get(n)) if(!visited.has(nb)) stack.push(nb);} return visited.size===shape.size;}
+function minDegreeAtLeast(shape,minDeg){const adj=buildAdjMap(shape); return [...shape].every(k=>adj.get(k).length>=minDeg);}
+function hasNoArticulationExceptCenter(shape){const adj=buildAdjMap(shape); const center=key(0,0); for(const k of shape){if(k===center) continue; const visited=new Set(); const others=[...shape].filter(x=>x!==k); const stack=[others[0]]; while(stack.length){const n=stack.pop();if(visited.has(n)) continue; visited.add(n); for(const nb of adj.get(n)) if(nb!==k && !visited.has(nb)) stack.push(nb);} if(visited.size!==others.length) return false;} return true;}
+function holeNeighborCounts(fullSet,shape){let holes4=0, holes5plus=0; for(const k of fullSet){if(shape.has(k)) continue; const nbs=neighbors(k).filter(nb=>shape.has(nb)).length; if(nbs===4) holes4++; if(nbs>=5) holes5plus++;} return {holes4,holes5plus};}
+function ringKeys(ring){const keys=[]; for(let q=-r;q<=r;q++){for(let s=Math.max(-r,-q-r);s<=Math.min(r,-q+r);s++){const t=-q-s; keys.push(key(q,s));}} return keys;}
 
-        // Axial directions
-        const directions = [
-            {q: 1, r: 0}, {q: -1, r: 0}, {q: 0, r: 1}, {q: 0, r: -1},
-            {q: 1, r: -1}, {q: -1, r: 1}
-        ];
+// ===== Choose removal pairs =====
+function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded){
+  shuffle(candidates); let result=null; const selected=[];
+  function buildShape(sel){const s=new Set(fullSet); for(const [a,b] of sel){s.delete(a); s.delete(b);} return s;}
+  function quickPrune(sel){const s=buildShape(sel); if(!isConnected(s)) return false; if(!minDegreeAtLeast(s,2)) return false; const {holes5plus}=holeNeighborCounts(fullSet,s); if(holes5plus>0) return false; return true;}
+  function backtrack(startIdx){
+    if(result) return true;
+    if(selected.length===removePairsNeeded){
+      const finalShape=buildShape(selected);
+      if(finalShape.size!==fullSet.size-removePairsNeeded*2) return false;
+      if(!isConnected(finalShape)) return false;
+      if(!minDegreeAtLeast(finalShape,2)) return false;
+      if(!hasNoArticulationExceptCenter(finalShape)) return false;
+      const {holes5plus}=holeNeighborCounts(fullSet,finalShape);
+      if(holes5plus>0) return false;
+      result=finalShape; return true;
+    }
+    if(startIdx>=candidates.length) return false;
+    const remainingNeeded=removePairsNeeded-selected.length;
+    if(candidates.length-startIdx<remainingNeeded) return false;
+    for(let i=startIdx;i<candidates.length;i++){
+      selected.push(candidates[i]);
+      if(quickPrune(selected)) if(backtrack(i+1)) return true;
+      selected.pop();
+    }
+    return false;
+  }
+  backtrack(0); return result;
+}
 
-        function getNeighbors(room, allRooms) {
-            const neighbors = [];
-            for (const dir of directions) {
-                const neighbor = allRooms.find(r => r.q === room.q + dir.q && r.r === room.r + dir.r);
-                if (neighbor) {
-                    neighbors.push(neighbor);
-                }
-            }
-            return neighbors;
-        }
+// ===== Color assignment =====
+const COLOR_COUNTS={ black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+function assignColorsToShape(shapeSet, throneKey){
+  const adj=buildAdjMap(shapeSet); const nodes=[...shapeSet];
+  const colorOf=new Map(); const counts=JSON.parse(JSON.stringify(COLOR_COUNTS));
+  colorOf.set(key(0,0),'black'); counts.black--; colorOf.set(throneKey,'purple'); counts.purple--;
+  const toColor=nodes.filter(n=>n!==key(0,0)&&n!==throneKey).sort((a,b)=>adj.get(b).length-adj.get(a).length);
+  function backtrack(i){
+    if(i>=toColor.length) return true;
+    const node=toColor[i];
+    const used=new Set(adj.get(node).map(n=>colorOf.get(n)).filter(Boolean));
+    const candidates=Object.keys(counts).filter(c=>counts[c]>0&&!used.has(c));
+    shuffle(candidates);
+    for(const c of candidates){
+      colorOf.set(node,c); counts[c]--;
+      if(backtrack(i+1)) return true;
+      counts[c]++; colorOf.delete(node);
+    }
+    return false;
+  }
+  return backtrack(0)?colorOf:null;
+}
 
-        function isConnected(rooms) {
-            if (rooms.length === 0) return true;
-            const visited = new Set();
-            const queue = [rooms[0]];
-            visited.add(`${rooms[0].q},${rooms[0].r}`);
+// ===== Rooms mapping =====
+const rooms=[
+  "Black Rose Room | black","Throne Room | purple","Room1 | red","Room2 | red","Room3 | red",
+  "Room4 | green","Room5 | green","Room6 | green","Room7 | blue","Room8 | blue","Room9 | blue",
+  "Room10 | gray","Room11 | gray","Room12 | gray","Room13 | yellow","Room14 | yellow","Room15 | yellow",
+  "Room16 | purple","Room17 | purple","Room18 | yellow"
+];
+function mapRoomsToPositions(colorMap, throneKey){
+  const pools={};
+  for(const s of rooms){
+    const [name,col]=s.split('|').map(x=>x.trim());
+    if(!pools[col]) pools[col]=[];
+    pools[col].push(name);
+  }
+  for(const col of Object.keys(pools)) shuffle(pools[col]);
+  const mapping=new Map();
+  const brIndex=pools['black'].findIndex(n=>n==='Black Rose Room');
+  if(brIndex===-1) throw new Error("Black Rose Room missing");
+  mapping.set(key(0,0),{name:pools['black'].splice(brIndex,1)[0],color:'black'});
+  const throneIndex=pools['purple'].findIndex(n=>n==='Throne Room');
+  if(throneIndex===-1) throw new Error("Throne Room missing");
+  mapping.set(throneKey,{name:pools['purple'].splice(throneIndex,1)[0], color:'purple'});
+  const otherPositions=[...colorMap.keys()].filter(k=>k!==key(0,0)&&k!==throneKey);
+  shuffle(otherPositions);
+  for(const pos of otherPositions){
+    const col=colorMap.get(pos);
+    if(!pools[col]||pools[col].length===0) throw new Error(`Not enough rooms of color ${col}`);
+    mapping.set(pos,{name:pools[col].pop(),color:col});
+  }
+  return mapping;
+}
 
-            while (queue.length > 0) {
-                const current = queue.shift();
-                const neighbors = getNeighbors(current, rooms);
-                for (const neighbor of neighbors) {
-                    const coordString = `${neighbor.q},${neighbor.r}`;
-                    if (!visited.has(coordString)) {
-                        visited.add(coordString);
-                        queue.push(neighbor);
-                    }
-                }
-            }
-            return visited.size === rooms.length;
-        }
-        
-        // Backtracking algorithm for color assignment
-        function solveColoring(rooms, roomIndex, colorPool) {
-            if (roomIndex === rooms.length) {
-                return true; // All rooms successfully colored
-            }
+// ===== Generate lodge =====
+function generateValidLodge(){
+  while(true){
+    const fullSet=buildFullSet();
+    const candidates=buildCandidatePairs(fullSet);
+    const removePairsNeeded=(fullSet.size-19)/2;
+    const shape=chooseRemovalPairCombination(fullSet,candidates,removePairsNeeded);
+    if(!shape) continue;
+    const ring1=[...shape].filter(k=>{const {q,r}=unkey(k); return Math.abs(q)<=1 && Math.abs(r)<=1 && !(q===0 && r===0);});
+    if(ring1.length===0) continue;
+    shuffle(ring1);
+    const throneKey=ring1[0];
+    const colorMap=assignColorsToShape(shape, throneKey);
+    if(!colorMap) continue;
+    const roomMap=mapRoomsToPositions(colorMap, throneKey);
+    return {shape,colorMap,roomMap,throneKey};
+  }
+}
 
-            const room = rooms[roomIndex];
-            const availableColors = [...colorPool];
-            shuffle(availableColors);
+// ===== Render =====
+function renderLodge(lodge){
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  const positions={};
+  for(const k of lodge.shape){
+    const {q,r}=unkey(k); const {x,y}=axialToPixel(q,r); positions[k]={x,y};
+    if(x<minX) minX=x; if(y<minY) minY=y; if(x>maxX) maxX=x; if(y>maxY) maxY=y;
+  }
+  const offsetX=(board.clientWidth-(maxX-minX+HEX_W))/2-minX;
+  const offsetY=(board.clientHeight-(maxY-minY+HEX_H))/2-minY;
+  for(const k of lodge.shape){
+    const pos=positions[k]; const info=lodge.roomMap.get(k);
+    const div=document.createElement('div'); div.className='hex '+info.color; if(k===lodge.throneKey) div.classList.add('throne');
+    div.style.left=(pos.x+offsetX)+'px'; div.style.top=(pos.y+offsetY)+'px';
+    const label=document.createElement('div'); label.className='label'; label.textContent=info.name; div.appendChild(label);
+    board.appendChild(div);
+  }
+}
 
-            for (const color of availableColors) {
-                const isAdjacentSameColor = getNeighbors(room, rooms).some(neighbor => neighbor.color === color);
-                
-                if (!isAdjacentSameColor && colorPool.includes(color)) {
-                    room.color = color;
-                    const colorIndex = colorPool.indexOf(color);
-                    colorPool.splice(colorIndex, 1);
-
-                    if (solveColoring(rooms, roomIndex + 1, colorPool)) {
-                        return true;
-                    }
-
-                    // Backtrack
-                    room.color = null;
-                    colorPool.push(color);
-                }
-            }
-            return false;
-        }
-
-        function createBoard() {
-            const gameBoard = document.getElementById('game-board');
-            gameBoard.innerHTML = '';
-            
-            let rooms = [];
-            let validConfiguration = false;
-            let attemptCount = 0;
-            const maxAttempts = 2000;
-
-            while (!validConfiguration && attemptCount < maxAttempts) {
-                rooms = [];
-                const roomCoordinates = new Set();
-                
-                // 1. Place the Black Rose and its 6 adjacent rooms
-                const blackRosePos = {q: 0, r: 0};
-                rooms.push({q: blackRosePos.q, r: blackRosePos.r, color: 'black-rose', name: 'Black Rose Room'});
-                roomCoordinates.add(JSON.stringify(blackRosePos));
-                
-                for (const dir of directions) {
-                    rooms.push({q: dir.q, r: dir.r, color: null, name: null});
-                    roomCoordinates.add(JSON.stringify({q: dir.q, r: dir.r}));
-                }
-
-                // 2. Find all possible symmetric pairs within a distance of 3
-                const possibleSymmetricPairs = [];
-                for (let q = -3; q <= 3; q++) {
-                    for (let r = -3; r <= 3; r++) {
-                        const s = -q - r;
-                        if (Math.abs(q) + Math.abs(r) + Math.abs(s) > 6) continue;
-                        const pos1 = {q: q, r: r};
-                        const pos2 = {q: -q, r: -r};
-
-                        if (!roomCoordinates.has(JSON.stringify(pos1)) && !roomCoordinates.has(JSON.stringify(pos2))) {
-                            if (q > 0 || (q === 0 && r > 0)) {
-                                possibleSymmetricPairs.push([pos1, pos2]);
-                            }
-                        }
-                    }
-                }
-                
-                // 3. Select 6 random symmetric pairs for the remaining 12 rooms
-                shuffle(possibleSymmetricPairs);
-                const selectedPairs = possibleSymmetricPairs.slice(0, 6);
-                selectedPairs.forEach(pair => {
-                    rooms.push({q: pair[0].q, r: pair[0].r, color: null, name: null});
-                    rooms.push({q: pair[1].q, r: pair[1].r, color: null, name: null});
-                });
-                
-                // 4. Check for connectivity and color assignment
-                if (isConnected(rooms)) {
-                    const throneRoom = shuffle(getNeighbors({q: 0, r: 0}, rooms))[0];
-                    throneRoom.color = 'purple';
-                    throneRoom.name = 'Throne Room';
-
-                    const colorPool = [];
-                    for (const color of ['red', 'green', 'yellow', 'blue', 'purple', 'gray']) {
-                        if (color === 'purple') {
-                            colorPool.push('purple', 'purple');
-                        } else {
-                            colorPool.push(color, color, color);
-                        }
-                    }
-                    
-                    const remainingRooms = rooms.filter(r => r.color === null);
-                    
-                    if (solveColoring(remainingRooms, 0, colorPool)) {
-                        validConfiguration = true;
-                    }
-                }
-                attemptCount++;
-            }
-
-            if (!validConfiguration) {
-                 console.error(`Could not find a valid configuration after ${maxAttempts} attempts.`);
-                 return;
-            } else {
-                console.log(`Successfully generated a valid board after ${attemptCount} attempts.`);
-            }
-
-            // 5. Render the board
-            const hexRows = {};
-            for (const room of rooms) {
-                const row = room.r;
-                if (!hexRows[row]) {
-                    hexRows[row] = [];
-                }
-                hexRows[row].push(room);
-            }
-
-            const sortedRows = Object.keys(hexRows).sort((a, b) => a - b);
-            
-            for (const row of sortedRows) {
-                const hexRowDiv = document.createElement('div');
-                hexRowDiv.classList.add('hex-row');
-                
-                const sortedRooms = hexRows[row].sort((a, b) => a.q - b.q);
-                for (const room of sortedRooms) {
-                    const hexagon = document.createElement('div');
-                    hexagon.classList.add('hexagon');
-                    
-                    hexagon.textContent = room.name.includes('Room') ? room.name.replace('Room - ', '') : room.name;
-
-                    if (room.color === 'black-rose') {
-                        hexagon.classList.add('black-rose');
-                    } else if (room.name === 'Throne Room') {
-                        hexagon.classList.add('throne-room');
-                    } else {
-                        hexagon.classList.add(room.color);
-                    }
-                    hexRowDiv.appendChild(hexagon);
-                }
-                gameBoard.appendChild(hexRowDiv);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            createBoard();
-            document.getElementById('recreate-button').addEventListener('click', createBoard);
-        });
-    </script>
-
+// ===== Init =====
+function init(){ const lodge=generateValidLodge(); renderLodge(lodge);}
+document.getElementById('regen').addEventListener('click',init);
+init();
+</script>
 </body>
 </html>
