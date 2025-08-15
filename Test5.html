@@ -17,32 +17,35 @@
             color: #eee;
         }
         #game-board {
-            display: grid;
-            grid-template-columns: repeat(13, 60px);
-            grid-template-rows: repeat(13, 60px);
-            grid-gap: 0;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+        .hex-row {
+            display: flex;
+            justify-content: center;
         }
         .hexagon {
-            width: 60px;
-            height: 69.28px; /* Correct height for 60px flat-top width */
+            width: 80px;
+            height: 92px; /* For flat-top hex */
             position: relative;
             background: #555;
+            margin: 5px;
+            margin-top: -24px;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 8px;
+            font-size: 10px;
             text-align: center;
             box-sizing: border-box;
             border: 2px solid #444;
             transition: transform 0.2s ease-in-out;
             cursor: pointer;
-            z-index: 1;
         }
-        .hexagon:hover {
-            transform: scale(1.1);
-            z-index: 2;
+        .hex-row:first-child .hexagon {
+            margin-top: 5px;
         }
         .black-rose {
             background-color: #000;
@@ -98,25 +101,26 @@
             return array;
         }
 
-        // Correct axial coordinates to CSS Grid positions for flat-top hexes
-        function toGrid(q, r) {
-            const row = r + 6;
-            const col = q + Math.floor(r/2) + 6;
-            return { row, col };
-        }
-
-        // Adjacency directions for axial coordinates
+        // Axial directions
         const directions = [
             {q: 1, r: 0}, {q: -1, r: 0}, {q: 0, r: 1}, {q: 0, r: -1},
             {q: 1, r: -1}, {q: -1, r: 1}
         ];
 
-        function getNeighbors(q, r, allRooms) {
+        // Maps hex coordinates to a linear index and an adjacency list for easy lookup
+        const hexBoard = {
+            adj: {},
+            map: {},
+            rooms: []
+        };
+
+        function getNeighbors(roomCoords) {
             const neighbors = [];
             for (const dir of directions) {
-                const neighbor = allRooms.find(room => room.q === q + dir.q && room.r === r + dir.r);
-                if (neighbor) {
-                    neighbors.push(neighbor);
+                const neighborKey = `${roomCoords.q + dir.q},${roomCoords.r + dir.r}`;
+                const neighborId = hexBoard.map[neighborKey];
+                if (neighborId !== undefined) {
+                    neighbors.push(hexBoard.rooms[neighborId]);
                 }
             }
             return neighbors;
@@ -126,13 +130,13 @@
             if (rooms.length === 0) return true;
             const visited = new Set();
             const queue = [rooms[0]];
-            visited.add(JSON.stringify({q: rooms[0].q, r: rooms[0].r}));
+            visited.add(`${rooms[0].q},${rooms[0].r}`);
 
             while (queue.length > 0) {
                 const current = queue.shift();
-                const neighbors = getNeighbors(current.q, current.r, rooms);
+                const neighbors = getNeighbors(current);
                 for (const neighbor of neighbors) {
-                    const coordString = JSON.stringify({q: neighbor.q, r: neighbor.r});
+                    const coordString = `${neighbor.q},${neighbor.r}`;
                     if (!visited.has(coordString)) {
                         visited.add(coordString);
                         queue.push(neighbor);
@@ -244,23 +248,38 @@
             }
 
             // 5. Render the board
+            const hexRows = {};
             for (const room of rooms) {
-                const hexagon = document.createElement('div');
-                hexagon.classList.add('hexagon');
-                const { row, col } = toGrid(room.q, room.r);
-                hexagon.style.gridRow = row + 1;
-                hexagon.style.gridColumn = col + 1;
-                
-                hexagon.textContent = room.name.includes('Room') ? room.name.replace('Room - ', '') : room.name;
-
-                if (room.color === 'black-rose') {
-                    hexagon.classList.add('black-rose');
-                } else if (room.name === 'Throne Room') {
-                    hexagon.classList.add('throne-room');
-                } else {
-                    hexagon.classList.add(room.color);
+                const row = room.r;
+                if (!hexRows[row]) {
+                    hexRows[row] = [];
                 }
-                gameBoard.appendChild(hexagon);
+                hexRows[row].push(room);
+            }
+
+            const sortedRows = Object.keys(hexRows).sort((a, b) => a - b);
+            
+            for (const row of sortedRows) {
+                const hexRowDiv = document.createElement('div');
+                hexRowDiv.classList.add('hex-row');
+                
+                const sortedRooms = hexRows[row].sort((a, b) => a.q - b.q);
+                for (const room of sortedRooms) {
+                    const hexagon = document.createElement('div');
+                    hexagon.classList.add('hexagon');
+                    
+                    hexagon.textContent = room.name.includes('Room') ? room.name.replace('Room - ', '') : room.name;
+
+                    if (room.color === 'black-rose') {
+                        hexagon.classList.add('black-rose');
+                    } else if (room.name === 'Throne Room') {
+                        hexagon.classList.add('throne-room');
+                    } else {
+                        hexagon.classList.add(room.color);
+                    }
+                    hexRowDiv.appendChild(hexagon);
+                }
+                gameBoard.appendChild(hexRowDiv);
             }
         }
 
