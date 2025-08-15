@@ -1,27 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Black Rose Lodge Generator</title>
+<meta charset="UTF-8" />
+<title>Black Rose Lodge — Proper Hex Layout</title>
 <style>
-  body {
-    background: #222;
-    color: white;
-    font-family: sans-serif;
-    text-align: center;
+  :root {
+    --hex-size: 34px; /* hex radius (corner to center) */
   }
-  h1 { margin-top: 20px; }
+  body {
+    background: #111;
+    color: #eee;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  h1 { margin: 0; font-size: 20px; font-weight: 700; }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  button {
+    background: #333;
+    color: #eee;
+    border: 1px solid #444;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  button:hover { background: #3a3a3a; }
   .board {
-    display: grid;
-    grid-template-columns: repeat(11, 60px);
-    grid-auto-rows: 52px;
-    justify-content: center;
     position: relative;
-    margin-top: 20px;
+    width: 900px;
+    height: 700px;
+    border-radius: 16px;
+    background: radial-gradient(ellipse at center, #1a1a1a, #0c0c0c);
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+    overflow: hidden;
   }
   .hex {
-    width: 60px;
-    height: 52px;
+    position: absolute;
+    width: calc(var(--hex-size) * 1.732); /* √3 * size */
+    height: calc(var(--hex-size) * 2);
     clip-path: polygon(
       50% 0%,
       93% 25%,
@@ -33,156 +57,295 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8px;
     text-align: center;
-    color: white;
-    box-shadow: 0 0 3px black;
-    padding: 2px;
+    padding: 4px;
+    font-size: 11px;
+    line-height: 1.1;
+    color: #fff;
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.35),
+      inset 0 0 12px rgba(255,255,255,0.05);
+    user-select: none;
   }
+  .hex .label {
+    padding: 2px 4px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 6px;
+  }
+
+  /* Color swatches */
+  .black  { background: #000; }
+  .purple { background: rebeccapurple; }
+  .red    { background: #b11; }
+  .green  { background: #197a2b; }
+  .blue   { background: #1f4ea3; }
+  .gray   { background: #676e78; }
+  .gold   { background: #b58900; }
 </style>
 </head>
 <body>
-<h1>Black Rose Lodge</h1>
-<div class="board" id="board"></div>
+  <h1>Black Rose Lodge (Hex-True, Symmetrical Shape)</h1>
+  <div class="toolbar">
+    <button id="regen">Regenerate</button>
+  </div>
+  <div class="board" id="board"></div>
 
 <script>
-const rooms = [
-  {name: "Black Rose Room", color: "black"},
-  {name: "Throne Room", color: "purple"},
-  {name: "Amethyst Library", color: "purple"},
-  {name: "Violet Sanctum", color: "purple"},
-  {name: "Ruby Forge", color: "red"},
-  {name: "Crimson Hall", color: "red"},
-  {name: "Scarlet Observatory", color: "red"},
-  {name: "Emerald Garden", color: "green"},
-  {name: "Verdant Chapel", color: "green"},
-  {name: "Jade Gallery", color: "green"},
-  {name: "Azure Pool", color: "blue"},
-  {name: "Cobalt Tower", color: "blue"},
-  {name: "Sapphire Crypt", color: "blue"},
-  {name: "Iron Workshop", color: "gray"},
-  {name: "Steel Armory", color: "gray"},
-  {name: "Silver Vault", color: "gray"},
-  {name: "Golden Treasury", color: "gold"},
-  {name: "Amber Dome", color: "gold"},
-  {name: "Topaz Chamber", color: "gold"}
+/* =========================
+   Hex math (axial coords)
+   ========================= */
+const DIRS = [
+  [ 1,  0], [ 1, -1], [ 0, -1],
+  [-1,  0], [-1,  1], [ 0,  1]
 ];
+function key(q,r){ return `${q},${r}`; }
+function neighbors(q,r){ return DIRS.map(([dq,dr]) => [q+dq, r+dr]); }
+function axialDistance(a,b){ // cube distance shortcut
+  const dq = a.q - b.q, dr = a.r - b.r, ds = -a.q - a.r + b.q + b.r;
+  return (Math.abs(dq)+Math.abs(dr)+Math.abs(ds))/2;
+}
+function withinRadius(q,r,rad){ return axialDistance({q,r},{q:0,r:0}) <= rad; }
 
-const directions = [
-  [1, 0], [1, -1], [0, -1],
-  [-1, 0], [-1, 1], [0, 1]
-];
-
-function axialDistance(a, b) {
-  return (Math.abs(a.q - b.q) + Math.abs(a.q + a.r - b.q - b.r) + Math.abs(a.r - b.r)) / 2;
+/* Axial -> pixel (pointy topped) */
+const HEX_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hex-size'));
+const HEX_W = Math.sqrt(3) * HEX_SIZE;   // width
+const HEX_H = 2 * HEX_SIZE;              // height
+const STEP_X = HEX_W;                    // horizontal spacing
+const STEP_Y = 1.5 * HEX_SIZE;           // vertical spacing
+function axialToPixel(q,r){
+  const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+  const y = HEX_SIZE * 1.5 * r;
+  return {x, y};
 }
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+/* =========================
+   Rooms (19 unique)
+   ========================= */
+const ROOMS = [
+  {name: "Black Rose Room", color: "black"}, // fixed center
+  {name: "Throne Room",     color: "purple"},// fixed adjacent
+  // two more purple
+  {name: "Amethyst Library",   color: "purple"},
+  {name: "Violet Sanctum",     color: "purple"},
+  // reds
+  {name: "Ruby Forge",         color: "red"},
+  {name: "Crimson Hall",       color: "red"},
+  {name: "Scarlet Observatory",color: "red"},
+  // greens
+  {name: "Emerald Garden",     color: "green"},
+  {name: "Verdant Chapel",     color: "green"},
+  {name: "Jade Gallery",       color: "green"},
+  // blues
+  {name: "Azure Pool",         color: "blue"},
+  {name: "Cobalt Tower",       color: "blue"},
+  {name: "Sapphire Crypt",     color: "blue"},
+  // grays
+  {name: "Iron Workshop",      color: "gray"},
+  {name: "Steel Armory",       color: "gray"},
+  {name: "Silver Vault",       color: "gray"},
+  // yellows (gold)
+  {name: "Golden Treasury",    color: "gold"},
+  {name: "Amber Dome",         color: "gold"},
+  {name: "Topaz Chamber",      color: "gold"}
+];
+
+/* Utility */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
   }
-  return array;
+  return arr;
 }
 
-function generateShape() {
-  const coords = [];
-  const radius = 5;
-  for (let q = -radius; q <= radius; q++) {
-    for (let r = -radius; r <= radius; r++) {
-      if (Math.abs(q + r) <= radius) {
-        coords.push({q, r});
-      }
+/* =========================
+   Symmetric shape builder
+   - Symmetry across center: if (q,r) in set, then (-q,-r) also in set
+   - Start with center (0,0), throne at (1,0), and its mirror (-1,0)
+   - Keep within radius <= 5
+   - Ensure final layout: every non-center tile has >= 2 neighbors
+   - Use backtracking with randomness to find a valid 19-tile set
+   ========================= */
+const MAX_RADIUS = 5;
+const TARGET_TILES = 19; // 1 center + 9 mirrored pairs
+
+function buildSymmetricSet() {
+  const center = [0,0];
+  const throne = [1,0];
+  const throneMirror = [-1,0];
+
+  // Start set S with center + pair (throne, mirror)
+  const S = new Set([key(...center), key(...throne), key(...throneMirror)]);
+
+  // Precompute all coords in radius
+  const ALL = [];
+  for (let q=-MAX_RADIUS; q<=MAX_RADIUS; q++) {
+    for (let r=-MAX_RADIUS; r<=MAX_RADIUS; r++) {
+      if (withinRadius(q,r,MAX_RADIUS)) ALL.push([q,r]);
     }
   }
-  coords.sort((a, b) => axialDistance(a, {q:0, r:0}) - axialDistance(b, {q:0, r:0}));
-  return coords;
-}
 
-function generateLodge() {
-  const coordsAll = generateShape();
-  const placed = new Map();
-  const toKey = (q, r) => `${q},${r}`;
+  // filter usable candidates (exclude those in S or whose mirror in S)
+  function candidates(setS){
+    const res = [];
+    for (const [q,r] of ALL) {
+      const k = key(q,r), mk = key(-q,-r);
+      if (setS.has(k) || setS.has(mk)) continue;
+      // Ensure connectivity (each side must touch at least one existing tile)
+      const hasN1 = neighbors(q,r).some(([nq,nr]) => setS.has(key(nq,nr)));
+      const hasN2 = neighbors(-q,-r).some(([nq,nr]) => setS.has(key(nq,nr)));
+      if (hasN1 && hasN2) res.push([q,r]);
+    }
+    return shuffle(res);
+  }
 
-  // Place center
-  placed.set(toKey(0, 0), rooms[0]);
-
-  // Throne Room next to center
-  const neighbors = directions.map(([dq, dr]) => ({q: dq, r: dr}));
-  const thronePos = neighbors[Math.floor(Math.random() * neighbors.length)];
-  placed.set(toKey(thronePos.q, thronePos.r), rooms[1]);
-
-  // Remaining coordinates
-  const availableCoords = coordsAll.filter(c => !placed.has(toKey(c.q, c.r)));
-  shuffle(availableCoords);
-
-  let chosenCoords = [{q:0, r:0}, thronePos];
-
-  while (chosenCoords.length < 19 && availableCoords.length) {
-    // pick a coord adjacent to >= 2 placed tiles
-    const nextIndex = availableCoords.findIndex(c => {
-      let neighborsCount = 0;
-      for (const [dq, dr] of directions) {
-        const key = toKey(c.q + dq, c.r + dr);
-        if (placed.has(key)) neighborsCount++;
+  function degrees(setS){
+    const deg = new Map();
+    for (const k of setS) deg.set(k, 0);
+    for (const k of setS) {
+      const [q,r] = k.split(',').map(Number);
+      for (const [nq,nr] of neighbors(q,r)) {
+        const nk = key(nq,nr);
+        if (setS.has(nk)) deg.set(k, deg.get(k)+1);
       }
-      return neighborsCount >= 2;
+    }
+    return deg;
+  }
+
+  function validFinal(setS){
+    // Final rule: all non-center tiles must have >= 2 neighbors
+    const deg = degrees(setS);
+    for (const k of setS) {
+      if (k === key(0,0)) continue; // center can have any degree ≥ 1 (it will be ≥ 2 anyway)
+      if (deg.get(k) < 2) return false;
+    }
+    return true;
+  }
+
+  // backtracking
+  function backtrack(setS){
+    if (setS.size === TARGET_TILES) {
+      return validFinal(setS) ? setS : null;
+    }
+    const opts = candidates(setS);
+
+    // Heuristic: prefer candidates that increase degree of low-degree tiles (like the throne early on)
+    opts.sort((a,b) => {
+      const deg = degrees(setS);
+      function gain(c){
+        const [q,r] = c, [mq,mr] = [-q,-r];
+        let g = 0;
+        for (const [nq,nr] of neighbors(q,r)) if (setS.has(key(nq,nr))) g++;
+        for (const [nq,nr] of neighbors(mq,mr)) if (setS.has(key(nq,nr))) g++;
+        // small bonus if touches throne or its mirror
+        if (neighbors(q,r).some(([nq,nr]) => key(nq,nr) === key(...throne))) g += 0.25;
+        if (neighbors(mq,mr).some(([nq,nr]) => key(nq,nr) === key(...throneMirror))) g += 0.25;
+        return -g; // sort ascending by negative gain -> higher gain first
+      }
+      return gain(a) - gain(b);
     });
-    if (nextIndex >= 0) {
-      const coord = availableCoords[nextIndex];
-      chosenCoords.push(coord);
-      availableCoords.splice(nextIndex, 1);
-      // Temporarily mark as placed to help counting neighbors for next picks
-      placed.set(toKey(coord.q, coord.r), {temp: true});
-    } else {
-      break; // no more eligible tiles
+
+    for (const [q,r] of opts) {
+      const k = key(q,r), mk = key(-q,-r);
+      setS.add(k); setS.add(mk);
+      const res = backtrack(setS);
+      if (res) return res;
+      setS.delete(k); setS.delete(mk);
+    }
+    return null;
+  }
+
+  const result = backtrack(S);
+  if (!result) {
+    // As a fallback (rare), retry a few times with shuffled ALL
+    for (let tries=0; tries<5 && !result; tries++){
+      shuffle(ALL);
+      const retry = backtrack(new Set([key(...center), key(...throne), key(...throneMirror)]));
+      if (retry) return retry;
     }
   }
+  return result || S; // should almost always succeed
+}
 
-  // Remove temporary placeholders, keep actual placed
-  for (const [key, val] of placed) {
-    if (val.temp) placed.delete(key);
-  }
+/* =========================
+   Assign rooms (random, exact counts)
+   - Center gets Black Rose Room
+   - One fixed neighbor (1,0) gets Throne Room
+   - All other 17 positions get unique rooms shuffled
+   ========================= */
+function assignRooms(positions){
+  // Build a map posKey -> room
+  const map = new Map();
+  // Place center and throne first
+  map.set(key(0,0), ROOMS[0]); // black
+  map.set(key(1,0), ROOMS[1]); // throne (purple)
 
-  // Assign remaining rooms
-  const remainingRooms = rooms.slice(2);
+  // Remaining positions (excluding center and throne)
+  const remainingPositions = positions.filter(k => k !== key(0,0) && k !== key(1,0));
+  const remainingRooms = ROOMS.slice(2); // 17 left, exact counts respected
   shuffle(remainingRooms);
-  for (const c of chosenCoords) {
-    const key = toKey(c.q, c.r);
-    if (!placed.has(key)) {
-      placed.set(key, remainingRooms.pop());
-    }
-  }
 
-  return {coords: coordsAll, placed};
+  for (let i=0;i<remainingPositions.length;i++){
+    map.set(remainingPositions[i], remainingRooms[i]);
+  }
+  return map;
 }
 
-function drawBoard(lodge) {
-  const {coords, placed} = lodge;
-  const board = document.getElementById("board");
-  board.innerHTML = "";
+/* =========================
+   Render
+   ========================= */
+function render(boardEl, positionSet, roomMap){
+  boardEl.innerHTML = ""; // clear
 
-  for (let r = -5; r <= 5; r++) {
-    for (let q = -5; q <= 5; q++) {
-      if (Math.abs(q + r) <= 5) {
-        const key = `${q},${r}`;
-        const div = document.createElement("div");
-        div.className = "hex";
-        const room = placed.get(key);
-        if (room) {
-          div.style.backgroundColor = room.color;
-          div.textContent = room.name;
-        } else {
-          div.style.opacity = 0; // fully invisible
-        }
-        board.appendChild(div);
-      }
-    }
+  // Compute bounding box in pixel space to center the cluster
+  const pts = [...positionSet].map(k => {
+    const [q,r] = k.split(',').map(Number);
+    return {k, ...axialToPixel(q,r)};
+  });
+  const minX = Math.min(...pts.map(p => p.x));
+  const maxX = Math.max(...pts.map(p => p.x));
+  const minY = Math.min(...pts.map(p => p.y));
+  const maxY = Math.max(...pts.map(p => p.y));
+
+  const boardRect = boardEl.getBoundingClientRect();
+  const groupW = (maxX - minX) + HEX_W;
+  const groupH = (maxY - minY) + HEX_H;
+
+  const offsetX = (boardRect.width - groupW)/2 - minX;
+  const offsetY = (boardRect.height - groupH)/2 - minY;
+
+  for (const {k,x,y} of pts){
+    const room = roomMap.get(k);
+    const div = document.createElement('div');
+    div.className = `hex ${room.color}`;
+    div.style.left = `${x + offsetX}px`;
+    div.style.top  = `${y + offsetY}px`;
+
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = room.name;
+    div.appendChild(label);
+
+    boardEl.appendChild(div);
   }
 }
 
-const lodge = generateLodge();
-drawBoard(lodge);
+/* =========================
+   Generate + draw one lodge
+   ========================= */
+function generateAndDraw(){
+  const board = document.getElementById('board');
+  const posSet = buildSymmetricSet();                // Set of "q,r" keys (size 19)
+  const positions = [...posSet];                     // array of keys
+  const roomMap = assignRooms(positions);            // Map posKey -> room
+  render(board, posSet, roomMap);
+}
+
+// Button
+document.getElementById('regen').addEventListener('click', generateAndDraw);
+
+// First render
+generateAndDraw();
 </script>
 </body>
 </html>
