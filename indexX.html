@@ -486,8 +486,11 @@ try {
 
 		// Select scenarios for selected boxes
         for (let i = 0; i < allscenarios.length; i++) {
+			if( allscenarios[i].split(" ")[0] == "*" ) {
+					scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|')+1) );
+			}
 			for (let j = 0; j < checkboxes.length; j++) {
-				if( allscenarios[i].split(" ")[0] == checkboxes[j].value || allscenarios[i].split(" ")[0] == "*" ) {
+				if( allscenarios[i].split(" ")[0] == checkboxes[j].value ) {
 					scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|')+1) );
 				}
 			}
@@ -495,8 +498,11 @@ try {
 
 		// Select honorable mention
         for (let i = 0; i < allhonmen.length; i++) {
+			if( allhonmen[i].split(" ")[0] == "*" ) {
+					honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
+			}
 			for (let j = 0; j < checkboxes.length; j++) {
-				if( allhonmen[i].split(" ")[0] == checkboxes[j].value || allhonmen[i].split(" ")[0] == "*" ) {
+				if( allhonmen[i].split(" ")[0] == checkboxes[j].value ) {
 					honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
 				}
 			}
@@ -521,7 +527,7 @@ try {
 
 			libraryHTML += "<p>";
 			for (let i = 0; i < numhonmen; i++) {
-				libraryHTML += honmen[i] + "<br>";
+				libraryHTML += honmen[i].split("|")[0] + "<br>";
 			}			
 			libraryHTML += "</p>";
 			
