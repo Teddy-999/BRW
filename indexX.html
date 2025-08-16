@@ -771,12 +771,20 @@ function ruleTip() {
 	document.getElementById("result").innerHTML = libraryHTML;
 }
 
-	function shuffleArray(array) {
-   		 for (let i = array.length - 1; i > 0; i--) {
-       			 const j = Math.floor(Math.random() * (i + 1));
-        		[array[i], array[j]] = [array[j], array[i]];
-   		 }
-	}
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    let rand;
+    if (window.crypto && window.crypto.getRandomValues) {
+      const uint32 = new Uint32Array(1);
+      window.crypto.getRandomValues(uint32);
+      rand = uint32[0] / (0xffffffff + 1);
+    } else {
+      rand = Math.random();
+    }
+    const j = Math.floor(rand * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
 	function uniqe_school(a) {
 		var seen = {};
