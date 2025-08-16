@@ -520,6 +520,8 @@ try {
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 
+		
+		// Honorable Mention
 		libraryHTML += "<p><b>Honorable Mention:</b></p>";
 		if(sHonMen=="*") {
 			shuffleArray(honmen);
@@ -527,7 +529,7 @@ try {
 
 			libraryHTML += "<p>";
 			for (let i = 0; i < numhonmen; i++) {
-				libraryHTML += honmen[i].split("|")[0] + "<br>";
+				libraryHTML += "<b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "<br>"; 
 			}			
 			libraryHTML += "</p>";
 			
