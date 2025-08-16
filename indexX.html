@@ -597,7 +597,7 @@ try {
 		}
 
 		// Remove random rooms until only 1 black and 3 of each color remain
-            	for (let i = 0; i < roomcolors.length; i++) {
+        for (let i = 0; i < roomcolors.length; i++) {
 		    do {
 			rc=0;
 			for (let j = 0; j < rooms.length; j++) {
@@ -728,8 +728,17 @@ try {
 					scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|')+1) );
 				}
 			}
-        }		
-		libraryHTML += "<b>Scenario: " + "</b>";
+        }
+"* General|Cologne, Germany - You never know|None.|Standard.|None.|None.",
+		shuffleArray(scenarios);
+		const sExt = scenarios[0].split("|")[0];
+		const sName = scenarios[0].split("|")[1];
+		const sComp = scenarios[0].split("|")[2];
+		const sSetup = scenarios[0].split("|")[3];
+		const sRules = scenarios[0].split("|")[4];
+		const sHonMen = scenarios[0].split("|")[5];
+		
+		libraryHTML += "<b>Scenario: " + sName + "</b>";
 	}
 			
 			
