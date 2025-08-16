@@ -492,12 +492,16 @@ function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.ran
 
 /* ===== initial render & regen button ===== */
 function createAndRender(){
+  const rendered = false;
+  while(!rendered) {
   try {
     const lodge = generateValidLodge();
     renderLodge(lodge);
+    rendered = true;
   } catch (e) {
-    alert("Generator error: " + e.message);
-    console.error(e);
+    // alert("Generator error: " + e.message);
+    // console.error(e);
+  }
   }
 }
 document.getElementById('regen').addEventListener('click', createAndRender);
