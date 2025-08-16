@@ -501,6 +501,8 @@ function renderLodge(lodge){
     board.appendChild(div);
     } else {
       //alert("Loop: ");
+        div.style.left = `${Math.round(p.x + offsetX)}px`;
+        div.style.top  = `${Math.round(p.y + offsetY)}px`;
         div.className = 'hex empty';
         board.appendChild(div);
     }
