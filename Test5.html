@@ -459,7 +459,7 @@ function generateValidLodge(){
 
   // map room names to positions (ensuring black and throne rooms placed exactly)
   const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
-  return { shape, colorMap, roomPositionMap, throneKey };
+  return { fullset, shape, colorMap, roomPositionMap, throneKey };
 }
 
 /* ======== Rendering ======= */
@@ -467,10 +467,10 @@ const board = document.getElementById('board');
 
 function renderLodge(lodge){
   board.innerHTML = '';
-  const {shape, roomPositionMap, throneKey} = lodge;
+  const {fullset, shape, roomPositionMap, throneKey} = lodge;
 
   // compute pixel positions and bounding box
-  const pts = [...shape].map(k => {
+  const pts = [...fullset].map(k => {
     const {q,r} = unkey(k);
     const p = axialToPixel(q,r);
     return {k, q, r, x:p.x, y:p.y};
@@ -500,7 +500,7 @@ function renderLodge(lodge){
     div.appendChild(lbl);
     board.appendChild(div);
     } else {
-      alert("Loop: ");
+      //alert("Loop: ");
         div.className = 'hex empty';
     }
   }
