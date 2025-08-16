@@ -95,9 +95,24 @@
 		];
 
 		var allscenarios=[
-			"* General|Cologne, Germany - You never know|None.|Standard.|None.|None.",
+			"* General|Cologne, Germany - You never know|None.|Standard.|None.|*",
 			"BRW-R-CORE Rebirth Core|Tijuana, Mexico - Brujeria Especial|None.|Standard.|None.|None.",
 		];
+
+		var allhonmen=[		
+			"* General|2 pp - Forbidden Madness: At the end of the game, you have a Forgotten Spell in your hand.|",
+			"* General|3 pp - Deep Mysteries: You did cast 2 or more Forgotten Spells during the game.|",
+			"* General|4 pp - Multi Talent: You did cast at least 1 spell from each School in the Library.|",
+			"* General|3 pp - Battle Hardened: At the end of the game, if you have given away more Trophies than any other mage.|",
+			"* General|4 pp - Invincible: At the end of the game, no opposing Mage has one of your Trophies.|",
+			"* General|3 pp - Here I stand: At the end of the game, your Mageis the only Mage in the Black Rose Room.|",
+			"* General|1 pp - Master of the Rose: At the end of the game, your Mage is in the Black Rose Room.|",
+			"* General|2 pp - Forbidden Knowledge: You used a Forgotten Spell during the game.|",			
+			"* General|2 pp - Royal Blood: At the end of the game, you hold the Crown.|",
+			"* General|X pp - Reckless: You killed every enemy Mage during the game. Gain 1 pp for every enemy mage.|",
+		];
+
+		
 		
         var allschools=[
            			"BRW-R-CORE Rebirth Core: <b>Alchemy</b> Setup: Nigredo <b>Mages:</b> Angela, Bella",
@@ -444,6 +459,7 @@
         var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		var checkboxesVal = [];
 		var scenarios = [];
+		var honmen = [];	
 try { 
 	
 	// Get checkbox values as array
@@ -477,6 +493,15 @@ try {
 			}
         }
 
+		// Select honorable mention
+        for (let i = 0; i < allhonmen.length; i++) {
+			for (let j = 0; j < checkboxes.length; j++) {
+				if( allhonmen[i].split(" ")[0] == checkboxes[j].value || allhonmen[i].split(" ")[0] == "*" ) {
+					honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
+				}
+			}
+        }
+
 		shuffleArray(scenarios);
 		const sName = scenarios[0].split("|")[0];
 		const sComp = scenarios[0].split("|")[1];
@@ -485,10 +510,24 @@ try {
 		const sHonMen = scenarios[0].split("|")[4];
 		
 		libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
-		libraryHTML += "<p><b>Additional Components:</b> " + sComp + "</p>";
-		libraryHTML += "<p><b>Special Setup:</b> " + sSetup + "</p>";
-		libraryHTML += "<p><b>Rules:</b> " + sRules + "</p>";
-		libraryHTML += "<p><b>Honorable Mention:</b> " + sHonMen + "</p>";
+		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
+		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
+		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
+
+		libraryHTML += "<p><b>Honorable Mention:</b></p>";
+		if(sHonMen=="*") {
+			shuffleArray(honmen);
+			const numhonmen = Math.floor(Math.random()*4+1);
+
+			libraryHTML += "<p";
+			for (let i = 0; i < numhonmen; i++) {
+				libraryHTML += "<br>" + honmen[i] + "</br>";
+			}			
+			libraryHTML += "</p>";
+			
+		} else {
+			libraryHTML += "<p>" + sHonMen + "</p>";
+		}
 	}
 
 
@@ -824,13 +863,13 @@ function shuffleArray(array) {
 			<b>Select the core boxes and expansions for your Setup:</b><p>
 	<div style='padding-left:20px;'>
 
+	<br><input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO" checked><label for="SCENARIO"> Scenario</label></br>
 	<p>
 	<input type="checkbox" id="SCHOOL" name="SCHOOL" value="SCHOOL" checked><label for="SCHOOL"> Schools</label> &nbsp;&nbsp;
 	<input type="checkbox" id="PLAYER" name="PLAYER" value="PLAYER" checked><label for="PLAYER"> Start Player</label> &nbsp;&nbsp;
 	<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages</label> &nbsp;&nbsp;
 	<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge</label> &nbsp;&nbsp;
 	<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR" checked><label for="AVATAR"> Avatar</label>
-	<input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO" checked><label for="SCENARIO"> Scenario</label>
 	</p>
 		
 	<table><tr><td VALIGN=TOP> 
