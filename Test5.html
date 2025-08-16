@@ -93,8 +93,8 @@
    Colors allowed: black, purple, red, green, blue, gray, yellow
    ============================ */
 const rooms = [
-  "Black Rose Room|black",
-  "Throne Room|purple",
+  "Black Rose#1|black",
+  "Throne Room#2|purple",
   "Amethyst Library|purple",
   "Violet Sanctum|purple",
   "Ruby Forge|red",
@@ -134,8 +134,8 @@ const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yel
   }
   // Ensure exactly one Black Rose Room and one Throne Room by name
   const names = parsed.map(p=>p.name);
-  if (names.filter(n => n === "Black Rose Room").length !== 1) throw new Error("Must include exactly one 'Black Rose Room' entry.");
-  if (parsed.filter(p => p.name === "Throne Room" && p.color === "purple").length !== 1) throw new Error("Must include exactly one 'Throne Room|purple' entry.");
+  if (names.filter(n => n.endsWith("#1")).length !== 1) throw new Error("Must include exactly one 'Black Rose Room' entry.");
+  if (parsed.filter(p => p.name.endsWith("#2") && p.color === "purple").length !== 1) throw new Error("Must include exactly one 'Throne Room|purple' entry.");
 })();
 
 /* =========================
@@ -392,14 +392,14 @@ function mapRoomsToPositions(colorMap, throneKey){
   const roomByPos = new Map();
   // center:
   const centerList = pools['black'] || [];
-  const brIndex = centerList.findIndex(n => n === "Black Rose Room");
+  const brIndex = centerList.findIndex(n => n.endsWith("#1"));
   if (brIndex === -1) throw new Error("Black Rose Room missing from rooms[]");
   const blackName = centerList.splice(brIndex,1)[0];
   roomByPos.set(key(0,0), {name: blackName, color:'black'});
 
   // throne:
   const thronePool = pools['purple'] || [];
-  const throneIndex = thronePool.findIndex(n => n === "Throne Room");
+  const throneIndex = thronePool.findIndex(n => n.endsWith("#2"));
   if (throneIndex === -1) throw new Error("Throne Room|purple missing from rooms[]");
   const throneName = thronePool.splice(throneIndex,1)[0];
   roomByPos.set(throneKey, {name: throneName, color:'purple'});
