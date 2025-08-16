@@ -426,14 +426,19 @@ function mapRoomsToPositions(colorMap, throneKey){
 /* ===== Main generator that ties everything together ===== */
 function generateValidLodge(){
   var rendered = false;
+  var shape;
+  var fullSet;
+  var candidates;
+  var removePairsNeeded;
+  
   while(!rendered) {
     
-  const fullSet = buildFullSet(); // 37 keys
-  const candidates = buildCandidatePairs(fullSet); // ~15 pairs
-  const removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+    fullSet = buildFullSet(); // 37 keys
+    candidates = buildCandidatePairs(fullSet); // ~15 pairs
+    removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
 
   // Try candidate combinations; search returns a shapeSet or null
-  const shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded);
+    shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded);
   if (shape) rendered =true;//throw new Error("Failed to find a symmetric removal combination that satisfies graph constraints.");
   }
   // Choose random throne key from ring 1 (central ring intact)
