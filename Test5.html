@@ -70,14 +70,11 @@
   /* highlight throne */
   .throne {
     box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.6);
-    border: 8px solid rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.06);
   }
 
    /* highlight empty */
-  .empty {
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.6);
-    border: 2px solid rgba(255,255,255,0.06);
-  }
+  .empty { background: #aaaaaa; }
   
 
   .note { font-size:13px; color:#bbb; }
@@ -492,6 +489,8 @@ function renderLodge(lodge){
     const posKey = p.k;
     const room = roomPositionMap.get(posKey);
     const div = document.createElement('div');
+
+    if(room) {
     div.className = `hex ${room.color}` + (posKey === throneKey ? ' throne' : '');
     div.style.left = `${Math.round(p.x + offsetX)}px`;
     div.style.top  = `${Math.round(p.y + offsetY)}px`;
@@ -500,6 +499,9 @@ function renderLodge(lodge){
     lbl.textContent = room.name;
     div.appendChild(lbl);
     board.appendChild(div);
+    } else {
+        div.className = 'hex empty';
+    }
   }
 }
 
