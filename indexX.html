@@ -433,7 +433,7 @@
 
 	    
 	// Show a random Library build from selected BRW boxes
-        function displayLibrary(){
+    function displayLibrary(){
         let schools = []; 
 	    var mages = [];
 		var rooms = [];
@@ -444,7 +444,8 @@
         var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		var checkboxesVal = [];
 		var scenarios = [];
-
+try { 
+	
 	// Get checkbox values as array
 	for (var i = 0; i < checkboxes.length; i++) {
   		checkboxesVal.push(checkboxes[i].value)
@@ -735,6 +736,11 @@
 	libraryHTML += "</div><p>";
 
     document.getElementById("result").innerHTML = libraryHTML;
+
+} catch (e) {
+    alert("Generator error: " + e.message);
+    console.error(e);
+  }
 }
 
 function ruleTip() {
@@ -879,10 +885,7 @@ function ruleTip() {
 	</td></tr></table>
 	
          <p>
-        	<button onclick="try {displayLibrary()  } catch (e) {
-    alert("Generator error: " + e.message);
-    console.error(e);
-  }">Get me my random Setup!</button><p>
+        	<button onclick="displayLibrary()">Get me my random Setup!</button><p>
 				
 	</div>
 
