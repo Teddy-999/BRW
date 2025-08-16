@@ -143,7 +143,7 @@ const HEX_H = 2*HEX_SIZE;
 function axialToPixel(q,r){
   const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
   const y = HEX_SIZE * 1.5 * r;
-  return {x,y};
+  return {y,x};
 }
 
 /* ===== build full radius-3 set and rings ===== */
