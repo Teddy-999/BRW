@@ -41,6 +41,30 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 0 8px rgba(255,255,255,0.03);
     user-select:none;
     transition: transform .12s;
+
+    .hex {
+    position: absolute;
+    width: calc(var(--hex-size) * 1.732); /* sqrt(3)*size */
+    height: calc(var(--hex-size) * 2);
+    clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px;
+    box-sizing: border-box;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.1;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 0 8px rgba(255,255,255,0.03);
+    user-select: none;
+    transition: transform .12s;
+
+    /* rotate 90° clockwise */
+    transform: rotate(90deg);
+    transform-origin: center; /* rotate around its center */
+}
+
   }
   .hex:hover { transform: translateY(-4px); }
   .label {
