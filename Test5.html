@@ -501,7 +501,7 @@ function renderLodge(lodge){
     board.appendChild(div);
     } else {
       //alert("Loop: ");
-        if (axialDistance({q,r},{q:0,r:0}) === 3) {
+        if (axialDistance({p.q,p.r},{p.q:0,p.r:0}) === 3) {
           div.style.left = `${Math.round(p.x + offsetX)}px`;
           div.style.top  = `${Math.round(p.y + offsetY)}px`;
           div.className = 'hex empty';
