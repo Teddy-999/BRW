@@ -93,7 +93,12 @@
 
 "46. [b]Entering a room[/b]. When moving, you do this in a sequence of 'Move 1.' effects. A model with a speed of 2 may 'Move 1.' and may do another 'Move 1.'. It will enter all rooms on its way except for its starting room. If a model is placed in a room, it will only enter that room but not the rooms between its starting and its end position."
 		];
-	    
+
+		var allscenarios=[
+			"* General|Cologne, Germany - You never know|None.|Standard.|None.|None.",
+			"BRW-R-CORE Rebirth Core|Tijuana, Mexico - Brujeria Especial|None.|Standard.|None.|None.",
+		];
+		
         var allschools=[
            			"BRW-R-CORE Rebirth Core: <b>Alchemy</b> Setup: Nigredo <b>Mages:</b> Angela, Bella",
 				"BRW-R-CORE Rebirth Core: <b>Agony</b> Setup: Succubus <b>Mages:</b> Rikkart, Bella, Prospero",
@@ -429,15 +434,16 @@
 	    
 	// Show a random Library build from selected BRW boxes
         function displayLibrary(){
-            	let schools = []; 
-	    	var mages = [];
+        let schools = []; 
+	    var mages = [];
 		var rooms = [];
 		var duprooms = [];
 		var purplerooms = [];
 		var avatars = [];
-            	var libraryHTML = "";
-        	var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+        var libraryHTML = "";
+        var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		var checkboxesVal = [];
+		var scenarios = [];
 
 	// Get checkbox values as array
 	for (var i = 0; i < checkboxes.length; i++) {
@@ -641,7 +647,7 @@
 					for (let j = 0; j < rooms.length; j++) {
 						if( rooms[j] == purplerooms[i] ) containsRoomAlready=true;
 					}
-				        if( !containsRoomAlready ) {
+				    if( !containsRoomAlready ) {
 						rooms[foundInfernalPleasure] = purplerooms[i];
 						//rooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
 					}
@@ -661,7 +667,7 @@
 			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
 			for (let i = 0; i < rooms.length; i++) {
 				libraryHTML += "<tr><td>";
-                 		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
+                libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
 				libraryHTML += "</td><td>";
 				roomout = "<b>" + rooms[i].substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
 				colorout = roomout.split("(")[1].split(")")[0];
@@ -678,7 +684,7 @@
 				}
 				libraryHTML += "</td></tr>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
-            		}
+            }
 			libraryHTML += "</table>";
 		}				
 		libraryHTML += "<p>";	
@@ -688,19 +694,19 @@
 		
 		// Random Avatar
 		
-		// Select mages from selected boxes
-            	for (let i = 0; i < allavatars.length; i++) {
+		// Select avatars from selected boxes
+        for (let i = 0; i < allavatars.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
 					avatars.push( "<b>Random Avatar from " + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ": " + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b>" );
 				}
 			}
-            	}
+        }
 		
 		// Pick first random
 		shuffleArray(avatars);
 
-		// Show mages			
+		// Show avatar			
 		if(avatars.length<1) {
 				libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 1 avatar!</font>";
 		} else {
@@ -708,22 +714,39 @@
 		}
 		libraryHTML += "<p>";
 	}
-		
-		libraryHTML += "</div><p>";
 
-            document.getElementById("result").innerHTML = libraryHTML;
-        }
+	// ########################
+	// ######################## SCENARIO 
+	// ########################			
+	if( checkboxesVal.includes("SCENARIO") ) {
 
-	    function ruleTip() {
-		    var libraryHTML = "";
+		// Select scenarios for selected boxes
+        for (let i = 0; i < allscenarios.length; i++) {
+			for (let j = 0; j < checkboxes.length; j++) {
+				if( allscenarios[i].split(" ")[0] == checkboxes[j].value || allscenarios[i].split(" ")[0] == "*" ) {
+					scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|')+1) );
+				}
+			}
+        }		
+		libraryHTML += "<b>Scenario: " + "</b>";
+	}
+			
+			
+	libraryHTML += "</div><p>";
 
-		    	// Rule tip
-			libraryHTML += "<b>Rebirth rule tip "; 
-			libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
-			libraryHTML += "</font></div><p>";
+    document.getElementById("result").innerHTML = libraryHTML;
+}
+
+function ruleTip() {
+	var libraryHTML = "";
+
+	// Rule tip
+	libraryHTML += "<b>Rebirth rule tip "; 
+	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
+	libraryHTML += "</font></div><p>";
 		    
-		  	document.getElementById("result").innerHTML = libraryHTML;
-	    }
+	document.getElementById("result").innerHTML = libraryHTML;
+}
 
 	function shuffleArray(array) {
    		 for (let i = array.length - 1; i > 0; i--) {
@@ -776,6 +799,7 @@
 	<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages</label> &nbsp;&nbsp;
 	<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge</label> &nbsp;&nbsp;
 	<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR" checked><label for="AVATAR"> Avatar</label>
+	<input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO" checked><label for="SCENARIO"> Scenario</label>
 	</p>
 		
 	<table><tr><td VALIGN=TOP> 
