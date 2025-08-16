@@ -496,8 +496,8 @@ function createAndRender(){
   while(!rendered) {
   try {
     const lodge = generateValidLodge();
-    renderLodge(lodge);
     rendered = true;
+    renderLodge(lodge);  
   } catch (e) {
     // alert("Generator error: " + e.message);
     // console.error(e);
