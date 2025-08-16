@@ -459,7 +459,7 @@ function generateValidLodge(){
 
   // map room names to positions (ensuring black and throne rooms placed exactly)
   const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
-  return { fullset, shape, colorMap, roomPositionMap, throneKey };
+  return { fullSet, shape, colorMap, roomPositionMap, throneKey };
 }
 
 /* ======== Rendering ======= */
@@ -467,10 +467,10 @@ const board = document.getElementById('board');
 
 function renderLodge(lodge){
   board.innerHTML = '';
-  const {fullset, shape, roomPositionMap, throneKey} = lodge;
+  const {fullSet, shape, roomPositionMap, throneKey} = lodge;
 
   // compute pixel positions and bounding box
-  const pts = [...fullset].map(k => {
+  const pts = [...fullSet].map(k => {
     const {q,r} = unkey(k);
     const p = axialToPixel(q,r);
     return {k, q, r, x:p.x, y:p.y};
