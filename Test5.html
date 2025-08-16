@@ -509,7 +509,7 @@ function renderLodge(lodge){
             if (roomPositionMap.has(nk)) neighborsPresent++;
           }
 
-          if(neighborsPresent==2) {    
+          if(neighborsPresent>=2) {    
             div.style.left = `${Math.round(p.x + offsetX)}px`;
             div.style.top  = `${Math.round(p.y + offsetY)}px`;
             div.className = 'hex empty';
