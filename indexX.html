@@ -1039,7 +1039,7 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
-	console.log("Board exists?", !!document.getElementById("board"));
+	console.log("Board exists 1?", !!document.getElementById("board"));
 	alert("Board exists? " + !!document.getElementById("board"));
 
 } catch (e) {
@@ -1511,6 +1511,9 @@ function generateValidLodge(){
 const board = document.getElementById('board');
 
 function renderLodge(lodge){
+	console.log("Board exists 3?", !!document.getElementById("board"));
+	alert("Board exists? " + !!document.getElementById("board"));
+	
   board.innerHTML = '';
   const {fullSet, shape, roomPositionMap, throneKey} = lodge;
 
@@ -1576,6 +1579,9 @@ function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.ran
 /* ===== initial render & regen button ===== */
 function createAndRender(){
   try {
+	console.log("Board exists 2?", !!document.getElementById("board"));
+	alert("Board exists? " + !!document.getElementById("board"));
+	  
     const lodge = generateValidLodge();
     renderLodge(lodge);  
   } catch (e) {
