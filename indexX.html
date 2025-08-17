@@ -1508,11 +1508,16 @@ function generateValidLodge(){
 var board = document.getElementById('board');
 
 function renderLodge(lodge){
-	console.log("Board exists 3?", !!document.getElementById("board"));
-	alert("Board exists? " + !!document.getElementById("board"));
   board = document.getElementById("board");
 	
   board.innerHTML = '';
+
+	const refreshBtn = document.createElement("button");
+    refreshBtn.textContent = "🔄 Refresh Board";
+    refreshBtn.style.marginTop = "10px";
+    refreshBtn.onclick = () => createAndRender();
+    board.appendChild(refreshBtn);
+	
   const {fullSet, shape, roomPositionMap, throneKey} = lodge;
 
   // compute pixel positions and bounding box
