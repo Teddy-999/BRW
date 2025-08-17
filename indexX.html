@@ -544,6 +544,7 @@ try {
 				keepRooms.push(sRooms[i].trim());
 				collRooms += getArrayById(sRooms[i].trim(), allrooms);
 				if(i<sRooms.length) collRooms += ", ";
+				sRules+=sRooms[i];
 			}
 			
 			// Replace content inside parentheses
