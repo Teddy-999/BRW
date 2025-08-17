@@ -815,6 +815,19 @@ for (let i = 0; i < roomcolors.length; i++) {
   }
 }	
 
+// create a lookup for color order
+const colorOrder = {};
+for (let i = 0; i < roomcolors.length; i++) {
+  colorOrder[roomcolors[i]] = i;
+}
+
+// sort rooms based on the color order
+rooms.sort((a, b) => {
+  const colorA = a.split(")")[0].split("(")[1];
+  const colorB = b.split(")")[0].split("(")[1];
+  return colorOrder[colorA] - colorOrder[colorB];
+});
+		
 		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
 		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
 		var foundInfernalPleasure = -1;
