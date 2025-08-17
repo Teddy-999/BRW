@@ -546,12 +546,12 @@ try {
 				keepRooms.push(sRooms[i]);
 				roomLine = getArrayById(sRooms[i], allrooms);
 				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1);
-				if(i<sRooms.length) collRooms += ", ";
+				if(i<sRooms.length-1) collRooms += ", ";
 				// alert("Generator: " + collRooms);
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `Rooms: (${collRooms})`);
+			sSetup = sSetup.replace(/Rooms:\s*\(([^)]*)\)/, `Rooms: (${collRooms})`);
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
