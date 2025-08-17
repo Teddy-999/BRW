@@ -720,19 +720,30 @@ try {
 // group duprooms by hash value
 for (let i = 0; i < duprooms.length; i++) {
   let item = duprooms[i];
-  let parts = item.split("#");
+  let [id, rest] = item.split("|");
+  let parts = rest.split("#");
   let base = parts[0];
-  let hashval = parts[1] || base; // if no #, use whole string as key
+  let hashval = parts[1] || base; // use # value if present, otherwise unique base
 
   if (!groups[hashval]) groups[hashval] = [];
-  groups[hashval].push(item);
+  groups[hashval].push({ id, item });
 }
 
-// now randomly pick one from each group
+// now process each group
 for (let key in groups) {
   let arr = groups[key];
-  let pick = arr[Math.floor(Math.random() * arr.length)];
-  rooms.push(pick);
+
+  // check if group contains any keepRooms
+  let kept = arr.filter(r => keepRooms.includes(r.id));
+
+  if (kept.length > 0) {
+    // keep *all* forced rooms
+    kept.forEach(r => rooms.push(r.item));
+  } else {
+    // pick one random entry
+    let pick = arr[Math.floor(Math.random() * arr.length)];
+    rooms.push(pick.item);
+  }
 }
 
 		// Remove random rooms until only 1 black and 3 of each color remain
