@@ -584,14 +584,14 @@ try {
 			shuffleArray(honmen);
 			const numhonmen = Math.floor(Math.random()*3+2);
 
-			libraryHTML += "<p>";
+			libraryHTML += "<p><ul>";
 			for (let i = 0; i < numhonmen; i++) {
 				libraryHTML += "<li><b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "</li>"; 
 			}			
-			libraryHTML += "</p>";
+			libraryHTML += "</ul></p>";
 			
 		} else {
-			libraryHTML += "<p><ul>" + sHonMen + "</ul></p>";
+			libraryHTML += "<p>" + sHonMen + "</p>";
 		}
 		libraryHTML += "<hr>";
 	}
