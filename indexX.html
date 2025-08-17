@@ -1039,14 +1039,15 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
-	setTimeout(() => {
-    	createAndRender();
-	}, 0);
-
 } catch (e) {
     alert("Generator error: " + e.message);
     console.error(e);
   }
+
+	setTimeout(() => {
+    	createAndRender();
+	}, 0);
+		
 }
 
 function ruleTip() {
