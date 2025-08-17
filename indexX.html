@@ -535,7 +535,7 @@ try {
 		
 		libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
 		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
-		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
+
 
 		// Find enforced rooms
 		if(sSetup.indexOf("Rooms: (")>=0) {
@@ -547,13 +547,14 @@ try {
 				roomLine = getArrayById(sRooms[i], allrooms);
 				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1);
 				if(i<sRooms.length) collRooms += ", ";
-				alert("Generator: " + sRooms[i]);
+				// alert("Generator: " + collRooms);
 			}
 			
 			// Replace content inside parentheses
 			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, "Rooms: (${collRooms})");
-			sSetup += collRooms;
 		}
+			
+		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
 		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 
