@@ -817,19 +817,19 @@ try {
 					for (let j = 0; j < duprooms.length; j++) {
 						if( duprooms[j].split("#")[1] == hashval ) {
 							foundrooms++;
-							if( foundrooms == delroom ) rooms.push(duprooms[j]);
+							if( foundrooms == delroom ) genrooms.push(duprooms[j]);
 							duprooms.splice(j,1);
 							j=-1;
 							i=-1;
 						}
 					}
 				} else {
-					rooms.push(duprooms[i]);
+					genrooms.push(duprooms[i]);
 					duprooms.splice(i,1);
 					i=-1;
 				}
 			} else {
-				rooms.push(duprooms[i]);
+				genrooms.push(duprooms[i]);
 				duprooms.splice(i,1);
 				i=-1;
 			}
@@ -942,7 +942,7 @@ genrooms.sort((a, b) => {
 		var foundInfernalPleasure = -1;
 		var foundSupportRoom = false;
 		for (let i = 0; i < genrooms.length; i++) {
-			if( genrooms[i].indexOf("Cerbero")>0 || rooms[i].indexOf("Centauro")>0 ) {
+			if( genrooms[i].indexOf("Cerbero")>0 || genrooms[i].indexOf("Centauro")>0 ) {
 				foundSupportRoom = true;
 			}
 			if( genrooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
@@ -951,7 +951,7 @@ genrooms.sort((a, b) => {
 		}
 		if( foundSupportRoom == false && foundInfernalPleasure>0 ) {
 			// no supporting room, Pleasure Room - infernsl must be replaced
-			// rooms.splice(foundInfernalPleasure, 1);
+			// genrooms.splice(foundInfernalPleasure, 1);
 			
 			for (let i = 0; i < purplerooms.length; i++) {
 				if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
@@ -959,17 +959,17 @@ genrooms.sort((a, b) => {
 				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
 				  ) {
 					// found possible replacement, now check if already contained in Lodge
-					// rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
+					// genrooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
 					var containsRoomAlready=false;
 					for (let j = 0; j < genrooms.length; j++) {
 						if( genrooms[j] == purplerooms[i] ) containsRoomAlready=true;
 					}
 				    if( !containsRoomAlready ) {
 						genrooms[foundInfernalPleasure] = purplerooms[i];
-						//rooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
+						//genrooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
 					}
-					// rooms.push( purplerooms[i] );
-					// rooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
+					// genrooms.push( purplerooms[i] );
+					// genrooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
 				}
 			}
 		}
@@ -984,6 +984,13 @@ genrooms.sort((a, b) => {
 			roomHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 rooms!</font>";
 		} else {
 			roomHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
+
+			// Fill rooms for the rendering component
+			let rooms = new Array();
+			var roomname = "";
+			var roomcol = "";
+			var roomhash = "";
+			
 			for (let i = 0; i < genrooms.length; i++) {
 				roomHTML += "<tr><td>";
                 roomHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
@@ -1046,7 +1053,7 @@ genrooms.sort((a, b) => {
 
 	// wait until DOM is painted
 	requestAnimationFrame(() => {
-    	createAndRender();
+    	createAndRender(showrooms);
 	});
 		
 }
@@ -1138,27 +1145,7 @@ function uniqe_school(a, keep) {
    and exactly one "Throne Room|purple".
    Colors allowed: black, purple, red, green, blue, gray, yellow
    ============================ */
-const rooms = [
-  "Black Rose#1|black",
-  "Throne Room#2|purple",
-  "Amethyst Library|purple",
-  "Violet Sanctum|purple",
-  "Ruby Forge|red",
-  "Crimson Hall|red",
-  "Scarlet Observatory|red",
-  "Emerald Garden|green",
-  "Verdant Chapel|green",
-  "Jade Gallery|green",
-  "Azure Pool|blue",
-  "Cobalt Tower|blue",
-  "Sapphire Crypt|blue",
-  "Iron Workshop|gray",
-  "Steel Armory|gray",
-  "Silver Vault|gray",
-  "Golden Treasury|yellow",
-  "Amber Dome|yellow",
-  "Topaz Chamber|yellow"
-];
+var rooms = [];
 
 /* ======= Validation of rooms[] counts ======= */
 const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
