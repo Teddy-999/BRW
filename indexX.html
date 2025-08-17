@@ -1023,12 +1023,12 @@ genrooms.sort((a, b) => {
 				
 				// filter setup instructions
 				if(roomout.indexOf(" - Setup:")>0) {
-					roomname = roomout.split(" - Setup:")[0].split("(")[0].trim();
+					roomname = roomout.split(" - Setup:")[0].split("(")[0].slpit("<b>")[1].trim();
 					roomHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
 					roomHTML += "</td><td>";
 					roomHTML += roomout.split(" - Setup:")[1].split("(")[0];
 				} else {
-					roomname = roomout.split("(")[0].trim();
+					roomname = roomout.split("(")[0].slpit("<b>")[1].trim();
 					roomHTML += roomout.split("(")[0] + "</b>";
 					roomHTML += "</td><td>";
 				}
