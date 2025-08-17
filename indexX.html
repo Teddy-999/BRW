@@ -540,9 +540,11 @@ try {
 		if(sSetup.indexOf("Rooms: (")>=0) {
 			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",");
 			var collRooms = "";
+			var roomLine = "";
 			for (let i = 0; i < sRooms.length; i++) {
 				keepRooms.push(sRooms[i].trim());
-				collRooms += getArrayById(sRooms[i].trim(), allrooms).substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
+				roomLine = getArrayById(sRooms[i].trim(), allrooms);
+				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1);
 				if(i<sRooms.length) collRooms += ", ";
 			}
 			
