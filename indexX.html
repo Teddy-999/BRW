@@ -596,7 +596,7 @@ try {
 	}
 
 
-	
+	var schoolHTML = "";
 	if( checkboxesVal.includes("SCHOOL") ) {	
 	    // Add schools based on selected BRW boxes
         for (let i = 0; i < allschools.length; i++) {
@@ -611,24 +611,37 @@ try {
 		shuffleArray(schools);
 		schools = uniqe_school(schools, keepSchools);
 		
-		// Remove random schools until only 6 remain
-        while(schools.length > 6) {
-            schools.splice(Math.floor(Math.random()*schools.length), 1);
+		// Remove random schools until only 6 remain, respecting keepSchools
+		while (schools.length > 6) {
+    		// build a list of removable indices
+    		let removable = [];
+    		for (let i = 0; i < schools.length; i++) {
+        		const id = schools[i].split("|")[0]; // assume ID is before '|'
+        		if (!keepSchools.includes(id)) removable.push(i);
+    		}
+
+    		// if nothing can be removed, break to avoid infinite loop
+    		if (removable.length === 0) break;
+
+    		// pick a random removable school and remove it
+    		const randIdx = removable[Math.floor(Math.random() * removable.length)];
+    		schools.splice(randIdx, 1);
 		}
 
 		// Show Library as HTML table				
 		if(schools.length<6) {
-			libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
+			schoolHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
 		} else {
-			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
+			schoolHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
             for (let i = 0; i < schools.length; i++) {
 				schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
 				schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
 				schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
-                libraryHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
+                schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
             }
-			libraryHTML += "</table><p>";
+			schoolHTML += "</table><p>";
 		}
+		libraryHTML += schoolHTML;
 	}
 
 	if( checkboxesVal.includes("PLAYER") ) {	
