@@ -1149,7 +1149,27 @@ function uniqe_school(a, keep) {
    and exactly one "Throne Room|purple".
    Colors allowed: black, purple, red, green, blue, gray, yellow
    ============================ */
-var rooms = [];
+var rooms = [ 
+  "Black Rose#1|black",
+  "Throne Room#2|purple",
+  "Amethyst Library|purple",
+  "Violet Sanctum|purple",
+  "Ruby Forge|red",
+  "Crimson Hall|red",
+  "Scarlet Observatory|red",
+  "Emerald Garden|green",
+  "Verdant Chapel|green",
+  "Jade Gallery|green",
+  "Azure Pool|blue",
+  "Cobalt Tower|blue",
+  "Sapphire Crypt|blue",
+  "Iron Workshop|gray",
+  "Steel Armory|gray",
+  "Silver Vault|gray",
+  "Golden Treasury|yellow",
+  "Amber Dome|yellow",
+  "Topaz Chamber|yellow"
+];
 
 /* ======= Validation of rooms[] counts ======= */
 const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
