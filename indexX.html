@@ -96,7 +96,7 @@
 
 		var allscenarios=[
 			"*XXX General|Cologne, Germany - You never know|None.|Standard.|None.|*",
-			"BRW-R-ROTAS Rebirth Core|Tijuana, Mexico - Brujeria Especial|None.|Rooms: (53,98).|None.|None.",
+			"BRW-R-ROTAS Rebirth Core|Tijuana, Mexico - Brujeria Especial|None.|Rooms: (53,98).<br>Schools: (3,8,30).|None.|None.",
 		];
 
 		var allhonmen=[		
@@ -477,6 +477,7 @@
 		var scenarios = [];
 		var honmen = [];
 		var keepRooms = [];
+		var keepSchools = [];
 		
 try { 
 	
@@ -552,6 +553,23 @@ try {
 			
 			// Replace content inside parentheses
 			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `Rooms: ${collRooms}`);
+		}
+
+		// Find enforced schools
+		if(sSetup.indexOf("Schools: (")>=0) {
+			const sSchools = sSetup.split("Schools: (")[1].split(")")[0].split(",").map(s => s.trim());
+			var collSchools = "";
+			var schoolLine = "";
+			for (let i = 0; i < sSchools.length; i++) {
+				keepSchools.push(sSchools[i]);
+				schoolLine = getArrayById(sSchools[i], allschools);
+				collSchools += schoolLine.split("<b>")[1].split("</b>")[0].trim();
+				if(i<sSchools.length-1) sSchools += ", ";
+				// alert("Generator: " + collRooms);
+			}
+			
+			// Replace content inside parentheses
+			sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `Schools: ${collRooms}`);
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
