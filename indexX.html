@@ -1014,6 +1014,7 @@ genrooms.sort((a, b) => {
 			
 			for (let i = 0; i < genrooms.length; i++) {
 				roomHTML += "<tr><td>";
+				roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
                 roomHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
 				roomHTML += "</td><td>";
 				roomout = "<b>" + genrooms[i].substring(genrooms[i].indexOf(':', genrooms[i].indexOf(':') + 1) + 1).substring(1);
@@ -1033,7 +1034,7 @@ genrooms.sort((a, b) => {
 				}
 				roomHTML += "</td></tr>";
 
-				rooms.push(roomname + "|" + colorout);
+				rooms.push(roomname + roomhash + "|" + colorout);
 				roomHTML += roomname + "|" + colorout + "<br>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             }
