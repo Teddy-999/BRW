@@ -544,11 +544,10 @@ try {
 				keepRooms.push(sRooms[i].trim());
 				collRooms += getArrayById(sRooms[i].trim(), allrooms);
 				if(i<sRooms.length) collRooms += ", ";
-				sRules+=sRooms[i];
 			}
 			
 			// Replace content inside parentheses
-			sRules = sRules.replace(/Rooms:\s*\([^)]*\)/, 'Rooms: (${collRooms})');
+			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, 'Rooms: (${collRooms})');
 		}
 		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
