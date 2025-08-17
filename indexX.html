@@ -1044,9 +1044,10 @@ genrooms.sort((a, b) => {
     console.error(e);
   }
 
-	setTimeout(() => {
+	// wait until DOM is painted
+	requestAnimationFrame(() => {
     	createAndRender();
-	}, 0);
+	});
 		
 }
 
