@@ -677,6 +677,7 @@ try {
         }
 
 		// Deduplicate randomly same # number rooms
+		
 /*		var rc=0;
 		var delroom=0;
 		var foundrooms=0;
@@ -717,37 +718,37 @@ try {
 		} */
 		let groups = {};
 
-// group duprooms by hash value
-for (let i = 0; i < duprooms.length; i++) {
-  let item = duprooms[i];
-  let [id, rest] = item.split("|");
-  let parts = rest.split("#");
-  let base = parts[0];
-  let hashval = parts[1] || base; // use # value if present, otherwise unique base
+		// group duprooms by hash value
+		for (let i = 0; i < duprooms.length; i++) {
+  			let item = duprooms[i];
+  			let [id, rest] = item.split("|");
+  			let parts = rest.split("#");
+  			let base = parts[0];
+  			let hashval = parts[1] || base; // use # value if present, otherwise unique base
 
-  if (!groups[hashval]) groups[hashval] = [];
-  groups[hashval].push({ id, item });
-}
+  			if (!groups[hashval]) groups[hashval] = [];
+  			groups[hashval].push({ id, item });
+		}
 
-// now process each group
-for (let key in groups) {
-  let arr = groups[key];
+		// now process each group
+		for (let key in groups) {
+  			let arr = groups[key];
 
-  // check if group contains any keepRooms
-  let kept = arr.filter(r => keepRooms.includes(r.id));
+  			// check if group contains any keepRooms
+  			let kept = arr.filter(r => keepRooms.includes(r.id));
 
-  if (kept.length > 0) {
-    // keep *all* forced rooms
-    kept.forEach(r => rooms.push(r.item));
-  } else {
-    // pick one random entry
-    let pick = arr[Math.floor(Math.random() * arr.length)];
-    rooms.push(pick.item);
-  }
-}
+  			if (kept.length > 0) {
+    			// keep *all* forced rooms
+    			kept.forEach(r => rooms.push(r.item));
+  			} else {
+    			// pick one random entry
+    			let pick = arr[Math.floor(Math.random() * arr.length)];
+    			rooms.push(pick.item);
+  			}
+		}
 
 		// Remove random rooms until only 1 black and 3 of each color remain
-        for (let i = 0; i < roomcolors.length; i++) {
+/*        for (let i = 0; i < roomcolors.length; i++) {
 		    do {
 			rc=0;
 			for (let j = 0; j < rooms.length; j++) {
@@ -770,6 +771,45 @@ for (let key in groups) {
 			}
 		    } while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
 		}
+  */
+		
+for (let i = 0; i < roomcolors.length; i++) {
+  let color = roomcolors[i];
+
+  // collect indices of rooms of this color
+  let indices = [];
+  for (let j = 0; j < rooms.length; j++) {
+    let room = rooms[j];
+    let roomColor = room.split(")")[0].split("(")[1];  // extract (color)
+    if (roomColor === color) {
+      indices.push(j);
+    }
+  }
+
+  // figure out how many we must keep
+  let maxAllowed = (color === "black" ? 1 : 3);
+
+  // filter out protected ones (#2)
+  let protectedIdx = indices.filter(j => rooms[j].split("#")[1] == 2);
+
+  // we must always keep protected rooms, so adjust maxAllowed accordingly
+  let toKeep = Math.max(maxAllowed, protectedIdx.length);
+
+  // while too many left, remove random non-protected
+  while (indices.length > toKeep) {
+    let rand = indices[Math.floor(Math.random() * indices.length)];
+    if (rooms[rand].split("#")[1] == 2) {
+      // skip protected
+      indices = indices.filter(x => x !== rand);
+    } else {
+      rooms.splice(rand, 1);
+      // refresh indices after splice
+      indices = indices.filter(x => x !== rand).map(x => x > rand ? x - 1 : x);
+    }
+  }
+}
+
+	
 
 		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
 		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
