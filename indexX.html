@@ -539,15 +539,15 @@ try {
 
 		// Find enforced rooms
 		if(sSetup.indexOf("Rooms: (")>=0) {
-			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",");
-			alert("Generator: " + sRooms);
+			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
 			var collRooms = "";
 			var roomLine = "";
 			for (let i = 0; i < sRooms.length; i++) {
-				keepRooms.push(sRooms[i].trim());
-				roomLine = getArrayById(sRooms[i].trim(), allrooms);
+				keepRooms.push(sRooms[i]);
+				roomLine = getArrayById(sRooms[i], allrooms);
 				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1);
 				if(i<sRooms.length) collRooms += ", ";
+				alert("Generator: " + sRooms[i]);
 			}
 			
 			// Replace content inside parentheses
