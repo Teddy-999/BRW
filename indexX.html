@@ -609,7 +609,7 @@ try {
 
 		// Remove duplicate school names
 		shuffleArray(schools);
-		schools = uniqe_school(schools);
+		schools = uniqe_school(schools, keepSchools);
 		
 		// Remove random schools until only 6 remain
         while(schools.length > 6) {
@@ -968,7 +968,7 @@ function shuffleArray(array) {
         		[array[i], array[j]] = [array[j], array[i]];
    		 }
 }
-
+/*
 	function uniqe_school(a) {
 		var seen = {};
     		var out = [];
@@ -983,7 +983,33 @@ function shuffleArray(array) {
     		}
     		return out;
 	}
-	    
+*/
+
+function uniqe_school(a, keep) {
+    const seen = {};
+    const out = [];
+
+    for (let i = 0; i < a.length; i++) {
+        const item = a[i];
+        const id = item.split("|")[0]; // extract ID before '|'
+        const name = item.split("<b>")[1].split("</b>")[0]; // extract name
+
+        // always keep if ID is in keepSchools
+        if (keep.includes(id)) {
+            out.push(item);
+            continue;
+        }
+
+        // keep only unique names otherwise
+        if (!seen[name]) {
+            seen[name] = true;
+            out.push(item);
+        }
+    }
+
+    return out;
+}
+
 	function uniqe_mage(a) {
 		var seen = {};
     		var out = [];
