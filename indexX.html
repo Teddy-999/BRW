@@ -537,6 +537,7 @@ try {
 		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
 
+		// Find enforced rooms
 		if(sSetup.indexOf("Rooms: (")>=0) {
 			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",");
 			var collRooms = "";
@@ -549,7 +550,8 @@ try {
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, 'Rooms: (${collRooms})');
+			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, "Rooms: (${collRooms})");
+			sSetup += collRooms;
 		}
 		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
