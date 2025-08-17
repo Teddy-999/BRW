@@ -1010,7 +1010,7 @@ genrooms.sort((a, b) => {
 			roomHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
 
 			// Fill rooms for the rendering component
-			let rooms = new Array();
+			rooms.length = 0;
 			
 			for (let i = 0; i < genrooms.length; i++) {
 				roomHTML += "<tr><td>";
@@ -1034,7 +1034,7 @@ genrooms.sort((a, b) => {
 				roomHTML += "</td></tr>";
 
 				rooms.push(roomname + "|" + colorout);
-				
+				roomHTML += roomname + "|" + colorout + "<br>";
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             }
 			roomHTML += "</table>";
