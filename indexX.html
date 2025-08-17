@@ -540,6 +540,7 @@ try {
 		// Find enforced rooms
 		if(sSetup.indexOf("Rooms: (")>=0) {
 			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",");
+			alert("Generator: " + sRooms);
 			var collRooms = "";
 			var roomLine = "";
 			for (let i = 0; i < sRooms.length; i++) {
