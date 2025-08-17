@@ -545,7 +545,7 @@ try {
 			for (let i = 0; i < sRooms.length; i++) {
 				keepRooms.push(sRooms[i]);
 				roomLine = getArrayById(sRooms[i], allrooms);
-				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1).split("(")[0].trim();
+				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1).split("(")[0].trim().split(" - Setup:")[0];
 				if(i<sRooms.length-1) collRooms += ", ";
 				// alert("Generator: " + collRooms);
 			}
