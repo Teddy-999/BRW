@@ -677,7 +677,7 @@ try {
         }
 
 		// Deduplicate randomly same # number rooms
-		var rc=0;
+/*		var rc=0;
 		var delroom=0;
 		var foundrooms=0;
 		var hashval="";
@@ -714,7 +714,26 @@ try {
 				duprooms.splice(i,1);
 				i=-1;
 			}
-		}
+		} */
+		let groups = {};
+
+// group duprooms by hash value
+for (let i = 0; i < duprooms.length; i++) {
+  let item = duprooms[i];
+  let parts = item.split("#");
+  let base = parts[0];
+  let hashval = parts[1] || base; // if no #, use whole string as key
+
+  if (!groups[hashval]) groups[hashval] = [];
+  groups[hashval].push(item);
+}
+
+// now randomly pick one from each group
+for (let key in groups) {
+  let arr = groups[key];
+  let pick = arr[Math.floor(Math.random() * arr.length)];
+  rooms.push(pick);
+}
 
 		// Remove random rooms until only 1 black and 3 of each color remain
         for (let i = 0; i < roomcolors.length; i++) {
