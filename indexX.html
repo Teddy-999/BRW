@@ -564,7 +564,7 @@ try {
 				keepSchools.push(sSchools[i]);
 				schoolLine = getArrayById(sSchools[i], allschools);
 				collSchools += schoolLine.split("<b>")[1].split("</b>")[0].trim();
-				if(i<sSchools.length-1) sSchools += ", ";
+				if(i<sSchools.length-1) collSchools += ", ";
 				// alert("Generator: " + collRooms);
 			}
 			
