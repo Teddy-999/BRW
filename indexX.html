@@ -584,7 +584,7 @@ try {
         for (let i = 0; i < allschools.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if(checkboxes[j].value == allschools[i].split(" ")[0].split("|")[1]) {
-					schools.push(allschools[i].substring(allschools[i].indexOf(' ') + 1));
+					schools.push(allschools[i]);
 				}
 			}
         }
