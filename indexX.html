@@ -659,7 +659,6 @@ try {
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
 		libraryHTML += "<div class='board' id='board'></div>";
-		libraryHTML += "createAndRender();";
 		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 
@@ -1674,7 +1673,7 @@ function createAndRender(){
 	</td></tr></table>
 	
          <p>
-        	<button onclick="displayLibrary()">Get me my random Setup!</button><p>
+        	<button onclick="displayLibrary();createAndRender();">Get me my random Setup!</button><p>
 				
 	</div>
 
