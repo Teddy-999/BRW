@@ -748,6 +748,7 @@ try {
 		}
 
 		// Remove random rooms until only 1 black and 3 of each color remain
+		
 /*        for (let i = 0; i < roomcolors.length; i++) {
 		    do {
 			rc=0;
@@ -780,36 +781,39 @@ for (let i = 0; i < roomcolors.length; i++) {
   let indices = [];
   for (let j = 0; j < rooms.length; j++) {
     let room = rooms[j];
-    let roomColor = room.split(")")[0].split("(")[1];  // extract (color)
+    let roomColor = room.split(")")[0].split("(")[1]; // extract (color)
     if (roomColor === color) {
       indices.push(j);
     }
   }
 
-  // figure out how many we must keep
+  // determine max allowed
   let maxAllowed = (color === "black" ? 1 : 3);
 
-  // filter out protected ones (#2)
-  let protectedIdx = indices.filter(j => rooms[j].split("#")[1] == 2);
+  // identify protected rooms (#2 or in keepRooms)
+  let protectedIdx = indices.filter(j => {
+    let room = rooms[j];
+    let id = room.split("|")[0];
+    let hash = room.split("#")[1];
+    return hash == 2 || keepRooms.includes(id);
+  });
 
-  // we must always keep protected rooms, so adjust maxAllowed accordingly
+  // adjust maxAllowed to at least number of protected rooms
   let toKeep = Math.max(maxAllowed, protectedIdx.length);
 
-  // while too many left, remove random non-protected
+  // remove random non-protected rooms until count <= toKeep
   while (indices.length > toKeep) {
-    let rand = indices[Math.floor(Math.random() * indices.length)];
-    if (rooms[rand].split("#")[1] == 2) {
-      // skip protected
-      indices = indices.filter(x => x !== rand);
+    let randIdx = indices[Math.floor(Math.random() * indices.length)];
+    if (protectedIdx.includes(randIdx)) {
+      // skip protected rooms
+      indices = indices.filter(x => x !== randIdx);
     } else {
-      rooms.splice(rand, 1);
-      // refresh indices after splice
-      indices = indices.filter(x => x !== rand).map(x => x > rand ? x - 1 : x);
+      rooms.splice(randIdx, 1);
+      // update indices after removal
+      indices = indices.filter(x => x !== randIdx).map(x => x > randIdx ? x - 1 : x);
     }
   }
-}
-
-	
+}	
 
 		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
 		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
