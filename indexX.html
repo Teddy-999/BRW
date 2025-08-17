@@ -1477,7 +1477,7 @@ function mapRoomsToPositions(colorMap, throneKey){
       throw new Error(`Not enough rooms available for color ${color} while mapping.`);
     }
     const name = pools[color].pop();
-    roomByPos.set(pos, {name, color});
+    roomByPos.set(pos, {name+"X", color});
   }
   return roomByPos;
 }
