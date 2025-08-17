@@ -979,6 +979,8 @@ genrooms.sort((a, b) => {
 		var roomoutPre = "";
 		var roomout = "";
 		var colorout = "";
+		var roomname = "";
+		var roomhash = "";
 		
 		if(genrooms.length<19) {
 			roomHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 rooms!</font>";
@@ -987,9 +989,6 @@ genrooms.sort((a, b) => {
 
 			// Fill rooms for the rendering component
 			let rooms = new Array();
-			var roomname = "";
-			var roomcol = "";
-			var roomhash = "";
 			
 			for (let i = 0; i < genrooms.length; i++) {
 				roomHTML += "<tr><td>";
@@ -1001,14 +1000,19 @@ genrooms.sort((a, b) => {
 				
 				// filter setup instructions
 				if(roomout.indexOf(" - Setup:")>0) {
+					roomname = roomout.split(" - Setup:")[0].split("(")[0].trim();
 					roomHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
 					roomHTML += "</td><td>";
 					roomHTML += roomout.split(" - Setup:")[1].split("(")[0];
 				} else {
+					roomname = roomout.split("(")[0].trim();
 					roomHTML += roomout.split("(")[0] + "</b>";
 					roomHTML += "</td><td>";
 				}
 				roomHTML += "</td></tr>";
+
+				rooms.push(roomname + "|" + colorout);
+				
 				// if(i!=rooms.length-1) libraryHTML += ", ";
             }
 			roomHTML += "</table>";
