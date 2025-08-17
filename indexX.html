@@ -1039,9 +1039,6 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
-	console.log("Board exists 1?", !!document.getElementById("board"));
-	alert("Board exists? " + !!document.getElementById("board"));
-
 } catch (e) {
     alert("Generator error: " + e.message);
     console.error(e);
@@ -1508,7 +1505,7 @@ function generateValidLodge(){
 }
 
 /* ======== Rendering ======= */
-const board = document.getElementById('board');
+var board = document.getElementById('board');
 
 function renderLodge(lodge){
 	console.log("Board exists 3?", !!document.getElementById("board"));
