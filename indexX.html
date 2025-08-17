@@ -658,6 +658,8 @@ try {
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
+		libraryHTML += "<div class='board' id='board'></div>";
+		libraryHTML += "createAndRender();";
 		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 
@@ -1053,7 +1055,6 @@ function ruleTip() {
 	libraryHTML += "</font></div><p>";
 		    
 	document.getElementById("result").innerHTML = libraryHTML;
-	createAndRender();
 }
 
 	// Return entry of an array by its id
@@ -1584,7 +1585,6 @@ function createAndRender(){
 			<h1>Black Rose Wars - Random Setup</h1>
         	<div id="result">
         	</div>
-			<div class="board" id="board"></div>
 			<hr>
 			<b>Select the core boxes and expansions for your Setup:</b><p>
 	<div style='padding-left:20px;'>
