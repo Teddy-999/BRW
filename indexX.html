@@ -96,8 +96,8 @@
 
 		var allscenarios=[
 			"*XXX General|Cologne, Germany - You never know|None.|Standard.|None.|*",
-			"BRW-R-ROTAS Rebirth ROTAS|Tijuana, Mexico - Brujeria Especial|None.|Rooms: (53,98).<br>Schools: (3,8,30).|None.|None.",
-			"BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|13 Black Rose Power Cards.|Rooms: (62,125).<br>Schools: (29,32,35).|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
+			"BRW-R-ROTAS Rebirth ROTAS|Tijuana, Mexico - Brujeria Especial|None.|<ul>Rooms: (53,98). Schools: (3,8,30).</ul>|None.|None.",
+			"BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|13 Black Rose Power Cards.|<ul>Rooms: (62,125). Schools: (29,32,35).</ul>|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
 		];
 
 		var allhonmen=[		
@@ -553,7 +553,7 @@ try {
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `Rooms: ${collRooms}`);
+			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li>Rooms: ${collRooms}</li>`);
 		}
 
 		// Find enforced schools
@@ -570,7 +570,7 @@ try {
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `Schools: ${collSchools}`);
+			sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li>Schools: ${collSchools}</li>`);
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
