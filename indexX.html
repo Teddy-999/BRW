@@ -545,13 +545,13 @@ try {
 			for (let i = 0; i < sRooms.length; i++) {
 				keepRooms.push(sRooms[i]);
 				roomLine = getArrayById(sRooms[i], allrooms);
-				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1);
+				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1).split("(")[0];
 				if(i<sRooms.length-1) collRooms += ", ";
 				// alert("Generator: " + collRooms);
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\(([^)]*)\)/, `Rooms: (${collRooms})`);
+			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `Rooms: ${collRooms}`);
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
