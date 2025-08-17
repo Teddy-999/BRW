@@ -462,11 +462,6 @@
 			"gray", 
 			"purple"
 		];
-
-	// Return entry of an array by its id
-	function getArrayById(id, arr) {
-  		return arr.find(item => item.startsWith(id + "|")) || null;
-	}
 	    
 	// Show a random Library build from selected BRW boxes
     function displayLibrary(){
@@ -858,6 +853,11 @@ function ruleTip() {
 		    
 	document.getElementById("result").innerHTML = libraryHTML;
 }
+
+	// Return entry of an array by its id
+	function getArrayById(id, arr) {
+  		return arr.find(item => item.startsWith(id + "|")) || null;
+	}
 
 function shuffleArray(array) {
    		 for (let i = array.length - 1; i > 0; i--) {
