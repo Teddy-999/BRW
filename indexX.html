@@ -553,7 +553,7 @@ try {
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li>Rooms: ${collRooms}`);
+			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Rooms:</b> ${collRooms}`);
 		}
 
 		// Find enforced schools
@@ -570,7 +570,7 @@ try {
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li>Schools: ${collSchools}`);
+			sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li><b>Schools:</b> ${collSchools}`);
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
