@@ -96,7 +96,7 @@
 
 		var allscenarios=[
 			"*XXX General|Cologne, Germany - You never know|None.|Standard.|None.|*",
-			"BRW-R-ROTAS Rebirth Core|Tijuana, Mexico - Brujeria Especial|None.|Rooms (54,55,57).|None.|None.",
+			"BRW-R-ROTAS Rebirth Core|Tijuana, Mexico - Brujeria Especial|None.|Rooms: (54,55,57).|None.|None.",
 		];
 
 		var allhonmen=[		
@@ -539,11 +539,17 @@ try {
 		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
 
-		if(sSetup.indexOf("Rooms (")>=0) {
-			const sRooms = sSetup.split("Rooms (")[1].split(")")[0].split(",");
+		if(sSetup.indexOf("Rooms: (")>=0) {
+			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",");
+			var collRooms = "";
 			for (let i = 0; i < sRooms.length; i++) {
-				keepRooms.push(sRooms[i]);
-			}			
+				keepRooms.push(sRooms[i].trim());
+				collRooms += getArrayById(sRooms[i].trim(), allrooms);
+				if(i<sRooms.length) collRooms += ", ";
+			}
+			
+			// Replace content inside parentheses
+			sRules = sRules.replace(/Rooms:\s*\([^)]*\)/, 'Rooms: (${collRooms})');
 		}
 		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
