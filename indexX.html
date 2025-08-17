@@ -529,8 +529,8 @@ try {
 		shuffleArray(scenarios);
 		const sName = scenarios[0].split("|")[0];
 		const sComp = scenarios[0].split("|")[1];
-		const sSetup = scenarios[0].split("|")[2];
-		var sRules = scenarios[0].split("|")[3];
+		var sSetup = scenarios[0].split("|")[2];
+		const sRules = scenarios[0].split("|")[3];
 		const sHonMen = scenarios[0].split("|")[4];
 		
 		libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
@@ -542,7 +542,7 @@ try {
 			var collRooms = "";
 			for (let i = 0; i < sRooms.length; i++) {
 				keepRooms.push(sRooms[i].trim());
-				collRooms += getArrayById(sRooms[i].trim(), allrooms);
+				collRooms += getArrayById(sRooms[i].trim(), allrooms).substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
 				if(i<sRooms.length) collRooms += ", ";
 			}
 			
