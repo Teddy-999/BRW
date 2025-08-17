@@ -1039,10 +1039,9 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
-	// wait until DOM is painted
-	requestAnimationFrame(() => {
+	setTimeout(() => {
     	createAndRender();
-	});
+	}, 0);
 
 } catch (e) {
     alert("Generator error: " + e.message);
