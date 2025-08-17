@@ -1039,6 +1039,8 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
+	createAndRender();
+
 } catch (e) {
     alert("Generator error: " + e.message);
     console.error(e);
@@ -1673,7 +1675,7 @@ function createAndRender(){
 	</td></tr></table>
 	
          <p>
-        	<button onclick="displayLibrary();createAndRender();">Get me my random Setup!</button><p>
+        	<button onclick="displayLibrary();">Get me my random Setup!</button><p>
 				
 	</div>
 
