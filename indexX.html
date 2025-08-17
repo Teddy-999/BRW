@@ -551,7 +551,7 @@ try {
 			}
 			
 			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, "Rooms: (${collRooms})");
+			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `Rooms: (${collRooms})`);
 		}
 			
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
