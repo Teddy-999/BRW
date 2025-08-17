@@ -463,7 +463,10 @@
 			"purple"
 		];
 
-
+	// Return entry of an array by its id
+	function getArrayById(id, arr) {
+  		return arr.find(item => item.startsWith(id + "|")) || null;
+	}
 	    
 	// Show a random Library build from selected BRW boxes
     function displayLibrary(){
