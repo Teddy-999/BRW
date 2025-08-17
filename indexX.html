@@ -586,12 +586,12 @@ try {
 
 			libraryHTML += "<p>";
 			for (let i = 0; i < numhonmen; i++) {
-				libraryHTML += "<b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "<br>"; 
+				libraryHTML += "<li><b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "</li>"; 
 			}			
 			libraryHTML += "</p>";
 			
 		} else {
-			libraryHTML += "<p>" + sHonMen + "</p>";
+			libraryHTML += "<p><ul>" + sHonMen + "</ul></p>";
 		}
 		libraryHTML += "<hr>";
 	}
