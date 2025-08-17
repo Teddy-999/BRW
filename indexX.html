@@ -1039,6 +1039,9 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
+	console.log("Board exists?", !!document.getElementById("board"));
+	alert("Board exists? " + !!document.getElementById("board"));
+
 } catch (e) {
     alert("Generator error: " + e.message);
     console.error(e);
