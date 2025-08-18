@@ -817,7 +817,7 @@ try {
 		shuffleArray(colors);
 		playerHTML += "<b>Start player:</b> ";
 		for (let i = 0; i < colors.length; i++) {
-			if(i!=0) libraryHTML += " &gt; ";
+			if(i!=0) playerHTML += " &gt; ";
 			playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
 		}
 	}
@@ -1154,8 +1154,8 @@ genrooms.sort((a, b) => {
 	if( checkboxesVal.includes("SCENARIO") ) {
 		
 	} else {
-		if( checkboxesVal.includes("SCHOOL") ) {
-			libraryHTML += schoolHTML;
+		if( checkboxesVal.includes("AVATAR") ) {
+			libraryHTML += avatarHTML;
 			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("PLAYER") ) {
@@ -1167,12 +1167,12 @@ genrooms.sort((a, b) => {
 			libraryHTML += mageHTML;
 			libraryHTML += "<p>";
 		}
-		if( checkboxesVal.includes("LODGE") ) {
-			libraryHTML += lodgeHTML;
+		if( checkboxesVal.includes("SCHOOL") ) {
+			libraryHTML += schoolHTML;
 			libraryHTML += "<p>";
 		}
-		if( checkboxesVal.includes("AVATAR") ) {
-			libraryHTML += avatarHTML;
+		if( checkboxesVal.includes("LODGE") ) {
+			libraryHTML += lodgeHTML;
 			libraryHTML += "<p>";
 		}
 	}
