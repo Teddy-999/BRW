@@ -1222,7 +1222,7 @@ genrooms.sort((a, b) => {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
 			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
-			libraryHTML += mageHTML.replace(", ", "<br>");
+			libraryHTML += mageHTML.replaceAll(", ", "<br>");
 			libraryHTML += "</td></tr></thead></table></div></div>";
 		}
 		if( checkboxesVal.includes("SCHOOL") ) {
