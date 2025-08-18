@@ -820,7 +820,6 @@ try {
 			if(i!=0) libraryHTML += " &gt; ";
 			playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
 		}
-		alert("Generator error: Player!!!");
 	}
 
 	
@@ -1160,6 +1159,7 @@ genrooms.sort((a, b) => {
 		if( checkboxesVal.includes("PLAYER") ) {
 			libraryHTML += playerHTML;
 			libraryHTML += "<p>";
+					alert("Generator error: Player!!!");
 		}
 		if( checkboxesVal.includes("MAGE") ) {
 			libraryHTML = "<b>Random Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<p>";
