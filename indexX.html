@@ -1133,7 +1133,7 @@ genrooms.sort((a, b) => {
 } catch (e) {
 	showErrors(e.message);
 	// "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
-    alert("Generator error: " + e.message);
+    // alert("Generator error: " + e.message);
     // console.error(e);
   }	
 }
@@ -1663,28 +1663,29 @@ function createAndRender(){
     </script>
 
     <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1>
-        	<div id="result">
-        	</div>
-			<hr>
 		
-			<!-- Error messages area -->
-			<div id="error-messages"
-     			role="alert"
-    			aria-live="polite"
-     			class="error hidden">
-  				<!-- Errors will be injected here -->
-			</div>
+	<h1>Black Rose Wars - Random Setup</h1>
+    <div id="result">
+    </div>
+	<hr>
 		
-			<b>Select the core boxes and expansions for your Setup:</b><p>
+	<!-- Error messages area -->
+	<div id="error-messages"
+     	role="alert"
+    	aria-live="polite"
+     	class="error hidden">
+  		<!-- Errors will be injected here -->
+	</div>
+		
+	<b>Select the core boxes and expansions for your Setup. Select Scenrio to provide a custom game setting different from the standard game.</b>
 	<div style='padding-left:20px;'>
 
-	<input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO" checked><label for="SCENARIO"> Scenario</label><br>
-	<input type="checkbox" id="SCHOOL" name="SCHOOL" value="SCHOOL" checked><label for="SCHOOL"> Schools</label> &nbsp;&nbsp;
+	<b<Play a standard game. Generate:</b> <input type="checkbox" id="SCHOOL" name="SCHOOL" value="SCHOOL" checked><label for="SCHOOL"> Schools</label> &nbsp;&nbsp;
 	<input type="checkbox" id="PLAYER" name="PLAYER" value="PLAYER" checked><label for="PLAYER"> Start Player</label> &nbsp;&nbsp;
 	<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages</label> &nbsp;&nbsp;
 	<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge</label> &nbsp;&nbsp;
 	<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR" checked><label for="AVATAR"> Avatar</label>
+	<br><b<Play a generated Scenario</b> <input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO"><label for="SCENARIO"></label>
 	<p>
 		
 	<table><tr><td VALIGN=TOP> 
