@@ -540,14 +540,14 @@
 			];
 
 			var allavatars =[
-				"BRW-R-CORE Rebirth Core: The Possessed (no dedicated model available)",
-				"BRW-R-CORE Rebirth Core: Jukas or if not available use The Possessed (no dedicated model available)",
-				"BRW-REV-CORE Revised Core: Slenderman (model from Ashes Magazine 11)",
-				"BRW-REV-CORE Revised Core: Titonauta or if not available use Slenderman (model from Ashes Magazine 11)",
+				"BRW-R-CORE Rebirth Core: The Possessed - no dedicated model available",
+				"BRW-R-CORE Rebirth Core: Jukas or if not available use The Possessed - no dedicated model available",
+				"BRW-REV-CORE Revised Core: Slenderman - model from Ashes Magazine 11",
+				"BRW-REV-CORE Revised Core: Titonauta or if not available use Slenderman - model from Ashes Magazine 11",
 				"BRW-REV-TENET Revised TENET: Infamy of Crete",
 				"BRW-REV-TENET Revised TENET: Caronte",
-				"ASHES Ashes Magazine: The Architect (recommended for Duel games otherwise use The Possessed)",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Cacus (2 Avatar cards)",
+				"ASHES Ashes Magazine: The Architect - recommended for Duel games otherwise use The Possessed",
+				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Cacus - 2 Avatar cards",
 				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Parcae",
 				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Anubis",
 				"BRW-R-ROTAS Rebirth ROTAS Madness: Rubedo",
@@ -557,7 +557,7 @@
 				"BRW-R-FORGE Rebirth Dread Forge: Etna",
 				"BRW-R-GAEA Rebirth Gaea Reborn: Gaea",
 				"REQ Requiem Crossover: Invaders",
-				"BRW-DISCORD Discord Custom Items: Arianna (ask Teddy)",
+				"BRW-DISCORD Discord Custom Items: Arianna - ask Teddy",
 	    		];
 		
 	    	// player colors
@@ -815,7 +815,7 @@ try {
 	if( checkboxesVal.includes("PLAYER") || checkboxesVal.includes("SCENARIO") ) {	
 		// start player
 		shuffleArray(colors);
-		playerHTML += "<b>Start player:</b> ";
+		playerHTML += "<b>Start Player:</b> ";
 		for (let i = 0; i < colors.length; i++) {
 			if(i!=0) playerHTML += " &gt; ";
 			playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
@@ -838,7 +838,7 @@ try {
         for (let i = 0; i < allmages.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
-					mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> (" + allmages[i].split(":")[0].substring(allmages[i].indexOf(' ') + 1) + ")" );
+					mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> [" + allmages[i].split(":")[0].substring(allmages[i].indexOf(' ') + 1) + "]" );
 				}
 			}
         }
@@ -1126,7 +1126,10 @@ genrooms.sort((a, b) => {
         for (let i = 0; i < allavatars.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
-					avatars.push( "<b>Random Avatar from " + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ": " + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b>" );
+					const avatarBox = allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1);
+					var avatarNameHTML = allavatars[i].substring(allavatars[i].indexOf(':') + 1);
+					avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? "<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : "<b>" + avatarNameHTML + "</b>";
+					avatars.push( "<b>Avatar:</b> " + avatarNameHTML + " [" + avatarBox + "]" );
 				}
 			}
         }
@@ -1163,7 +1166,7 @@ genrooms.sort((a, b) => {
 			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("MAGE") ) {
-			libraryHTML += "<b>Random Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<p>";
+			libraryHTML += "<b>Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<p>";
 			libraryHTML += mageHTML;
 			libraryHTML += "<p>";
 		}
