@@ -1125,7 +1125,7 @@ genrooms.sort((a, b) => {
 		var roomname = "";
 		var roomhash = "";
 		
-		if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");{
+		if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");
 
 		lodgeHTML = '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Rooms<span class="toggle-indicator">−</span></div><div class="table-body">';
 		lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
@@ -1192,10 +1192,9 @@ genrooms.sort((a, b) => {
 		if(avatars.length<1) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
 		
         avatarHTML += avatars[0];
-		}
-	}
-	
+	}	
 
+	
 	// ########################################################################################
 	// ### Combine generated output
 	// ########################################################################################
