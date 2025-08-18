@@ -2,6 +2,7 @@
 <html>
 
 <head>
+	
 <meta charset="utf-8" />
 <title>Black Rose Lodge — Biconnected Symmetric Generator</title>
 <style>
@@ -32,8 +33,6 @@
     box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
     overflow: hidden;
   }
-
-  
 .hex {
   position: absolute;
   width: calc(var(--hex-size) * 2);      /* swap width/height for rotation */
@@ -54,9 +53,6 @@
   line-height: 1.1;
   padding: 6px;
 }
-
-
-  
   .hex:hover { transform: translateY(-4px); }
   .label {
     background: rgba(0,0,0,0.28); border-radius:6px; padding:2px 6px;
@@ -74,39 +70,50 @@
     box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.6);
     border: 2px solid rgba(255,255,255,0.06);
   }
-
    /* highlight empty */
   .empty { 
-    background: #222222; 
+    background: #333333; 
   }
-  
-
+	
   .note { font-size:13px; color:#bbb; }
+
+  .error {
+    border: 1px solid #e63946;
+    background: #ffe8ea;
+    color: #8b0000;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+  .hidden { display: none; }
+  .error ul { margin: 0.25rem 0 0; padding-left: 1.2rem; }
+  .error strong { display: block; margin-bottom: 0.25rem; }
+
 </style>
 </head>
 	
     <script>
 		var rooms = [ 
-  "Black Rose#1|black",
-  "Throne Room#2|purple",
-  "Amethyst Library|purple",
-  "Violet Sanctum|purple",
-  "Ruby Forge|red",
-  "Crimson Hall|red",
-  "Scarlet Observatory|red",
-  "Emerald Garden|green",
-  "Verdant Chapel|green",
-  "Jade Gallery|green",
-  "Azure Pool|blue",
-  "Cobalt Tower|blue",
-  "Sapphire Crypt|blue",
-  "Iron Workshop|gray",
-  "Steel Armory|gray",
-  "Silver Vault|gray",
-  "Golden Treasury|yellow",
-  "Amber Dome|yellow",
-  "Topaz Chamber|yellow"
-];
+  		"Black Rose#1|black",
+  		"Throne Room#2|purple",
+  		"Amethyst Library|purple",
+  		"Violet Sanctum|purple",
+  		"Ruby Forge|red",
+  		"Crimson Hall|red",
+  		"Scarlet Observatory|red",
+  		"Emerald Garden|green",
+  		"Verdant Chapel|green",
+  		"Jade Gallery|green",
+  		"Azure Pool|blue",
+  		"Cobalt Tower|blue",
+  		"Sapphire Crypt|blue",
+  		"Iron Workshop|gray",
+  		"Steel Armory|gray",
+  		"Silver Vault|gray",
+  		"Golden Treasury|yellow",
+  		"Amber Dome|yellow",
+  		"Topaz Chamber|yellow"
+		];
 		
 	var rules=[ 
 "1. [b]Umbras[/b]. They are of arche type nightmare (see evocation card). They are assigned to a mage (max. 1 per evocation slot) and not summoned. Once assigned, they are owned by the Black Rose. Effects allow to take temporary control over them. They are still evocations. They become activated first in the evocation phase. Upon defeat (step 2) of a mage, assigned evocations get removed. Summoned evocations remain in play though.",
@@ -128,6 +135,7 @@
 "9. [b]Target Mage or Model[/b]. If one of your spells/effects has the [b]mage or model icon[/b] as target, this EXCLUDES your mage (self).",
 
 "10. [b]Avatar and evocation activation[/b]. The Avatar is considered to be a mage. Therefore, the evocations it owns are activated in play order among the mages in the evocation phase. The activation of the Black Rose‘s evocations at the beginning of this phase only refers to evocations owned by the Black Rose, like of arche type Nightmare (Umbras).",
+
 "11. [b]Activation (mage)[/b]. During the action phase, each mage gets [b]at least 2 activations[/b] and usually 4 to 6 actions. In every activation, you [b]must[/b] take either 1 or 2 actions. Only if there is no action available, you can and must pass. After players have done their first activation in turn order, they will take their second and so on until all mages have passed.",
 
 "12. [b]Ranking for points[/b]. If you are part of a ranking for defeat, rebuilding rooms or game and ranking of trophies or quests, because you have [b]at least 1[/b] according item (cube, trophy, quests) in the ranking, you will ALWAYS get 1 power point. A tie subtracts 1pp, but the result can NEVER be lower than 1.",
@@ -570,7 +578,26 @@
 			"gray", 
 			"purple"
 		];
-	    
+		
+	  	// Show one or multiple error messages
+  		function showErrors(messages) {
+    		const box = document.getElementById('error-messages');
+    		const list = Array.isArray(messages) ? messages : [messages];
+
+    		box.innerHTML =
+      			`<strong>There ${list.length === 1 ? 'was an error' : 'were errors'}:</strong>
+       			<ul>${list.map(m => `<li>${m}</li>`).join('')}</ul>`;
+
+    		box.classList.remove('hidden');
+  		}
+
+  		// Hide/clear errors
+  		function clearErrors() {
+    		const box = document.getElementById('error-messages');
+   		 	box.classList.add('hidden');
+    		box.textContent = '';
+  		}    
+		
 	// Show a random Library build from selected BRW boxes
     function displayLibrary(){
         let schools = []; 
@@ -587,6 +614,7 @@
 		var keepRooms = [];
 		var keepSchools = [];
 		
+  		clearErrors();	
 try { 
 	
 	// Get checkbox values as array
@@ -645,7 +673,6 @@ try {
 		libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
 		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
 
-
 		// Find enforced rooms
 		if(sSetup.indexOf("Rooms: (")>=0) {
 			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
@@ -703,10 +730,18 @@ try {
 		}
 		libraryHTML += "<hr>";
 	}
-
-
+	
+	// ########################################################################################
+	// ### SCHOOL setup
+	// ########################################################################################
+	// ### - Respects keepSchools from scenario to enforce certain schools
+	// ###
+	// ########################################################################################
+	
 	var schoolHTML = "";
-	if( checkboxesVal.includes("SCHOOL") ) {	
+	
+	if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("SCENARIO") ) {
+		
 	    // Add schools based on selected BRW boxes
         for (let i = 0; i < allschools.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
@@ -738,9 +773,8 @@ try {
 		}
 
 		// Show Library as HTML table				
-		if(schools.length<6) {
-			schoolHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
-		} else {
+		if(schools.length<6) throw new Error("Not enough schools available. Select more BRW boxes to choose schools from!");
+		
 			schoolHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
             for (let i = 0; i < schools.length; i++) {
 				schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
@@ -749,7 +783,7 @@ try {
                 schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
             }
 			schoolHTML += "</table><p>";
-		}
+		
 		libraryHTML += schoolHTML;
 	}
 
@@ -1074,8 +1108,10 @@ genrooms.sort((a, b) => {
     document.getElementById("result").innerHTML = libraryHTML;
 
 } catch (e) {
+	showErrors(e.message);
+	// "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
     alert("Generator error: " + e.message);
-    console.error(e);
+    // console.error(e);
   }
 
 	// wait until DOM is painted
@@ -1613,6 +1649,15 @@ function createAndRender(){
         	<div id="result">
         	</div>
 			<hr>
+		
+			<!-- Error messages area -->
+			<div id="error-messages"
+     			role="alert"
+    			aria-live="polite"
+     			class="error hidden">
+  				<!-- Errors will be injected here -->
+			</div>
+		
 			<b>Select the core boxes and expansions for your Setup:</b><p>
 	<div style='padding-left:20px;'>
 
