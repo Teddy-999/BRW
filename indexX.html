@@ -1477,7 +1477,7 @@ function mapRoomsToPositions(colorMap, throneKey){
       throw new Error(`Not enough rooms available for color ${color} while mapping.`);
     }
     const name = pools[color].pop();
-    roomByPos.set(pos, {name+"X", color});
+    roomByPos.set(pos, {name, color});
   }
   return roomByPos;
 }
@@ -1560,7 +1560,7 @@ function renderLodge(lodge){
     div.style.top  = `${Math.round(p.y + offsetY)}px`;
     const lbl = document.createElement('div');
     lbl.className = 'label';
-    lbl.textContent = room.name;
+    lbl.textContent = room.name.includes("#") ? room.name.split("#")[0] : room.name;
     div.appendChild(lbl);
     board.appendChild(div);
     } else {
