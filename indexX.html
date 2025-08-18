@@ -559,16 +559,18 @@
 				"REQ Requiem Crossover: Invaders",
 				"BRW-DISCORD Discord Custom Items: Arianna (ask Teddy)",
 	    		];
-	    
-		var colors =[
-			"purple",
-			"red", 
-			"blue", 
-			"green", 
-			"yellow", 
-			"gray" 
-		];
+		
+	    	// player colors
+			var colors =[
+				"purple",
+				"red", 
+				"blue", 
+				"green", 
+				"yellow", 
+				"white" 
+			];
 
+	    	// room colors		
 	    	var roomcolors =[
 			"black",
 			"purple",
@@ -639,21 +641,16 @@ try {
 	if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
 	if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
 
-	if( !checkboxesVal.includes("SCENARIO") ) {
-		if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("PLAYER") || checkboxesVal.includes("MAGE") || checkboxesVal.includes("LODGE") || checkboxesVal.includes("AVATAR") ) {	
-			libraryHTML += "<b>The Black Rose came up with this Setup for you:</b><p>";
-		}
-		else {
-			libraryHTML += "<font color=#FF0000>Select at least one out of Schools, Start Player, Mages, the Lodge or Avatar to generate!</font><p>";
-		}
-	}
-		
-	libraryHTML += "<div style='padding-left:20px;'>";
 
+	// ########################################################################################
+	// ### SCENARIO setup
+	// ########################################################################################
+	// ### 
+	// ###
+	// ########################################################################################
 
-	// ########################
-	// ######################## SCENARIO 
-	// ########################			
+	var scenarioHTML = "";
+
 	if( checkboxesVal.includes("SCENARIO") ) {
 
 		// Select scenarios for selected boxes
@@ -748,6 +745,7 @@ try {
 		}
 		libraryHTML += "<hr>";
 	}
+
 	
 	// ########################################################################################
 	// ### SCHOOL setup
@@ -801,62 +799,82 @@ try {
             schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
         }
 		schoolHTML += "</table>";
-		
-		libraryHTML += schoolHTML;
 	}
 
-	if( checkboxesVal.includes("PLAYER") ) {	
+	
+	// ########################################################################################
+	// ### START PLAYER setup
+	// ########################################################################################
+	// ###
+	// ###
+	// ########################################################################################
+	
+	var playerHTML = "";
+	
+	if( checkboxesVal.includes("PLAYER") || checkboxesVal.includes("SCENARIO") ) {	
 		// start player
 		shuffleArray(colors);
-		libraryHTML += "<b>Start player: </b>";
+		playerHTML += "<b>Start player:</b> ";
 		for (let i = 0; i < colors.length; i++) {
 			if(i!=0) libraryHTML += " &gt; ";
-			libraryHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
+			playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
 		}
-		libraryHTML += "<p>";
 	}
 
-	if( checkboxesVal.includes("MAGE") ) {	
-		
-		// Random mages
-		libraryHTML += "<b>Random Mages:</b> Either draft them or assign them in the order of schools or players from above.<p>";
+	
+	// ########################################################################################
+	// ### MAGE setup
+	// ########################################################################################
+	// ###
+	// ###
+	// ########################################################################################
+	
+	var mageHTML = "";
+	
+	if( checkboxesVal.includes("MAGE") || checkboxesVal.includes("SCENARIO") ) {	
 		
 		// Select mages from selected boxes
-            for (let i = 0; i < allmages.length; i++) {
-		for (let j = 0; j < checkboxes.length; j++) {
-			if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
-				mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> (" + allmages[i].split(":")[0].substring(allmages[i].indexOf(' ') + 1) + ")" );
+        for (let i = 0; i < allmages.length; i++) {
+			for (let j = 0; j < checkboxes.length; j++) {
+				if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
+					mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> (" + allmages[i].split(":")[0].substring(allmages[i].indexOf(' ') + 1) + ")" );
+				}
 			}
-		}
-            }
+        }
 
 		// Remove duplicate school names
 		shuffleArray(mages);
 		mages = uniqe_mage(mages);
 		
 		// Remove random mage until only 6 remain
-            	while(mages.length > 6) {
-                	mages.splice(Math.floor(Math.random()*mages.length), 1);	
-           	}
+        while(mages.length > 6) {
+            mages.splice(Math.floor(Math.random()*mages.length), 1);	
+        }
 		shuffleArray(mages);
 
 		// Show mages			
-		if(mages.length<6) {
-			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 6 mages!</font>";
-		} else {
-			for (let i = 0; i < mages.length; i++) {
-                 		libraryHTML += mages[i];
-				if(i!=mages.length-1) libraryHTML += ", ";
-            		}
-		}		
-		
-		libraryHTML += "<p>";
+		if(mages.length<6) throw new Error("Not enough mages available. Select more BRW boxes to provide at least 6 mages!");
+
+		for (let i = 0; i < mages.length; i++) {
+            mageHTML += mages[i];
+			if(i!=mages.length-1) mageHTML += ", ";
+        }
 	}
 
-	if( checkboxesVal.includes("LODGE") ) {	
+	
+	// ########################################################################################
+	// ### LODGE setup
+	// ########################################################################################
+	// ### - Respects keepSchools from scenario to enforce certain rooms
+	// ###
+	// ########################################################################################
+	
+	var lodgeHTML = "";
+	
+	if( checkboxesVal.includes("LODGE") || checkboxesVal.includes("SCENARIO") ) {	
 		
 		// Random rooms
-		// libraryHTML += "<b>Random Rooms:</b><br>";
+		// lodgeHTML += "<b>Random Rooms:</b><br>";
 
 		// Select rooms from selected boxes
         for (let i = 0; i < allrooms.length; i++) {
@@ -1012,7 +1030,7 @@ genrooms.sort((a, b) => {
   return colorOrder[colorA] - colorOrder[colorB];
 });
 		
-		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
+		// Inferno: Pleasure Room needs at least one other room to summon Cerbero or Centauro
 		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
 		var foundInfernalPleasure = -1;
 		var foundSupportRoom = false;
@@ -1050,57 +1068,60 @@ genrooms.sort((a, b) => {
 		}
 		
 		// Output rooms
-		var roomHTML = "";
 		var roomoutPre = "";
 		var roomout = "";
 		var colorout = "";
 		var roomname = "";
 		var roomhash = "";
 		
-		if(genrooms.length<19) {
-			roomHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 rooms!</font>";
-		} else {
-			roomHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
+		if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");{
 
-			// Fill rooms for the rendering component
-			rooms.length = 0;
+		lodgeHTML = "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
+
+		// Fill rooms for the rendering component
+		rooms.length = 0;
 			
-			for (let i = 0; i < genrooms.length; i++) {
-				roomHTML += "<tr><td>";
-				roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
-                roomHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
-				roomHTML += "</td><td>";
-				roomout = "<b>" + genrooms[i].substring(genrooms[i].indexOf(':', genrooms[i].indexOf(':') + 1) + 1).substring(1);
-				colorout = roomout.split("(")[1].split(")")[0];
-				roomHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
+		for (let i = 0; i < genrooms.length; i++) {
+			lodgeHTML += "<tr><td>";
+			roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
+            lodgeHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
+			lodgeHTML += "</td><td>";
+			roomout = "<b>" + genrooms[i].substring(genrooms[i].indexOf(':', genrooms[i].indexOf(':') + 1) + 1).substring(1);
+			colorout = roomout.split("(")[1].split(")")[0];
+			lodgeHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
 				
-				// filter setup instructions
-				if(roomout.indexOf(" - Setup:")>0) {
-					roomname = roomout.split(" - Setup:")[0].split("(")[0].split("<b>")[1].trim();
-					roomHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
-					roomHTML += "</td><td>";
-					roomHTML += roomout.split(" - Setup:")[1].split("(")[0];
-				} else {
-					roomname = roomout.split("(")[0].split("<b>")[1].trim();
-					roomHTML += roomout.split("(")[0] + "</b>";
-					roomHTML += "</td><td>";
-				}
-				roomHTML += "</td></tr>";
+			// filter setup instructions
+			if(roomout.indexOf(" - Setup:")>0) {
+				roomname = roomout.split(" - Setup:")[0].split("(")[0].split("<b>")[1].trim();
+				lodgeHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
+				lodgeHTML += "</td><td>";
+				lodgeHTML += roomout.split(" - Setup:")[1].split("(")[0];
+			} else {
+				roomname = roomout.split("(")[0].split("<b>")[1].trim();
+				lodgeHTML += roomout.split("(")[0] + "</b>";
+				lodgeHTML += "</td><td>";
+			}
+			lodgeHTML += "</td></tr>";
 
-				rooms.push(roomname + roomhash + "|" + colorout);
-				// if(i!=rooms.length-1) libraryHTML += ", ";
-            }
-			roomHTML += "</table>";
-		}
-		roomHTML += "<p>";	
-		libraryHTML += roomHTML;
+			// Collect rooms of the Lodge for the graphical rendering engine
+			rooms.push(roomname + roomhash + "|" + colorout);
+        }
+			
+		lodgeHTML += "</table>";
 	}
-		
-	if( checkboxesVal.includes("AVATAR") ) {	
-		
-		// Random Avatar
-		
-		// Select avatars from selected boxes
+
+
+	// ########################################################################################
+	// ### AVATAR setup
+	// ########################################################################################
+	// ###
+	// ###
+	// ########################################################################################
+	
+	var avatarHTML = "";
+	
+	if( checkboxesVal.includes("AVATAR") || checkboxesVal.includes("SCENARIO") ) {
+		// Select potential avatars from selected boxes
         for (let i = 0; i < allavatars.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
 				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
@@ -1113,16 +1134,47 @@ genrooms.sort((a, b) => {
 		shuffleArray(avatars);
 
 		// Show avatar			
-		if(avatars.length<1) {
-				libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 1 avatar!</font>";
-		} else {
-                 		libraryHTML += avatars[0];
+		if(avatars.length<1) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
+		
+        avatarHTML += avatars[0];
 		}
-		libraryHTML += "<p>";
 	}
-			
-	libraryHTML += "</div><p>";
+	
 
+	// ########################################################################################
+	// ### Combine generated output
+	// ########################################################################################
+	// ###
+	// ###
+	// ########################################################################################
+
+	libraryHTML += "<div style='padding-left:20px;'>";
+	
+	if( checkboxesVal.includes("SCENARIO") ) {
+	} else {
+		if( checkboxesVal.includes("SCHOOL") ) {
+			libraryHTML += schoolHTML;
+		}
+		if( checkboxesVal.includes("PLAYER") ) {
+			libraryHTML += playerHTML;
+			libraryHTML += "<p>";
+		}
+		if( checkboxesVal.includes("MAGE") ) {
+			libraryHTML = "<b>Random Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<p>";
+			libraryHTML += mageHTML;
+			libraryHTML += "<p>";
+		}
+		if( checkboxesVal.includes("LODGE") ) {
+			libraryHTML += lodgeHTML;
+		}
+		if( checkboxesVal.includes("AVATAR") ) {
+			libraryHTML += avatarHTML;
+			libraryHTML += "<p>";
+		}
+	}
+	
+	libraryHTML += "</div><p>";
+	
     document.getElementById("result").innerHTML = libraryHTML;
 
 	// wait until DOM is painted
