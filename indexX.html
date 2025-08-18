@@ -626,7 +626,15 @@ try {
   		checkboxesVal.push(checkboxes[i].value)
 	}
 
-	
+	// Check selected boxes for errors
+	const allowed = ["SCENARIO", "SCHOOL", "PLAYER", "MAGE", "LODGE", "AVATAR"];
+	var components = 0;
+
+	for (var i = 0; i < checkboxes.length; i++) {
+      	if (allowed.includes(checkboxes[i].value)) {
+        	components++;
+      	}
+    }
 	
 	if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
 	if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
