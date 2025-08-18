@@ -1211,14 +1211,12 @@ genrooms.sort((a, b) => {
 			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += avatarHTML;
 			libraryHTML += "</td></tr></thead></table></div></div>";
-			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("PLAYER") ) {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">First Player<span class="toggle-indicator">−</span></div><div class="table-body">';
 			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += playerHTML;
 			libraryHTML += "</td></tr></thead></table></div></div>";
-			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("MAGE") ) {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
@@ -1226,15 +1224,12 @@ genrooms.sort((a, b) => {
 			libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
 			libraryHTML += mageHTML;
 			libraryHTML += "</td></tr></thead></table></div></div>";
-			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("SCHOOL") ) {
 			libraryHTML += schoolHTML;
-			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("LODGE") ) {
 			libraryHTML += lodgeHTML;
-			libraryHTML += "<p>";
 		}
 	}
 	
