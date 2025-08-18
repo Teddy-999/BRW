@@ -1205,8 +1205,13 @@ genrooms.sort((a, b) => {
 		libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
 		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
 		libraryHTML += "<p><b>Special Setup:</b></p><p>" + sSetup + "</p>";
+
+		libraryHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + schoolHTML + "<p>";
+		
 		libraryHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + lodgeHTML + "<p>";
+		
 		libraryHTML += "<div class='board' id='board'></div>";
+		
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 		libraryHTML += honmenHTML;
 	} else {
