@@ -89,16 +89,16 @@
   .error ul { margin: 0.25rem 0 0; padding-left: 1.2rem; }
   .error strong { display: block; margin-bottom: 0.25rem; }
 	
-  	table thead tr {
-    	background-color: #6699cc; /* creamy blue */
-    	color: white;              /* white text */
-  	}
+  table {
+    border-collapse: collapse;
+    width: 100%;  /* makes table match container width */
+  }
 	
   .table-container {
+    display: inline-block;   /* shrink-wraps to table width */
     border: 1px solid #ccc;
     border-radius: 8px;
     margin: 1em 0;
-    overflow: hidden;
   }
 
   .table-header {
