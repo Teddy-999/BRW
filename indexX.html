@@ -98,7 +98,7 @@
     display: inline-block;   /* shrink-wraps to table width */
     border: 1px solid #ccc;
     border-radius: 8px;
-    margin: 1em 0;
+    margin: 1em 12px 1em 0;  /* top, right, bottom, left */
   }
 
   .table-header {
@@ -848,7 +848,7 @@ try {
 			schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
             schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
         }
-		schoolHTML += "</table></div></div>&nbsp;&nbsp;&nbsp;";
+		schoolHTML += "</table></div></div>";
 		
 	}
 
@@ -1158,7 +1158,7 @@ genrooms.sort((a, b) => {
 			rooms.push(roomname + roomhash + "|" + colorout);
         }
 			
-		lodgeHTML += "</table></div></div>&nbsp;&nbsp;&nbsp;";
+		lodgeHTML += "</table></div></div>";
 	}
 
 
@@ -1210,20 +1210,20 @@ genrooms.sort((a, b) => {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Avatar<span class="toggle-indicator">−</span></div><div class="table-body">';
 			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += avatarHTML;
-			libraryHTML += "</td></tr></thead></table></div></div>&nbsp;&nbsp;&nbsp;";
+			libraryHTML += "</td></tr></thead></table></div></div>";
 		}
 		if( checkboxesVal.includes("PLAYER") ) {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">First Player<span class="toggle-indicator">−</span></div><div class="table-body">';
 			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += playerHTML;
-			libraryHTML += "</td></tr></thead></table></div></div>&nbsp;&nbsp;&nbsp;";
+			libraryHTML += "</td></tr></thead></table></div></div>";
 		}
 		if( checkboxesVal.includes("MAGE") ) {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
 			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
 			libraryHTML += mageHTML;
-			libraryHTML += "</td></tr></thead></table></div></div>&nbsp;&nbsp;&nbsp;";
+			libraryHTML += "</td></tr></thead></table></div></div>";
 		}
 		if( checkboxesVal.includes("SCHOOL") ) {
 			libraryHTML += schoolHTML;
