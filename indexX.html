@@ -1152,22 +1152,24 @@ genrooms.sort((a, b) => {
 	libraryHTML += "<div style='padding-left:20px;'>";
 	
 	if( checkboxesVal.includes("SCENARIO") ) {
+		
 	} else {
 		if( checkboxesVal.includes("SCHOOL") ) {
 			libraryHTML += schoolHTML;
+			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("PLAYER") ) {
 			libraryHTML += playerHTML;
 			libraryHTML += "<p>";
-					alert("Generator error: Player!!!");
 		}
 		if( checkboxesVal.includes("MAGE") ) {
-			libraryHTML = "<b>Random Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<p>";
+			libraryHTML += "<b>Random Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<p>";
 			libraryHTML += mageHTML;
 			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("LODGE") ) {
 			libraryHTML += lodgeHTML;
+			libraryHTML += "<p>";
 		}
 		if( checkboxesVal.includes("AVATAR") ) {
 			libraryHTML += avatarHTML;
