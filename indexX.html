@@ -1125,18 +1125,17 @@ genrooms.sort((a, b) => {
 
     document.getElementById("result").innerHTML = libraryHTML;
 
+	// wait until DOM is painted
+	requestAnimationFrame(() => {
+    	createAndRender();
+	});
+
 } catch (e) {
 	showErrors(e.message);
 	// "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
     alert("Generator error: " + e.message);
     // console.error(e);
-  }
-
-	// wait until DOM is painted
-	requestAnimationFrame(() => {
-    	createAndRender();
-	});
-		
+  }	
 }
 
 function ruleTip() {
@@ -1575,9 +1574,10 @@ function generateValidLodge(){
 var board = document.getElementById('board');
 
 function renderLodge(lodge){
-  board = document.getElementById("board");
+  	board = document.getElementById("board");
+	if(board == null) return;
 	
-  board.innerHTML = '';
+  	board.innerHTML = '';
 
 	const refreshBtn = document.createElement("button");
     refreshBtn.textContent = "🔄 Refresh Board";
@@ -1585,7 +1585,7 @@ function renderLodge(lodge){
     refreshBtn.onclick = () => createAndRender();
     board.appendChild(refreshBtn);
 	
-  const {fullSet, shape, roomPositionMap, throneKey} = lodge;
+  	const {fullSet, shape, roomPositionMap, throneKey} = lodge;
 
   // compute pixel positions and bounding box
   const pts = [...fullSet].map(k => {
