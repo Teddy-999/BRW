@@ -589,24 +589,24 @@
 			];
 
 			var allavatars =[
-				"BRW-R-CORE Rebirth Core: The Possessed - no dedicated model available",
-				"BRW-R-CORE Rebirth Core: Jukas or if not available use The Possessed - no dedicated model available",
-				"BRW-REV-CORE Revised Core: Slenderman - model from Ashes Magazine 11",
-				"BRW-REV-CORE Revised Core: Titonauta or if not available use Slenderman - model from Ashes Magazine 11",
-				"BRW-REV-TENET Revised TENET: Infamy of Crete",
-				"BRW-REV-TENET Revised TENET: Caronte",
-				"ASHES Ashes Magazine: The Architect - recommended for Duel games otherwise use The Possessed",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Cacus - 2 Avatar cards",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Parcae",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Anubis",
-				"BRW-R-ROTAS Rebirth ROTAS Madness: Rubedo",
-				"BRW-R-ROTAS Rebirth ROTAS North Winds: Odin",
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hastur",	
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Devi",
-				"BRW-R-FORGE Rebirth Dread Forge: Etna",
-				"BRW-R-GAEA Rebirth Gaea Reborn: Gaea",
-				"REQ Requiem Crossover: Invaders",
-				"BRW-DISCORD Discord Custom Items: Arianna - ask Teddy",
+				"1|BRW-R-CORE Rebirth Core: The Possessed - no dedicated model available",
+				"2|BRW-R-CORE Rebirth Core: Jukas or if not available use The Possessed - no dedicated model available",
+				"3|BRW-REV-CORE Revised Core: Slenderman - model from Ashes Magazine 11",
+				"4|BRW-REV-CORE Revised Core: Titonauta or if not available use Slenderman - model from Ashes Magazine 11",
+				"5|BRW-REV-TENET Revised TENET: Infamy of Crete",
+				"6|BRW-REV-TENET Revised TENET: Caronte",
+				"7|ASHES Ashes Magazine: The Architect - recommended for Duel games otherwise use The Possessed",
+				"8|BRW-R-ROTAS Rebirth ROTAS Antiquities: Cacus - 2 Avatar cards",
+				"9|BRW-R-ROTAS Rebirth ROTAS Antiquities: Parcae",
+				"10|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Anubis",
+				"11|BRW-R-ROTAS Rebirth ROTAS Madness: Rubedo",
+				"12|BRW-R-ROTAS Rebirth ROTAS North Winds: Odin",
+				"13|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hastur",	
+				"14|BRW-R-ROTAS Rebirth ROTAS Silk Road: Devi",
+				"15|BRW-R-FORGE Rebirth Dread Forge: Etna",
+				"16|BRW-R-GAEA Rebirth Gaea Reborn: Gaea",
+				"17|REQ Requiem Crossover: Invaders",
+				"18|BRW-DISCORD Discord Custom Items: Arianna - ask Teddy",
 	    		];
 		
 	    	// player colors
@@ -1171,7 +1171,7 @@ genrooms.sort((a, b) => {
 		// Select potential avatars from selected boxes
         for (let i = 0; i < allavatars.length; i++) {
 			for (let j = 0; j < checkboxes.length; j++) {
-				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
+				if( allavatars[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
 					const avatarBox = allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1);
 					var avatarNameHTML = allavatars[i].substring(allavatars[i].indexOf(':') + 1);
 					avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? "<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : "<b>" + avatarNameHTML + "</b>";
@@ -1183,8 +1183,10 @@ genrooms.sort((a, b) => {
 		// Pick first random
 		shuffleArray(avatars);
 
-		// Show avatar			
-		if(avatars.length<1) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
+		// Show avatar		
+		if(avatars.length<1 && !checkboxesVal.includes("SCENARIO")) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
+
+		// TBD - another error message if the Scenario requires an Avatar and cannot find it
 		
         avatarHTML += avatars[0];
 	}	
