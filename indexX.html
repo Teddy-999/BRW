@@ -597,8 +597,12 @@
    		 	box.classList.add('hidden');
     		box.textContent = '';
   		}    
+
 		
-	// Show a random Library build from selected BRW boxes
+	// ########################################################################################
+	// ### Show a random Library build from selected BRW boxes
+	// ########################################################################################		
+ 
     function displayLibrary(){
         let schools = []; 
 	    var mages = [];
@@ -621,6 +625,38 @@ try {
 	for (var i = 0; i < checkboxes.length; i++) {
   		checkboxesVal.push(checkboxes[i].value)
 	}
+
+	// Check selected boxes for errors
+	const allowed = ["SCENARIO", "SCHOOL", "PLAYER", "MAGE", "LODGE", "AVATAR"];
+	var components = 0;
+	
+ 	checkboxes.forEach(cb => {
+      	if (allowed.includes(cb.value)) {
+        	components++;
+      	}
+    }
+	
+	if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
+	if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
+		
+
+  function countSelected() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    let count = 0;
+    checkboxes.forEach(cb => {
+      if (allowed.includes(cb.value)) {
+        count++;
+      }
+    });
+    document.getElementById("count").textContent = "Selected: " + count;
+    return count;
+  }
+		
+	}
+
+	if( !(checkboxesVal.includes("SCENARIO") || checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("PLAYER") || checkboxesVal.includes("MAGE") 
+		|| checkboxesVal.includes("LODGE") || checkboxesVal.includes("AVATAR"))) 
+			throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
 
 	if( !checkboxesVal.includes("SCENARIO") ) {
 		if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("PLAYER") || checkboxesVal.includes("MAGE") || checkboxesVal.includes("LODGE") || checkboxesVal.includes("AVATAR") ) {	
@@ -775,14 +811,14 @@ try {
 		// Show Library as HTML table				
 		if(schools.length<6) throw new Error("Not enough schools available. Select more BRW boxes to choose schools from!");
 		
-			schoolHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
-            for (let i = 0; i < schools.length; i++) {
-				schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
-				schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
-				schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
-                schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
-            }
-			schoolHTML += "</table><p>";
+		schoolHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
+        for (let i = 0; i < schools.length; i++) {
+			schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
+			schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
+			schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
+            schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
+        }
+		schoolHTML += "</table>";
 		
 		libraryHTML += schoolHTML;
 	}
