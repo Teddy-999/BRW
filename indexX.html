@@ -638,25 +638,6 @@ try {
 	
 	if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
 	if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
-		
-
-  function countSelected() {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-    let count = 0;
-    checkboxes.forEach(cb => {
-      if (allowed.includes(cb.value)) {
-        count++;
-      }
-    });
-    document.getElementById("count").textContent = "Selected: " + count;
-    return count;
-  }
-		
-	}
-
-	if( !(checkboxesVal.includes("SCENARIO") || checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("PLAYER") || checkboxesVal.includes("MAGE") 
-		|| checkboxesVal.includes("LODGE") || checkboxesVal.includes("AVATAR"))) 
-			throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
 
 	if( !checkboxesVal.includes("SCENARIO") ) {
 		if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("PLAYER") || checkboxesVal.includes("MAGE") || checkboxesVal.includes("LODGE") || checkboxesVal.includes("AVATAR") ) {	
