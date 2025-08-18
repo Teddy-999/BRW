@@ -119,6 +119,11 @@
   .table-body.hidden {
     display: none;
   }
+
+	table td:first-child,
+	table th:first-child {
+  		padding-left: 12px;  /* adjust as needed */
+	}
 	
 </style>
 </head>
@@ -1109,7 +1114,8 @@ genrooms.sort((a, b) => {
 		
 		if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");{
 
-		lodgeHTML = "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
+		lodgeHTML = '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Schools Table<span class="toggle-indicator">−</span></div><div class="table-body">';
+		lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
 
 		// Fill rooms for the rendering component
 		rooms.length = 0;
@@ -1140,7 +1146,7 @@ genrooms.sort((a, b) => {
 			rooms.push(roomname + roomhash + "|" + colorout);
         }
 			
-		lodgeHTML += "</table>";
+		lodgeHTML += "</table></div></div>";
 	}
 
 
