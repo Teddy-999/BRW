@@ -130,12 +130,12 @@
 
 	table td:first-child,
 	table th:first-child {
-  		padding-left: 14px;  /* adjust as needed */
+  		padding-left: 16px;  /* adjust as needed */
 	}
 	
 	table td:last-child,
 	table th:last-child {
-  		padding-right: 14px;  /* adjust as needed */
+  		padding-right: 16px;  /* adjust as needed */
 	}
 	
 </style>
@@ -1208,8 +1208,10 @@ genrooms.sort((a, b) => {
 		
 	} else {
 		if( checkboxesVal.includes("AVATAR") ) {
+			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Avatar<span class="toggle-indicator">−</span></div><div class="table-body">';
+			libraryHTML += "<table><thead><tr><td>";
 			libraryHTML += avatarHTML;
-			libraryHTML += "<p>";
+			libraryHTML += "</td></tr></thead></table></div></div>";
 		}
 		if( checkboxesVal.includes("PLAYER") ) {
 			libraryHTML += playerHTML;
