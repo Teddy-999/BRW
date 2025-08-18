@@ -89,6 +89,13 @@
   .error ul { margin: 0.25rem 0 0; padding-left: 1.2rem; }
   .error strong { display: block; margin-bottom: 0.25rem; }
 
+	<style>
+  		table thead tr {
+    		background-color: #6699cc; /* creamy blue */
+    		color: white;              /* white text */
+  		}
+	</style>
+
 </style>
 </head>
 	
@@ -791,7 +798,7 @@ try {
 		// Show Library as HTML table				
 		if(schools.length<6) throw new Error("Not enough schools available. Select more BRW boxes to choose schools from!");
 		
-		schoolHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
+		schoolHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr></thead>";
         for (let i = 0; i < schools.length; i++) {
 			schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
 			schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
@@ -1077,7 +1084,7 @@ genrooms.sort((a, b) => {
 		
 		if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");{
 
-		lodgeHTML = "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
+		lodgeHTML = "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
 
 		// Fill rooms for the rendering component
 		rooms.length = 0;
