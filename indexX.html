@@ -1851,7 +1851,7 @@ function createAndRender(){
       checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-R-']");
     } else if (group === 'brw') {
       // BRW = IDs starting with BRW- but NOT BRW-R- and NOT BRW-REV
-      checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-']:not([id^='BRW-R-']):not([id^='BRW-REV'])");
+      checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-']:not([id^='BRW-R-']):not([id^='BRW-REV']):not([id^='BRW-REB']):not([id^='BRW-DISCORD'])");
     }
 
     toggleState[group] = !toggleState[group]; // flip state
@@ -1877,7 +1877,6 @@ function createAndRender(){
 	<b>Select the core boxes and expansions for your Setup:</b>
 	<div style='padding-left:20px;'>	
 		<table><tr><td VALIGN=TOP>
-			<button type="button" onclick="toggleGroup('rebirth')">Toggle Rebirth</button></br>
 			<input type="checkbox" id="BRW-R-CORE" name="BRW-R-CORE" value="BRW-R-CORE" checked>
          <label for="BRW-R-CORE"> Rebirth Core</label><br>
 
@@ -1902,6 +1901,8 @@ function createAndRender(){
 			<input type="checkbox" id="BRW-R-SOF" name="BRW-R-SOF" value="BRW-R-SOF">
          <label for="BRW-R-SOF"> Rebirth Seal of Fire</label><br>
 
+			<button type="button" onclick="toggleGroup('rebirth')">Toggle Rebirth</button></br>
+
 		</td><td VALIGN=TOP>
 			<input type="checkbox" id="DUEL-LEX" name="DUEL-LEX" value="DUEL-LEX">
          <label for="DUEL-LEX"> Duel Lex</label><br>
@@ -1909,7 +1910,6 @@ function createAndRender(){
 			<input type="checkbox" id="DUEL-VOID" name="DUEL-VOID" value="DUEL-VOID">
          <label for="DUEL-VOID"> Duel Void</label><p>
 
-			 <button type="button" onclick="toggleGroup('brw')">Toggle BRW</button><br>
 			<input type="checkbox" id="BRW-CORE" name="BRW-CORE" value="BRW-CORE">
          <label for="BRW-CORE"> BRW Core (OG)</label><br>
 
@@ -1924,6 +1924,8 @@ function createAndRender(){
 		 
 			<input type="checkbox" id="BRW-CRONO" name="BRW-CRONO" value="BRW-CRONO">
          <label for="BRW-CRONO"> BRW Crono</label><br>
+
+			  <button type="button" onclick="toggleGroup('brw')">Toggle BRW</button><br>
 		 
 			<input type="checkbox" id="BRW-FAMILIARS" name="BRW-FAMILIARS" value="BRW-FAMILIARS">
          <label for="BRW-FAMILIARS"> BRW Familiars</label><br>
