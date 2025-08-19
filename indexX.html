@@ -23,6 +23,17 @@
     background:#222; color:#eee; border:1px solid #444; padding:8px 12px;
     border-radius:8px; cursor:pointer;
   }
+.small-btn {
+  background-color: #f0f0f0;  /* light gray */
+  border: 1px solid #ccc;     /* subtle border */
+  padding: 2px 6px;           /* smaller padding */
+  font-size: 12px;            /* smaller text */
+  cursor: pointer;
+  border-radius: 4px;         /* soft corners */
+}
+.small-btn:hover {
+  background-color: #e0e0e0;  /* slightly darker on hover */
+}
   .board {
     position: relative;
 	left: 0px;
@@ -1901,7 +1912,7 @@ function createAndRender(){
 			<input type="checkbox" id="BRW-R-SOF" name="BRW-R-SOF" value="BRW-R-SOF">
          <label for="BRW-R-SOF"> Rebirth Seal of Fire</label><p>
 
-			<button type="button" onclick="toggleGroup('rebirth')">Toggle Rebirth</button>
+			<button type="button" class="small-btn" onclick="toggleGroup('rebirth')">Toggle Rebirth</button>
 
 		</td><td VALIGN=TOP>
 			<input type="checkbox" id="DUEL-LEX" name="DUEL-LEX" value="DUEL-LEX">
@@ -1928,7 +1939,7 @@ function createAndRender(){
 			<input type="checkbox" id="BRW-FAMILIARS" name="BRW-FAMILIARS" value="BRW-FAMILIARS">
          <label for="BRW-FAMILIARS"> BRW Familiars</label><p>
 
-		<button type="button" onclick="toggleGroup('brw')">Toggle BRW</button>
+		<button type="button" class="small-btn" onclick="toggleGroup('brw')">Toggle BRW</button>
 			 
 		</td><td VALIGN=TOP>
 		 	<input type="checkbox" id="ASHES" name="ASHES" value="ASHES">
