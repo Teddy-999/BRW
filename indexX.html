@@ -1221,6 +1221,8 @@ genrooms.sort((a, b) => {
 		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 		libraryHTML += honmenHTML;
 	} else {
+		//libraryHTML += '<div style="padding-left: 20px;">';
+		
 		if( checkboxesVal.includes("AVATAR") ) {
 			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Avatar<span class="toggle-indicator">−</span></div><div class="table-body">';
 			libraryHTML += "<table><thead><tr><td>";
@@ -1245,8 +1247,12 @@ genrooms.sort((a, b) => {
 		}
 		if( checkboxesVal.includes("LODGE") ) {
 			libraryHTML += lodgeHTML;
-			
-			libraryHTML += "<div class='board' id='board'></div>";
+		}
+		
+		// libraryHTML += '</div><p>';
+		
+		if( checkboxesVal.includes("LODGE") ) {
+			libraryHTML += "<div class='board' id='board' style="padding-left: 10px;></div>";
 		}
 	}
 	
