@@ -33,6 +33,30 @@
     box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
     overflow: hidden;
   }
+
+  .board-container {
+    border: 1px solid #aaa;
+    margin: 10px 0;
+    border-radius: 5px;
+  }
+
+  .board-header {
+    background: #ddd;
+    padding: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .toggle-indicator {
+    float: right;
+    font-weight: bold;
+  }
+	
 .hex {
   position: absolute;
   width: calc(var(--hex-size) * 2);      /* swap width/height for rotation */
@@ -1253,7 +1277,8 @@ genrooms.sort((a, b) => {
 		
 		if( checkboxesVal.includes("LODGE") ) {
 			libraryHTML += '<p>';
-			libraryHTML += "<div class='board' id='board' style='left:0px;'></div>";
+			// libraryHTML += "<div class='board' id='board' style='left:0px;'></div>";
+			libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div><div class="board-content"><div class="board" id="board"></div></div></div>';
 		}
 	}
 	
@@ -1285,6 +1310,13 @@ function ruleTip() {
 	document.getElementById("result").innerHTML = libraryHTML;
 }
 
+  function toggleBoard(header) {
+    const body = header.nextElementSibling;
+    const indicator = header.querySelector(".toggle-indicator");
+    body.classList.toggle("hidden");
+    indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
+  }
+		
   function toggleTable(header) {
     const body = header.nextElementSibling;
     const indicator = header.querySelector(".toggle-indicator");
