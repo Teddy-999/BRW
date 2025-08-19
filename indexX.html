@@ -1839,6 +1839,24 @@ function createAndRender(){
 		
 // document.getElementById('regen').addEventListener('click', createAndRender);
 // createAndRender();
+
+  // Track toggle state
+  const toggleState = { rebirth: false, brw: false };
+
+  function toggleGroup(group) {
+    let checkboxes;
+
+    if (group === 'rebirth') {
+      // Rebirth = IDs starting with BRW-R-
+      checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-R-']");
+    } else if (group === 'brw') {
+      // BRW = IDs starting with BRW- but NOT BRW-R- and NOT BRW-REV
+      checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-']:not([id^='BRW-R-']):not([id^='BRW-REV'])");
+    }
+
+    toggleState[group] = !toggleState[group]; // flip state
+    checkboxes.forEach(cb => cb.checked = toggleState[group]);
+  }	
 		
     </script>
 
@@ -1858,7 +1876,8 @@ function createAndRender(){
 		
 	<b>Select the core boxes and expansions for your Setup:</b>
 	<div style='padding-left:20px;'>	
-		<table><tr><td VALIGN=TOP> 
+		<table><tr><td VALIGN=TOP>
+			<button type="button" onclick="toggleGroup('rebirth')">Toggle Rebirth</button></br>
 			<input type="checkbox" id="BRW-R-CORE" name="BRW-R-CORE" value="BRW-R-CORE" checked>
          <label for="BRW-R-CORE"> Rebirth Core</label><br>
 
@@ -1890,6 +1909,7 @@ function createAndRender(){
 			<input type="checkbox" id="DUEL-VOID" name="DUEL-VOID" value="DUEL-VOID">
          <label for="DUEL-VOID"> Duel Void</label><p>
 
+			 <button type="button" onclick="toggleGroup('brw')">Toggle BRW</button><br>
 			<input type="checkbox" id="BRW-CORE" name="BRW-CORE" value="BRW-CORE">
          <label for="BRW-CORE"> BRW Core (OG)</label><br>
 
