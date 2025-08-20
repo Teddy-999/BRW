@@ -23,6 +23,11 @@
     background:#222; color:#eee; border:1px solid #444; padding:8px 12px;
     border-radius:8px; cursor:pointer;
   }
+  input[type="checkbox"] {
+  vertical-align: middle;
+  margin-top: 0;
+  margin-bottom: 0;
+  }
 .small-btn {
   background-color: #f0f0f0;  /* light gray */
   border: 1px solid #ccc;     /* subtle border */
@@ -165,8 +170,8 @@
 		text-align: left;           /* match your previous align=left */
 	}
 
-	table td:first-child,
-	table th:first-child {
+	table td,
+	table th {
   		padding-left: 16px;  /* adjust as needed */
 	}
 	
@@ -175,10 +180,25 @@
   		padding-right: 16px;  /* adjust as needed */
 	}
 	
+	td {
+    }
+    .cell {
+      display: flex;
+    }
+    .first {
+      width: 60px; /* fixed width for first word */
+	  text-align: center;
+    }
+    .second {
+      flex: 1; /* remaining space */
+    }
 </style>
 </head>
 	
     <script>
+		// Generates a 2 distance lodge on true, otherwise 3
+		var standardLodge;
+
 		var rooms = [ 
   		"Black Rose#1|black",
   		"Throne Room#2|purple",
@@ -295,10 +315,10 @@
 "46. [b]Entering a room[/b]. When moving, you do this in a sequence of 'Move 1.' effects. A model with a speed of 2 may 'Move 1.' and may do another 'Move 1.'. It will enter all rooms on its way except for its starting room. If a model is placed in a room, it will only enter that room but not the rooms between its starting and its end position."
 		];
 
-		var allscenarios=[
-			"*XXX General|Cologne, Germany - You never know|None.|Standard.|None.|*",
-			"BRW-R-ROTAS Rebirth ROTAS|Tijuana, Mexico - Brujeria Especial|None.|<ul>Rooms: (53,98). Schools: (3,8,30).</ul>|None.|None.",
-			"BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|<ul><li>13 Black Rose Power Cards.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li>Rooms: (62,125). Schools: (29,32,35).<li><b>Draft the Black Rose Power Cards:</b> Each player draws 2 Power Cards from the deck and chooses one and passes the other to the player on his left. Before starting the game each player must reveal a Power Card. The second Power Card will be revealed once you reach the second Moon.</ul>|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
+		const allscenarios=[
+			"1|* General|Cologne, Germany - You never know|<ul><li>None.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li></ul>|<ul><li>None.</li></ul>|*",
+			"2|BRW-R-ROTAS Rebirth ROTAS|Gizeh, Egypt - The Curse of the Tomb|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77). Schools: (9,7,2). Mages: (8,9).</ul>|<ul><li>Whenever the Moon Phase changes and the Defender of the Lodge is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the Defender of the Lodge is activated.</li><li>When the Defender of the Lodge is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the Defender of the Lodge, they gain 2pp or draw two cards from their Grimoire.</li></ul>|*",
+			"3|BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|<ul><li>13 Black Rose Power Cards.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.(lodge=standard)</li>Rooms: (62,125). Schools: (29,32,35).<li><b>Draft the Black Rose Power Cards:</b> Each player draws 2 Power Cards from the deck and chooses one and passes the other to the player on his left. Before starting the game each player must reveal a Power Card. The second Power Card will be revealed once you reach the second Moon.</ul>|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
 		];
 
 		var allhonmen=[		
@@ -387,104 +407,105 @@
 				];
 
 	    	var allmages =[
-				"BRW-R-CORE Rebirth Core: Rikkart",
-				"BRW-R-CORE Rebirth Core: Arianna",
-				"BRW-R-CORE Rebirth Core: Gramigna",
-				"BRW-R-CORE Rebirth Core: Baron Doria",
-				"BRW-R-CORE-DM Rebirth Deadly Masks: Seifu",
-				"BRW-R-CORE-DM Rebirth Deadly Masks: Angela",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Cassandra",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Imhotep",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Saba",
-				"BRW-R-ROTAS Rebirth ROTAS Madness: Landolfo II",
-				"BRW-R-ROTAS Rebirth ROTAS North Winds: Kormac",
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hogwartz",	
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Maelice",	
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Venticello",
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Bella",
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Alisha",	
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Pyotr",	
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Dai Jin",	
-				"BRW-R-FORGE Rebirth Dread Forge: Etna",
-				"BRW-R-GAEA Rebirth Gaea Reborn: Talia",
-				"BRW-R-APO Rebirth Apocalypse: Mors",
-				"BRW-R-APO Rebirth Apocalypse: Bellum",
-				"BRW-R-APO Rebirth Apocalypse: Pestilentia",
-				"BRW-R-APO Rebirth Apocalypse: Fames",
-				"BRW-R-IRENE Rebirth Irene's Quest: Irene",
-				"BRW-R-SOF Rebirth Seal of Fire: Prospero",
-				"DUEL-LEX Duel Lex: Ulrich",
-				"DUEL-LEX Duel Lex: Bartholom&auml;us",
-				"DUEL-VOID Duel Void: Alhazred",
-				"DUEL-VOID Dual Void: Alice",
-				"BRW-CORE BRW Core: Nero", 
-				"BRW-CORE BRW Core: Rebecca", 
-				"BRW-CORE BRW Core: Tessa", 
-				"BRW-CORE BRW Core: Jaf'ar", 
-				"BRW-CORE-HT BRW Hidden Thorns: Geneve", 
-				"BRW-CORE-HT BRW Hidden Thorns: Marco",
-				"BRW-SATOR BRW SATOR: Corax",
-				"BRW-SATOR BRW SATOR: Dukas",
-				"BRW-SATOR BRW SATOR: Vivian",
-				"BRW-SATOR BRW SATOR: Bella",
-				"BRW-SATOR BRW SATOR: Arianna",
-				"BRW-SATOR BRW SATOR: Skultor",
-				"BRW-SATOR BRW SATOR: Old Man Jukas",
-				"BRW-SATOR BRW SATOR: Eliumbra",
-				"BRW-SATOR BRW SATOR: Tlahuicole",
-				"BRW-SATOR BRW SATOR: Arthur Vox",
-				"BRW-SATOR BRW SATOR: Baba Yaga",
-				"BRW-SATOR BRW SATOR: Circe",
-				"BRW-SATOR BRW SATOR: Bronte",
-				"BRW-SATOR BRW SATOR: Tora",
-				"BRW-SATOR BRW SATOR: Howard",
-				"BRW-SATOR BRW SATOR: Davide Schiavon",
-				"BRW-SATOR BRW SATOR: Telmia",
-				"BRW-CRONO BRW Crono: Medusa",
-				"ASHES Ashes Magazine: Cosma",
-				"ASHES Ashes Magazine: Helblindi",
-				"ASHES Ashes Magazine: Slenderman",
-				"NA Nova Aetas Crossover: Agorix",
-				"NA Nova Aetas Crossover: Boogeyman",
-				"NA Nova Aetas Crossover: Onamor",
-				"NA Nova Aetas Crossover: Hyperion",
-				"NA Nova Aetas Crossover: Mediceo",
-				"REQ Requiem Crossover: Istvan",
-				"REQ Requiem Crossover: Herick",
-				"BRW-REV-CORE Revised Core: Nero",
-				"BRW-REV-CORE Revised Core: Jafar",
-				"BRW-REV-CORE Revised Core: Tessa",
-				"BRW-REV-CORE Revised Core: Rebecca",
-				"BRW-REV-CORE-HT Revised Hidden Thorns: Marco",
-				"BRW-REV-CORE-HT Revised Hidden Thorns: Geneve",
-				"BRW-REV-TENET Revised TENET: Malombra",
-				"BRW-REV-TENET Revised TENET: Efialte",
-				"BRW-REV-TENET Revised TENET: S'Arzadori",
-				"BRW-REV-TENET Revised TENET: Haruka",
-				"BRW-REV-TENET Revised TENET: Jukas",
-				"BRW-REV-TENET Revised TENET: Isadora",
-				"BRW-REV-TENET Revised TENET: Elektra",
-				"BRW-REV-TENET Revised TENET: Scarlatto",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Anubis",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Architect",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Cacus",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Fenrir",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Gaea",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Hastur",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Jukas",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Ignis",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Minotaurus",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Parcae",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Rubedo",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Janara",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Albedo",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Griphon",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Razvan",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Jack",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Odin",
-				"BRW-DISCORD Discord Custom Items: Morningstar",
-				"BRW-DISCORD Discord Custom Items: St. Boneface",
-				"BRW-DISCORD Discord Custom Items: Elesh Norn",
+				"1|BRW-R-CORE Rebirth Core: Rikkart",
+				"2|BRW-R-CORE Rebirth Core: Arianna",
+				"3|BRW-R-CORE Rebirth Core: Gramigna",
+				"4|BRW-R-CORE Rebirth Core: Baron Doria",
+				"5|BRW-R-CORE-DM Rebirth Deadly Masks: Seifu",
+				"6|BRW-R-CORE-DM Rebirth Deadly Masks: Angela",
+				"7|BRW-R-ROTAS Rebirth ROTAS Antiquities: Cassandra",
+				"8|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Imhotep",
+				"9|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Saba",
+				"10|BRW-R-ROTAS Rebirth ROTAS Madness: Landolfo II",
+				"11|BRW-R-ROTAS Rebirth ROTAS North Winds: Kormac",
+				"12|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hogwartz",
+				"13|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Maelice",
+				"14|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Venticello",
+				"15|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Bella",
+				"16|BRW-R-ROTAS Rebirth ROTAS Silk Road: Alisha",
+				"17|BRW-R-ROTAS Rebirth ROTAS Silk Road: Pyotr",
+				"18|BRW-R-ROTAS Rebirth ROTAS Silk Road: Dai Jin",
+				"19|BRW-R-FORGE Rebirth Dread Forge: Etna",
+				"20|BRW-R-GAEA Rebirth Gaea Reborn: Talia",
+				"21|BRW-R-APO Rebirth Apocalypse: Mors",
+				"22|BRW-R-APO Rebirth Apocalypse: Bellum",
+				"23|BRW-R-APO Rebirth Apocalypse: Pestilentia",
+				"24|BRW-R-APO Rebirth Apocalypse: Fames",
+				"25|BRW-R-IRENE Rebirth Irene's Quest: Irene",
+				"26|BRW-R-SOF Rebirth Seal of Fire: Prospero",
+				"27|DUEL-LEX Duel Lex: Ulrich",
+				"28|DUEL-LEX Duel Lex: Bartholom&auml;us",
+				"29|DUEL-VOID Duel Void: Alhazred",
+				"30|DUEL-VOID Dual Void: Alice",
+				"31|BRW-CORE BRW Core: Nero",
+				"32|BRW-CORE BRW Core: Rebecca",
+				"33|BRW-CORE BRW Core: Tessa",
+				"34|BRW-CORE BRW Core: Jaf'ar",
+				"35|BRW-CORE-HT BRW Hidden Thorns: Geneve",
+				"36|BRW-CORE-HT BRW Hidden Thorns: Marco",
+				"37|BRW-SATOR BRW SATOR: Corax",
+				"38|BRW-SATOR BRW SATOR: Dukas",
+				"39|BRW-SATOR BRW SATOR: Vivian",
+				"40|BRW-SATOR BRW SATOR: Bella",
+				"41|BRW-SATOR BRW SATOR: Arianna",
+				"42|BRW-SATOR BRW SATOR: Skultor",
+				"43|BRW-SATOR BRW SATOR: Old Man Jukas",
+				"44|BRW-SATOR BRW SATOR: Eliumbra",
+				"45|BRW-SATOR BRW SATOR: Tlahuicole",
+				"46|BRW-SATOR BRW SATOR: Arthur Vox",
+				"47|BRW-SATOR BRW SATOR: Baba Yaga",
+				"48|BRW-SATOR BRW SATOR: Circe",
+				"49|BRW-SATOR BRW SATOR: Bronte",
+				"50|BRW-SATOR BRW SATOR: Tora",
+				"51|BRW-SATOR BRW SATOR: Howard",
+				"52|BRW-SATOR BRW SATOR: Davide Schiavon",
+				"53|BRW-SATOR BRW SATOR: Telmia",
+				"54|BRW-CRONO BRW Crono: Medusa",
+				"55|ASHES Ashes Magazine: Cosma",
+				"56|ASHES Ashes Magazine: Helblindi",
+				"57|ASHES Ashes Magazine: Slenderman",
+				"58|NA Nova Aetas Crossover: Agorix",
+				"59|NA Nova Aetas Crossover: Boogeyman",
+				"60|NA Nova Aetas Crossover: Onamor",
+				"61|NA Nova Aetas Crossover: Hyperion",
+				"62|NA Nova Aetas Crossover: Mediceo",
+				"63|REQ Requiem Crossover: Istvan",
+				"64|REQ Requiem Crossover: Herick",
+				"65|BRW-REV-CORE Revised Core: Nero",
+				"66|BRW-REV-CORE Revised Core: Jafar",
+				"67|BRW-REV-CORE Revised Core: Tessa",
+				"68|BRW-REV-CORE Revised Core: Rebecca",
+				"69|BRW-REV-CORE-HT Revised Hidden Thorns: Marco",
+				"70|BRW-REV-CORE-HT Revised Hidden Thorns: Geneve",
+				"71|BRW-REV-TENET Revised TENET: Malombra",
+				"72|BRW-REV-TENET Revised TENET: Efialte",
+				"73|BRW-REV-TENET Revised TENET: S'Arzadori",
+				"74|BRW-REV-TENET Revised TENET: Haruka",
+				"75|BRW-REV-TENET Revised TENET: Jukas",
+				"76|BRW-REV-TENET Revised TENET: Isadora",
+				"77|BRW-REV-TENET Revised TENET: Elektra",
+				"78|BRW-REV-TENET Revised TENET: Scarlatto",
+				"79|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Anubis",
+				"80|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Architect",
+				"81|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Cacus",
+				"82|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Fenrir",
+				"83|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Gaea",
+				"84|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Hastur",
+				"85|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Jukas",
+				"86|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Ignis",
+				"87|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Minotaurus",
+				"88|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Parcae",
+				"89|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Rubedo",
+				"90|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Janara",
+				"91|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Albedo",
+				"92|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Griphon",
+				"93|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Razvan",
+				"94|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Jack",
+				"95|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Odin",
+				"96|BRW-DISCORD Discord Custom Items: Morningstar",
+				"97|BRW-DISCORD Discord Custom Items: St. Boneface",
+				"98|BRW-DISCORD Discord Custom Items: Elesh Norn",
+
 			
 			];
 
@@ -705,1172 +726,1332 @@
 		var honmen = [];
 		var keepRooms = [];
 		var keepSchools = [];
+		var keepMages = [];
 		
   		clearErrors();	
-try { 
-	
-	// Get checkbox values as array
-	for (var i = 0; i < checkboxes.length; i++) {
-  		checkboxesVal.push(checkboxes[i].value)
-	}
-
-	// Check selected boxes for errors
-	const allowed = ["SCENARIO", "SCHOOL", "PLAYER", "MAGE", "LODGE", "AVATAR"];
-	var components = 0;
-
-	for (var i = 0; i < checkboxes.length; i++) {
-      	if (allowed.includes(checkboxes[i].value)) {
-        	components++;
-      	}
-    }
-	
-	if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
-	if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
-
-
-	// ########################################################################################
-	// ### SCENARIO setup
-	// ########################################################################################
-	// ### 
-	// ###
-	// ########################################################################################
-
-	var scenarioHTML = "";
-	var sName = "";
-	var sComp = "";
-	var sSetup = "";
-	var sRules = "";
-	var sHonMen = "";
-	var honmenHTML = "";
-
-	if( checkboxesVal.includes("SCENARIO") ) {
-
-		// Select scenarios for selected boxes
-        for (let i = 0; i < allscenarios.length; i++) {
-			if( allscenarios[i].split(" ")[0] == "*" ) {
-					scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|')+1) );
+		try { 
+			
+			// Get checkbox values as array
+			for (var i = 0; i < checkboxes.length; i++) {
+				checkboxesVal.push(checkboxes[i].value)
 			}
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allscenarios[i].split(" ")[0] == checkboxes[j].value ) {
-					scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|')+1) );
+
+			// Check selected boxes for errors
+			const allowed = ["SCENARIO", "SCHOOL", "PLAYER", "MAGE", "LODGE", "AVATAR"];
+			var components = 0;
+
+			for (var i = 0; i < checkboxes.length; i++) {
+				if (allowed.includes(checkboxes[i].value)) {
+					components++;
 				}
-			}
-        }
-		if(scenarios.length == 0) throw new Error("No Scenario available for your selection. Try selecting a core box, ROTAS or SATOR for a wider list of scenarios! Smaller expansions may not have scenarios designed for them specifically.");
-
-		// Select honorable mention
-        for (let i = 0; i < allhonmen.length; i++) {
-			if( allhonmen[i].split(" ")[0] == "*" ) {
-					honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
-			}
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allhonmen[i].split(" ")[0] == checkboxes[j].value ) {
-					honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
-				}
-			}
-        }
-
-		shuffleArray(scenarios);
-		sName = scenarios[0].split("|")[0];
-		sComp = scenarios[0].split("|")[1];
-		sSetup = scenarios[0].split("|")[2];
-		sRules = scenarios[0].split("|")[3];
-		sHonMen = scenarios[0].split("|")[4];
-		
-		// Find enforced rooms
-		if(sSetup.indexOf("Rooms: (")>=0) {
-			const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
-			var collRooms = "";
-			var roomLine = "";
-			for (let i = 0; i < sRooms.length; i++) {
-				keepRooms.push(sRooms[i]);
-				roomLine = getArrayById(sRooms[i], allrooms);
-				collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1).split("(")[0].trim().split(" - Setup:")[0];
-				if(i<sRooms.length-1) collRooms += ", ";
-				// alert("Generator: " + collRooms);
 			}
 			
-			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Fixed Rooms:</b> ${collRooms}`);
-		}
+			if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
+			if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
 
-		// Find enforced schools
-		if(sSetup.indexOf("Schools: (")>=0) {
-			const sSchools = sSetup.split("Schools: (")[1].split(")")[0].split(",").map(s => s.trim());
-			var collSchools = "";
-			var schoolLine = "";
-			for (let i = 0; i < sSchools.length; i++) {
-				keepSchools.push(sSchools[i]);
-				schoolLine = getArrayById(sSchools[i], allschools);
-				collSchools += schoolLine.split("<b>")[1].split("</b>")[0].trim();
-				if(i<sSchools.length-1) collSchools += ", ";
-				// alert("Generator: " + collRooms);
-			}
-			
-			// Replace content inside parentheses
-			sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li><b>Fixed Schools:</b> ${collSchools}`);
-		}
-	
-		// Honorable Mention
-		honmenHTML = "<p><b>Honorable Mention:</b></p>";
-		if(sHonMen=="*") {
-			shuffleArray(honmen);
-			const numhonmen = Math.floor(Math.random()*3+2);
 
-			honmenHTML += "<p><ul>";
-			for (let i = 0; i < numhonmen; i++) {
-				honmenHTML += "<li><b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "</li>"; 
-			}			
-			honmenHTML += "</ul>";
-			
-		} else {
-			honmenHTML += sHonMen;
-		}
-	}
+			// ########################################################################################
+			// ### SCENARIO setup
+			// ########################################################################################
+			// ### 
+			// ###
+			// ########################################################################################
 
-	
-	// ########################################################################################
-	// ### SCHOOL setup
-	// ########################################################################################
-	// ### - Respects keepSchools from scenario to enforce certain schools
-	// ###
-	// ########################################################################################
-	
-	var schoolHTML = "";
-	
-	if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("SCENARIO") ) {
-		
-	    // Add schools based on selected BRW boxes
-        for (let i = 0; i < allschools.length; i++) {
-			for (let j = 0; j < checkboxes.length; j++) {
-				if(checkboxes[j].value == allschools[i].split(" ")[0].split("|")[1]) {
-					schools.push(allschools[i]);
-				}
-			}
-        }
+			var scenarioHTML = "";
+			var sName = "";
+			var sComp = "";
+			var sSetup = "";
+			var sRules = "";
+			var sHonMen = "";
+			var honmenHTML = "";
 
-		// Remove duplicate school names
-		shuffleArray(schools);
-		schools = uniqe_school(schools, keepSchools);
-		
-		// Remove random schools until only 6 remain, respecting keepSchools
-		while (schools.length > 6) {
-    		// build a list of removable indices
-    		let removable = [];
-    		for (let i = 0; i < schools.length; i++) {
-        		const id = schools[i].split("|")[0]; // assume ID is before '|'
-        		if (!keepSchools.includes(id)) removable.push(i);
-    		}
+			if( checkboxesVal.includes("SCENARIO") ) {
 
-    		// if nothing can be removed, break to avoid infinite loop
-    		if (removable.length === 0) break;
-
-    		// pick a random removable school and remove it
-    		const randIdx = removable[Math.floor(Math.random() * removable.length)];
-    		schools.splice(randIdx, 1);
-		}
-
-		// Show Library as HTML table				
-		if(schools.length<6) throw new Error("Not enough schools available. Select more BRW boxes to choose schools from!");
-
-		schoolHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Schools<span class="toggle-indicator">−</span></div><div class="table-body">';
-		schoolHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr></thead>";
-        for (let i = 0; i < schools.length; i++) {
-			schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
-			schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
-			schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
-            schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
-        }
-		schoolHTML += "</table></div></div>";
-		
-	}
-
-	
-	// ########################################################################################
-	// ### START PLAYER setup
-	// ########################################################################################
-	// ###
-	// ###
-	// ########################################################################################
-	
-	var playerHTML = "";
-	
-	if( checkboxesVal.includes("PLAYER") || checkboxesVal.includes("SCENARIO") ) {	
-		// start player
-		shuffleArray(colors);
-		for (let i = 0; i < colors.length; i++) {
-			if(i!=0) playerHTML += " &gt; ";
-			playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
-		}
-	}
-
-	
-	// ########################################################################################
-	// ### MAGE setup
-	// ########################################################################################
-	// ###
-	// ###
-	// ########################################################################################
-	
-	var mageHTML = "";
-	
-	if( checkboxesVal.includes("MAGE") || checkboxesVal.includes("SCENARIO") ) {	
-		
-		// Select mages from selected boxes
-        for (let i = 0; i < allmages.length; i++) {
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
-					mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> [" + allmages[i].split(":")[0].substring(allmages[i].indexOf(' ') + 1) + "]" );
-				}
-			}
-        }
-
-		// Remove duplicate school names
-		shuffleArray(mages);
-		mages = uniqe_mage(mages);
-		
-		// Remove random mage until only 6 remain
-        while(mages.length > 6) {
-            mages.splice(Math.floor(Math.random()*mages.length), 1);	
-        }
-		shuffleArray(mages);
-
-		// Show mages			
-		if(mages.length<6) throw new Error("Not enough mages available. Select more BRW boxes to provide at least 6 mages!");
-
-		for (let i = 0; i < mages.length; i++) {
-            mageHTML += mages[i];
-			if(i!=mages.length-1) mageHTML += ", ";
-        }
-	}
-
-	
-	// ########################################################################################
-	// ### LODGE setup
-	// ########################################################################################
-	// ### - Respects keepSchools from scenario to enforce certain rooms
-	// ###
-	// ########################################################################################
-	
-	var lodgeHTML = "";
-	
-	if( checkboxesVal.includes("LODGE") || checkboxesVal.includes("SCENARIO") ) {	
-		
-		// Random rooms
-		// lodgeHTML += "<b>Random Rooms:</b><br>";
-
-		// Select rooms from selected boxes
-        for (let i = 0; i < allrooms.length; i++) {
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allrooms[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
-					// duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
-					duprooms.push(allrooms[i]);
-					if( allrooms[i].indexOf("(purple)")>0 ) purplerooms.push(allrooms[i]);
-				}
-			}
-        }
-
-		// Deduplicate randomly same # number rooms
-		
-/*		var rc=0;
-		var delroom=0;
-		var foundrooms=0;
-		var hashval="";
-		
-        for (let i = 0; i < duprooms.length; i++) {
-			rc=0;
-			hashval=duprooms[i].split("#")[1];
-			// libraryHTML += duprooms[i] + "'" + hashval + "'<br>";
-
-			if( duprooms[i].indexOf("#") >= 0 )
-			{	
-				for (let j = 0; j < duprooms.length; j++) {
-					if( duprooms[j].split("#")[1] == hashval ) rc++;
-				}
-				if( rc > 1 ) {
-					delroom = Math.floor(Math.random()*rc)+1;
-					foundrooms=0;
-					for (let j = 0; j < duprooms.length; j++) {
-						if( duprooms[j].split("#")[1] == hashval ) {
-							foundrooms++;
-							if( foundrooms == delroom ) genrooms.push(duprooms[j]);
-							duprooms.splice(j,1);
-							j=-1;
-							i=-1;
+				// Select scenarios for selected boxes
+				for (let i = 0; i < allscenarios.length; i++) {
+					if( allscenarios[i].split("|")[1].split(" ")[0] == "*" ) {
+							scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
+					}
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allscenarios[i].split("|")[1].split(" ")[0] == checkboxes[j].value ) {
+							scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
 						}
+					}
+				}
+				if(scenarios.length == 0) throw new Error("No Scenario available for your selection. Try selecting a core box, ROTAS or SATOR for a wider list of scenarios! Smaller expansions may not have scenarios designed for them specifically.");
+
+				// Get selected scenario from dropdown
+				const select = document.getElementById('scenario-select');
+				const selectedId = select && select.value ? select.value : "";
+
+				// handle user selected scenario
+				if (selectedId) {
+					// Find scenario by its id (first part before '|')
+					const scenarioRow = allscenarios.find(row => row.split('|')[0].trim() === selectedId);
+					if (scenarioRow) {
+						scenarios = [scenarioRow.substring(scenarioRow.indexOf('|', scenarioRow.indexOf('|') + 1) + 1)];
+					} else {
+						throw new Error("Selected scenario not found.");
 					}
 				} else {
-					genrooms.push(duprooms[i]);
-					duprooms.splice(i,1);
-					i=-1;
+					// No scenario selected, keep existing random logic
+					shuffleArray(scenarios);
 				}
-			} else {
-				genrooms.push(duprooms[i]);
-				duprooms.splice(i,1);
-				i=-1;
-			}
-		} */
-		let groups = {};
 
-		// group duprooms by hash value
-		for (let i = 0; i < duprooms.length; i++) {
-  			let item = duprooms[i];
-  			let [id, rest] = item.split("|");
-  			let parts = rest.split("#");
-  			let base = parts[0];
-  			let hashval = parts[1] || base; // use # value if present, otherwise unique base
-
-  			if (!groups[hashval]) groups[hashval] = [];
-  			groups[hashval].push({ id, item });
-		}
-
-		// now process each group
-		for (let key in groups) {
-  			let arr = groups[key];
-
-  			// check if group contains any keepRooms
-  			let kept = arr.filter(r => keepRooms.includes(r.id));
-
-  			if (kept.length > 0) {
-    			// keep *all* forced rooms
-    			kept.forEach(r => genrooms.push(r.item));
-  			} else {
-    			// pick one random entry
-    			let pick = arr[Math.floor(Math.random() * arr.length)];
-    			genrooms.push(pick.item);
-  			}
-		}
-
-		// Remove random rooms until only 1 black and 3 of each color remain
-		
-/*        for (let i = 0; i < roomcolors.length; i++) {
-		    do {
-			rc=0;
-			for (let j = 0; j < rooms.length; j++) {
-				if( rooms[j].split(")")[0].split("(")[1] == roomcolors[i] ) rc++;
-			}
-			if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
-				delroom = Math.floor(Math.random()*rc)+1;
-				// while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
-				foundrooms=0;
-				for (let j = 0; j < rooms.length; j++) {
-					if( rooms[j].split(")")[0].split("(")[1] == roomcolors[i] ) {
-						foundrooms++;
-						if( foundrooms == delroom && rooms[j].split("#")[1] != 2 ) {
-							rooms.splice(j, 1);
-							rc--;
-							j--;
+				// Select honorable mention
+				for (let i = 0; i < allhonmen.length; i++) {
+					if( allhonmen[i].split(" ")[0] == "*" ) {
+							honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
+					}
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allhonmen[i].split(" ")[0] == checkboxes[j].value ) {
+							honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
 						}
 					}
 				}
-			}
-		    } while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
-		}
-  */
-		
-for (let color of roomcolors) {
-  // split rooms into this color and others
-  let colorRooms = genrooms.filter(r => r.split(")")[0].split("(")[1] === color);
-  let otherRooms = genrooms.filter(r => r.split(")")[0].split("(")[1] !== color);
 
-  let maxAllowed = (color === "black" ? 1 : 3);
+				sName = scenarios[0].split("|")[0];
+				sComp = scenarios[0].split("|")[1];
+				sSetup = scenarios[0].split("|")[2];
+				sRules = scenarios[0].split("|")[3];
+				sHonMen = scenarios[0].split("|")[4];
 
-  // separate protected and non-protected
-  let protectedRooms = colorRooms.filter(r => {
-    let id = r.split("|")[0];
-    let hash = r.split("#")[1];
-    return hash == 2 || keepRooms.includes(id);
-  });
-  let nonProtectedRooms = colorRooms.filter(r => !protectedRooms.includes(r));
-
-  // randomly remove non-protected rooms until maxAllowed is satisfied
-  while (protectedRooms.length + nonProtectedRooms.length > maxAllowed) {
-    if (nonProtectedRooms.length > 0) {
-      let idx = Math.floor(Math.random() * nonProtectedRooms.length);
-      nonProtectedRooms.splice(idx, 1);
-    } else {
-      // remove protected if necessary
-      let idx = Math.floor(Math.random() * protectedRooms.length);
-      protectedRooms.splice(idx, 1);
-    }
-  }
-
-  // rebuild rooms array
-  genrooms = otherRooms.concat(protectedRooms, nonProtectedRooms);
-}
-
-
-// create a lookup for color order
-const colorOrder = {};
-for (let i = 0; i < roomcolors.length; i++) {
-  colorOrder[roomcolors[i]] = i;
-}
-
-// sort rooms based on the color order
-genrooms.sort((a, b) => {
-  const colorA = a.split(")")[0].split("(")[1];
-  const colorB = b.split(")")[0].split("(")[1];
-  return colorOrder[colorA] - colorOrder[colorB];
-});
-		
-		// Inferno: Pleasure Room needs at least one other room to summon Cerbero or Centauro
-		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
-		var foundInfernalPleasure = -1;
-		var foundSupportRoom = false;
-		for (let i = 0; i < genrooms.length; i++) {
-			if( genrooms[i].indexOf("Cerbero")>0 || genrooms[i].indexOf("Centauro")>0 ) {
-				foundSupportRoom = true;
-			}
-			if( genrooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
-				foundInfernalPleasure = i;
-			}
-		}
-		if( foundSupportRoom == false && foundInfernalPleasure>0 ) {
-			// no supporting room, Pleasure Room - infernsl must be replaced
-			// genrooms.splice(foundInfernalPleasure, 1);
-			
-			for (let i = 0; i < purplerooms.length; i++) {
-				if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
-				      || purplerooms[i].indexOf("#")<=0
-				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
-				  ) {
-					// found possible replacement, now check if already contained in Lodge
-					// genrooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
-					var containsRoomAlready=false;
-					for (let j = 0; j < genrooms.length; j++) {
-						if( genrooms[j] == purplerooms[i] ) containsRoomAlready=true;
-					}
-				    if( !containsRoomAlready ) {
-						genrooms[foundInfernalPleasure] = purplerooms[i];
-						//genrooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
-					}
-					// genrooms.push( purplerooms[i] );
-					// genrooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
+				// Create standard Lodge form?
+				if( sSetup.indexOf("(lodge=standard)") >=0 ) {
+					sSetup.replace("(lodge=standard)", "");
+					standardLodge = true;
+				} else {
+					standardLodge = false;
 				}
-			}
-		}
-		
-		// Output rooms
-		var roomoutPre = "";
-		var roomout = "";
-		var colorout = "";
-		var roomname = "";
-		var roomhash = "";
-		
-		if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");
-
-		lodgeHTML = '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Rooms<span class="toggle-indicator">−</span></div><div class="table-body">';
-		lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
-
-		// Fill rooms for the rendering component
-		rooms.length = 0;
-			
-		for (let i = 0; i < genrooms.length; i++) {
-			lodgeHTML += "<tr><td>";
-			roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
-            lodgeHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
-			lodgeHTML += "</td><td>";
-			roomout = "<b>" + genrooms[i].substring(genrooms[i].indexOf(':', genrooms[i].indexOf(':') + 1) + 1).substring(1);
-			colorout = roomout.split("(")[1].split(")")[0];
-			lodgeHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
 				
-			// filter setup instructions
-			if(roomout.indexOf(" - Setup:")>0) {
-				roomname = roomout.split(" - Setup:")[0].split("(")[0].split("<b>")[1].trim();
-				lodgeHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
-				lodgeHTML += "</td><td>";
-				lodgeHTML += roomout.split(" - Setup:")[1].split("(")[0];
-			} else {
-				roomname = roomout.split("(")[0].split("<b>")[1].trim();
-				lodgeHTML += roomout.split("(")[0] + "</b>";
-				lodgeHTML += "</td><td>";
-			}
-			lodgeHTML += "</td></tr>";
+				// Find enforced rooms
+				if(sSetup.indexOf("Rooms: (")>=0) {
+					const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
+					var collRooms = "";
+					var roomLine = "";
+					for (let i = 0; i < sRooms.length; i++) {
+						keepRooms.push(sRooms[i]);
+						roomLine = getArrayById(sRooms[i], allrooms);
+						collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1).split("(")[0].trim().split(" - Setup:")[0];
+						if(i<sRooms.length-1) collRooms += ", ";
+						// alert("Generator: " + collRooms);
+					}
+					
+					// Replace content inside parentheses
+					sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Fixed Rooms:</b> ${collRooms}`);
+				}
 
-			// Collect rooms of the Lodge for the graphical rendering engine
-			rooms.push(roomname + roomhash + "|" + colorout);
-        }
+				// Find enforced schools
+				if(sSetup.indexOf("Schools: (")>=0) {
+					const sSchools = sSetup.split("Schools: (")[1].split(")")[0].split(",").map(s => s.trim());
+					var collSchools = "";
+					var schoolLine = "";
+					for (let i = 0; i < sSchools.length; i++) {
+						keepSchools.push(sSchools[i]);
+						schoolLine = getArrayById(sSchools[i], allschools);
+						collSchools += schoolLine.split("<b>")[1].split("</b>")[0].trim();
+						if(i<sSchools.length-1) collSchools += ", ";
+						// alert("Generator: " + collSchools);
+					}
+					
+					// Replace content inside parentheses
+					sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li><b>Fixed Schools:</b> ${collSchools}`);
+				}
 			
-		lodgeHTML += "</table></div></div>";
-	}
+				// Find enforced mages
+				if(sSetup.indexOf("Mages: (")>=0) {
+					const sMages = sSetup.split("Mages: (")[1].split(")")[0].split(",").map(s => s.trim());
+					var collMages = "";
+					var mageLine = "";
+					for (let i = 0; i < sMages.length; i++) {
+						keepMages.push(sMages[i]);
+						mageLine = getArrayById(sMages[i], allmages);
+						collMages += mageLine.split(": ")[1].trim();
+						if(i<sMages.length-1) collMages += ", ";
+						// alert("Generator: " + collMages);
+					}
+					
+					// Replace content inside parentheses
+					sSetup = sSetup.replace(/Mages:\s*\([^)]*\)/, `<li><b>Fixed Mages:</b> ${collMages}`);
+				}
 
+				// Honorable Mention
+				honmenHTML = "<p><b>Honorable Mention:</b></p>";
+				if(sHonMen=="*") {
+					shuffleArray(honmen);
+					const numhonmen = Math.floor(Math.random()*3+2);
 
-	// ########################################################################################
-	// ### AVATAR setup
-	// ########################################################################################
-	// ###
-	// ###
-	// ########################################################################################
-	
-	var avatarHTML = "";
-	
-	if( checkboxesVal.includes("AVATAR") || checkboxesVal.includes("SCENARIO") ) {
-		// Select potential avatars from selected boxes
-        for (let i = 0; i < allavatars.length; i++) {
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allavatars[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
-					const avatarBox = allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1);
-					var avatarNameHTML = allavatars[i].substring(allavatars[i].indexOf(':') + 1);
-					avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? "<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : "<b>" + avatarNameHTML + "</b>";
-					avatars.push( avatarNameHTML + " [" + avatarBox + "]" );
+					honmenHTML += "<p><ul>";
+					for (let i = 0; i < numhonmen; i++) {
+						honmenHTML += "<li><b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "</li>"; 
+					}			
+					honmenHTML += "</ul>";
+					
+				} else {
+					honmenHTML += sHonMen;
 				}
 			}
-        }
-		
-		// Pick first random
-		shuffleArray(avatars);
 
-		// Show avatar		
-		if(avatars.length<1 && !checkboxesVal.includes("SCENARIO")) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
+			
+			// ########################################################################################
+			// ### SCHOOL setup
+			// ########################################################################################
+			// ### - Respects keepSchools from scenario to enforce certain schools
+			// ###
+			// ########################################################################################
+			
+			var schoolHTML = "";
+			
+			if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("SCENARIO") ) {
+				
+				// Add schools based on selected BRW boxes
+				for (let i = 0; i < allschools.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if(checkboxes[j].value == allschools[i].split(" ")[0].split("|")[1]) {
+							schools.push(allschools[i]);
+						}
+					}
+				}
 
-		// TBD - another error message if the Scenario requires an Avatar and cannot find it
-		
-        avatarHTML += avatars[0];
-	}	
+				// Remove duplicate school names
+				shuffleArray(schools);
+				schools = uniqe_school(schools, keepSchools);
+				
+				// Remove random schools until only 6 remain, respecting keepSchools
+				while (schools.length > 6) {
+					// build a list of removable indices
+					let removable = [];
+					for (let i = 0; i < schools.length; i++) {
+						const id = schools[i].split("|")[0]; // assume ID is before '|'
+						if (!keepSchools.includes(id)) removable.push(i);
+					}
 
-	
-	// ########################################################################################
-	// ### Combine generated output
-	// ########################################################################################
-	// ###
-	// ###
-	// ########################################################################################
+					// if nothing can be removed, break to avoid infinite loop
+					if (removable.length === 0) break;
 
-	libraryHTML += "<div style='padding-left:20px;'>";
-	
-	if( checkboxesVal.includes("SCENARIO") ) {
-		libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
-		libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
-		libraryHTML += "<b>Special Setup:</b>";
-		libraryHTML += sSetup;
-		libraryHTML += "<ul>";
-		libraryHTML += "<li><b>Start Player:</b> " + playerHTML;
-		libraryHTML += "<li><b>Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<br>" + mageHTML;
-		libraryHTML += "</ul>";
+					// pick a random removable school and remove it
+					const randIdx = removable[Math.floor(Math.random() * removable.length)];
+					schools.splice(randIdx, 1);
+				}
 
-		libraryHTML += '<div style="padding-left: 20px;">';
-		libraryHTML += schoolHTML;
-		libraryHTML += lodgeHTML;
-		libraryHTML += '<p>';
-		//libraryHTML += '</div><p>';
-		//libraryHTML += "<div class='board' id='board'></div>";
-		libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
-		libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
-		libraryHTML += '</div><p>';
-		
-		libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
-		libraryHTML += honmenHTML;
-	} else {
-		//libraryHTML += '<div style="padding-left: 20px;">';
-		
-		if( checkboxesVal.includes("AVATAR") ) {
-			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Avatar<span class="toggle-indicator">−</span></div><div class="table-body">';
-			libraryHTML += "<table><thead><tr><td>";
-			libraryHTML += avatarHTML;
-			libraryHTML += "</td></tr></thead></table></div></div>";
+				// Show Library as HTML table				
+				if(schools.length<6) throw new Error("Not enough schools available. Select more BRW boxes to choose schools from!");
+
+				schoolHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Schools<span class="toggle-indicator">−</span></div><div class="table-body">';
+				schoolHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left width=220>SETUP</th><th align=left width=220>RECOMMENDED MAGES</th></tr></thead>";
+				for (let i = 0; i < schools.length; i++) {
+					schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
+					schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
+					schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
+					if(schools[i].indexOf("<b>Mages:</b> ")>=0) {
+						schools[i] = schools[i].replace("<b>Mages:</b> ","</td><td style='vertical-align:top'>");
+					} else {
+						schools[i] = schools[i] + "</td><td style='vertical-align:top'>";
+					}
+					schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
+				}
+				schoolHTML += "</table></div></div>";
+				
+			}
+
+			
+			// ########################################################################################
+			// ### START PLAYER setup
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+			
+			var playerHTML = "";
+			
+			if( checkboxesVal.includes("PLAYER") || checkboxesVal.includes("SCENARIO") ) {	
+				// start player
+				shuffleArray(colors);
+				for (let i = 0; i < colors.length; i++) {
+					if(i!=0) playerHTML += " &gt; ";
+					playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
+				}
+			}
+
+			
+			// ########################################################################################
+			// ### MAGE setup
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+			
+			var mageHTML = "";
+			
+			if( checkboxesVal.includes("MAGE") || checkboxesVal.includes("SCENARIO") ) {	
+				
+				// Select mages from selected boxes
+				for (let i = 0; i < allmages.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allmages[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
+							mages.push( allmages[i] );	
+						}
+					}
+				}
+				
+				// Remove duplicate school names
+				shuffleArray(mages);
+				mages = uniqe_mage(mages, keepMages);
+				
+				// Remove random mage until only 6 remain, but never remove a mage with id in keepMages
+				while (mages.length > 6) {
+					// Find removable indices (mages not in keepMages)
+					let removable = [];
+					for (let i = 0; i < mages.length; i++) {
+						let mageId = mages[i].split("|")[0].trim();
+						if (!keepMages.includes(mageId)) removable.push(i);
+					}
+					// If nothing can be removed, break to avoid infinite loop
+					if (removable.length === 0) break;
+					// Remove a random removable mage
+					let idx = removable[Math.floor(Math.random() * removable.length)];
+					mages.splice(idx, 1);
+				}
+
+				// Show mages			
+				if(mages.length<6) throw new Error("Not enough mages available. Select more BRW boxes to provide at least 6 mages!");
+
+				for (let i = 0; i < mages.length; i++) {
+					mageHTML += "<b>" + mages[i].substring(mages[i].indexOf(':') + 1) + "</b> [" + mages[i].split(":")[0].substring(mages[i].indexOf(' ') + 1) + "]";
+					if(i!=mages.length-1) mageHTML += ", ";
+				}
+			}
+
+			
+			// ########################################################################################
+			// ### LODGE setup
+			// ########################################################################################
+			// ### - Respects keepSchools from scenario to enforce certain rooms
+			// ###
+			// ########################################################################################
+			
+			var lodgeHTML = "";
+			
+			if( checkboxesVal.includes("LODGE") || checkboxesVal.includes("SCENARIO") ) {	
+				
+				// Random rooms
+				// lodgeHTML += "<b>Random Rooms:</b><br>";
+
+				// Select rooms from selected boxes
+				for (let i = 0; i < allrooms.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allrooms[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
+							// duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
+							duprooms.push(allrooms[i]);
+							if( allrooms[i].indexOf("(purple)")>0 ) purplerooms.push(allrooms[i]);
+						}
+					}
+				}
+
+				// Deduplicate randomly same # number rooms
+				
+		/*		var rc=0;
+				var delroom=0;
+				var foundrooms=0;
+				var hashval="";
+				
+				for (let i = 0; i < duprooms.length; i++) {
+					rc=0;
+					hashval=duprooms[i].split("#")[1];
+					// libraryHTML += duprooms[i] + "'" + hashval + "'<br>";
+
+					if( duprooms[i].indexOf("#") >= 0 )
+					{	
+						for (let j = 0; j < duprooms.length; j++) {
+							if( duprooms[j].split("#")[1] == hashval ) rc++;
+						}
+						if( rc > 1 ) {
+							delroom = Math.floor(Math.random()*rc)+1;
+							foundrooms=0;
+							for (let j = 0; j < duprooms.length; j++) {
+								if( duprooms[j].split("#")[1] == hashval ) {
+									foundrooms++;
+									if( foundrooms == delroom ) genrooms.push(duprooms[j]);
+									duprooms.splice(j,1);
+									j=-1;
+									i=-1;
+								}
+							}
+						} else {
+							genrooms.push(duprooms[i]);
+							duprooms.splice(i,1);
+							i=-1;
+						}
+					} else {
+						genrooms.push(duprooms[i]);
+						duprooms.splice(i,1);
+						i=-1;
+					}
+				} */
+				let groups = {};
+
+				// group duprooms by hash value
+				for (let i = 0; i < duprooms.length; i++) {
+					let item = duprooms[i];
+					let [id, rest] = item.split("|");
+					let parts = rest.split("#");
+					let base = parts[0];
+					let hashval = parts[1] || base; // use # value if present, otherwise unique base
+
+					if (!groups[hashval]) groups[hashval] = [];
+					groups[hashval].push({ id, item });
+				}
+
+				// now process each group
+				for (let key in groups) {
+					let arr = groups[key];
+
+					// check if group contains any keepRooms
+					let kept = arr.filter(r => keepRooms.includes(r.id));
+
+					if (kept.length > 0) {
+						// keep *all* forced rooms
+						kept.forEach(r => genrooms.push(r.item));
+					} else {
+						// pick one random entry
+						let pick = arr[Math.floor(Math.random() * arr.length)];
+						genrooms.push(pick.item);
+					}
+				}
+
+				// Remove random rooms until only 1 black and 3 of each color remain
+				
+		/*        for (let i = 0; i < roomcolors.length; i++) {
+					do {
+					rc=0;
+					for (let j = 0; j < rooms.length; j++) {
+						if( rooms[j].split(")")[0].split("(")[1] == roomcolors[i] ) rc++;
+					}
+					if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
+						delroom = Math.floor(Math.random()*rc)+1;
+						// while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
+						foundrooms=0;
+						for (let j = 0; j < rooms.length; j++) {
+							if( rooms[j].split(")")[0].split("(")[1] == roomcolors[i] ) {
+								foundrooms++;
+								if( foundrooms == delroom && rooms[j].split("#")[1] != 2 ) {
+									rooms.splice(j, 1);
+									rc--;
+									j--;
+								}
+							}
+						}
+					}
+					} while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
+				}
+		*/
+				
+		for (let color of roomcolors) {
+		// split rooms into this color and others
+		let colorRooms = genrooms.filter(r => r.split(")")[0].split("(")[1] === color);
+		let otherRooms = genrooms.filter(r => r.split(")")[0].split("(")[1] !== color);
+
+		let maxAllowed = (color === "black" ? 1 : 3);
+
+		// separate protected and non-protected
+		let protectedRooms = colorRooms.filter(r => {
+			let id = r.split("|")[0];
+			let hash = r.split("#")[1];
+			return hash == 2 || keepRooms.includes(id);
+		});
+		let nonProtectedRooms = colorRooms.filter(r => !protectedRooms.includes(r));
+
+		// randomly remove non-protected rooms until maxAllowed is satisfied
+		while (protectedRooms.length + nonProtectedRooms.length > maxAllowed) {
+			if (nonProtectedRooms.length > 0) {
+			let idx = Math.floor(Math.random() * nonProtectedRooms.length);
+			nonProtectedRooms.splice(idx, 1);
+			} else {
+			// remove protected if necessary
+			let idx = Math.floor(Math.random() * protectedRooms.length);
+			protectedRooms.splice(idx, 1);
+			}
 		}
-		if( checkboxesVal.includes("PLAYER") ) {
-			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">First Player<span class="toggle-indicator">−</span></div><div class="table-body">';
-			libraryHTML += "<table><thead><tr><td>";
-			libraryHTML += playerHTML;
-			libraryHTML += "</td></tr></thead></table></div></div>";
+
+		// rebuild rooms array
+		genrooms = otherRooms.concat(protectedRooms, nonProtectedRooms);
 		}
-		if( checkboxesVal.includes("MAGE") ) {
-			libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
-			libraryHTML += "<table><thead><tr><td>";
-			libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
-			libraryHTML += mageHTML.replaceAll(", ", "<br>");
-			libraryHTML += "</td></tr></thead></table></div></div>";
+
+
+		// create a lookup for color order
+		const colorOrder = {};
+		for (let i = 0; i < roomcolors.length; i++) {
+		colorOrder[roomcolors[i]] = i;
 		}
-		if( checkboxesVal.includes("SCHOOL") ) {
-			libraryHTML += schoolHTML;
-		}
-		if( checkboxesVal.includes("LODGE") ) {
-			libraryHTML += lodgeHTML;		
-		}
-		
-		// libraryHTML += '</div><p>';
-		
-		if( checkboxesVal.includes("LODGE") ) {
-			libraryHTML += '<p>';
-			// libraryHTML += "<div class='board' id='board' style='left:0px;'></div>";
-			libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
-			libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
-		}
+
+		// sort rooms based on the color order
+		genrooms.sort((a, b) => {
+		const colorA = a.split(")")[0].split("(")[1];
+		const colorB = b.split(")")[0].split("(")[1];
+		return colorOrder[colorA] - colorOrder[colorB];
+		});
+				
+				// Inferno: Pleasure Room needs at least one other room to summon Cerbero or Centauro
+				// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
+				var foundInfernalPleasure = -1;
+				var foundSupportRoom = false;
+				for (let i = 0; i < genrooms.length; i++) {
+					if( genrooms[i].indexOf("Cerbero")>0 || genrooms[i].indexOf("Centauro")>0 ) {
+						foundSupportRoom = true;
+					}
+					if( genrooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
+						foundInfernalPleasure = i;
+					}
+				}
+				if( foundSupportRoom == false && foundInfernalPleasure>0 ) {
+					// no supporting room, Pleasure Room - infernsl must be replaced
+					// genrooms.splice(foundInfernalPleasure, 1);
+					
+					for (let i = 0; i < purplerooms.length; i++) {
+						if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
+							|| purplerooms[i].indexOf("#")<=0
+							) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
+						) {
+							// found possible replacement, now check if already contained in Lodge
+							// genrooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
+							var containsRoomAlready=false;
+							for (let j = 0; j < genrooms.length; j++) {
+								if( genrooms[j] == purplerooms[i] ) containsRoomAlready=true;
+							}
+							if( !containsRoomAlready ) {
+								genrooms[foundInfernalPleasure] = purplerooms[i];
+								//genrooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
+							}
+							// genrooms.push( purplerooms[i] );
+							// genrooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
+						}
+					}
+				}
+				
+				// Output rooms
+				var roomoutPre = "";
+				var roomout = "";
+				var colorout = "";
+				var roomname = "";
+				var roomhash = "";
+				
+				if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");
+
+				lodgeHTML = '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Rooms<span class="toggle-indicator">−</span></div><div class="table-body">';
+				lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
+
+				// Fill rooms for the rendering component
+				rooms.length = 0;
+					
+				for (let i = 0; i < genrooms.length; i++) {
+					lodgeHTML += "<tr><td>";
+					roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
+					lodgeHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
+					lodgeHTML += '</td><td class="cell">';
+					roomout = "<b>" + genrooms[i].substring(genrooms[i].indexOf(':', genrooms[i].indexOf(':') + 1) + 1).substring(1);
+					colorout = roomout.split("(")[1].split(")")[0];
+					lodgeHTML += "<span class='first' style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
+						
+					// filter setup instructions
+					if(roomout.indexOf(" - Setup:")>0) {
+						roomname = roomout.split(" - Setup:")[0].split("(")[0].split("<b>")[1].trim();
+						lodgeHTML += "&nbsp;&nbsp;" + roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
+						lodgeHTML += '</td><td>';
+						lodgeHTML += roomout.split(" - Setup:")[1].split("(")[0];
+					} else {
+						roomname = roomout.split("(")[0].split("<b>")[1].trim();
+						lodgeHTML += "&nbsp;&nbsp;" + roomout.split("(")[0] + "</b>";
+						lodgeHTML += "</td><td>";
+					}
+					lodgeHTML += "</td></tr>";
+
+					// Collect rooms of the Lodge for the graphical rendering engine
+					rooms.push(roomname + roomhash + "|" + colorout);
+				}
+					
+				lodgeHTML += "</table></div></div>";
+			}
+
+
+			// ########################################################################################
+			// ### AVATAR setup
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+			
+			var avatarHTML = "";
+			
+			if( checkboxesVal.includes("AVATAR") || checkboxesVal.includes("SCENARIO") ) {
+				// Select potential avatars from selected boxes
+				for (let i = 0; i < allavatars.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allavatars[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
+							const avatarBox = allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1);
+							var avatarNameHTML = allavatars[i].substring(allavatars[i].indexOf(':') + 1);
+							avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? "<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : "<b>" + avatarNameHTML + "</b>";
+							avatars.push( avatarNameHTML + " [" + avatarBox + "]" );
+						}
+					}
+				}
+				
+				// Pick first random
+				shuffleArray(avatars);
+
+				// Show avatar		
+				if(avatars.length<1 && !checkboxesVal.includes("SCENARIO")) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
+
+				// TBD - another error message if the Scenario requires an Avatar and cannot find it
+				
+				avatarHTML += avatars[0];
+			}	
+
+			
+			// ########################################################################################
+			// ### Combine generated output
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+
+			libraryHTML += "<div style='padding-left:20px;'>";
+			
+			if( checkboxesVal.includes("SCENARIO") ) {
+				libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
+				libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
+				libraryHTML += "<b>Special Setup:</b>";
+				libraryHTML += sSetup;
+				libraryHTML += "<ul>";
+				libraryHTML += "<li><b>Start Player:</b> " + playerHTML;
+				libraryHTML += "<li><b>Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<br>" + mageHTML;
+				libraryHTML += "</ul>";
+
+				libraryHTML += '<div style="padding-left: 20px;">';
+				libraryHTML += schoolHTML;
+				libraryHTML += lodgeHTML;
+				libraryHTML += '<p>';
+				//libraryHTML += '</div><p>';
+				//libraryHTML += "<div class='board' id='board'></div>";
+				libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
+				libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
+				libraryHTML += '</div><p>';
+				
+				libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
+				libraryHTML += honmenHTML;
+			} else {
+				standardLodge=true;
+				
+				if( checkboxesVal.includes("AVATAR") ) {
+					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Avatar<span class="toggle-indicator">−</span></div><div class="table-body">';
+					libraryHTML += "<table><thead><tr><td>";
+					libraryHTML += avatarHTML;
+					libraryHTML += "</td></tr></thead></table></div></div>";
+				}
+				if( checkboxesVal.includes("PLAYER") ) {
+					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">First Player<span class="toggle-indicator">−</span></div><div class="table-body">';
+					libraryHTML += "<table><thead><tr><td>";
+					libraryHTML += playerHTML;
+					libraryHTML += "</td></tr></thead></table></div></div>";
+				}
+				if( checkboxesVal.includes("MAGE") ) {
+					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
+					libraryHTML += "<table><thead><tr><td>";
+					libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
+					libraryHTML += mageHTML.replaceAll(", ", "<br>");
+					libraryHTML += "</td></tr></thead></table></div></div>";
+				}
+				if( checkboxesVal.includes("SCHOOL") ) {
+					libraryHTML += schoolHTML;
+				}
+				if( checkboxesVal.includes("LODGE") ) {
+					libraryHTML += lodgeHTML;		
+					libraryHTML += '<p>';
+					// libraryHTML += "<div class='board' id='board' style='left:0px;'></div>";
+					libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
+					libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
+				}
+			}
+			
+			libraryHTML += "</div><p>";
+			
+			document.getElementById("result").innerHTML = libraryHTML;
+
+			// wait until DOM is painted
+			requestAnimationFrame(() => {
+				createAndRender();
+			});
+
+			// Scroll to top after update
+			window.scrollTo({ top: 0, behavior: "smooth" });
+
+		} catch (e) {
+			showErrors(e.message);
+			// "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
+			// alert("Generator error: " + e.message);
+			// console.error(e);
+		}	
 	}
-	
-	libraryHTML += "</div><p>";
-	
-    document.getElementById("result").innerHTML = libraryHTML;
 
-	// wait until DOM is painted
-	requestAnimationFrame(() => {
-    	createAndRender();
-	});
+		function ruleTip() {
+			var libraryHTML = "";
 
-} catch (e) {
-	showErrors(e.message);
-	// "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
-    // alert("Generator error: " + e.message);
-    // console.error(e);
-  }	
-}
+			// Rule tip
+			libraryHTML += "<b>Rebirth rule tip "; 
+			libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
+			libraryHTML += "</font></div>";
+					
+			document.getElementById("result").innerHTML = libraryHTML;
+		}
 
-function ruleTip() {
-	var libraryHTML = "";
+		function toggleBoard(header) {
+			const body = header.nextElementSibling;
+			const indicator = header.querySelector(".toggle-indicator");
+			body.classList.toggle("hidden");
+			indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
+		}
+				
+		function toggleTable(header) {
+			const body = header.nextElementSibling;
+			const indicator = header.querySelector(".toggle-indicator");
+			body.classList.toggle("hidden");
+			indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
+		}
 
-	// Rule tip
-	libraryHTML += "<b>Rebirth rule tip "; 
-	libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
-	libraryHTML += "</font></div>";
-		    
-	document.getElementById("result").innerHTML = libraryHTML;
-}
+			// Return entry of an array by its id
+			function getArrayById(id, arr) {
+				return arr.find(item => item.startsWith(id + "|")) || null;
+			}
 
-  function toggleBoard(header) {
-    const body = header.nextElementSibling;
-    const indicator = header.querySelector(".toggle-indicator");
-    body.classList.toggle("hidden");
-    indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
-  }
-		
-  function toggleTable(header) {
-    const body = header.nextElementSibling;
-    const indicator = header.querySelector(".toggle-indicator");
-    body.classList.toggle("hidden");
-    indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
-  }
+		function shuffleArray(array) {
+				for (let i = array.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						[array[i], array[j]] = [array[j], array[i]];
+				}
+		}
+		/*
+			function uniqe_school(a) {
+				var seen = {};
+					var out = [];
+					var len = a.length;
+					var j = 0;
+					for(var i = 0; i < len; i++) {
+						var item = a[i].split("<b>")[1].split("</b>")[0];
+						if(seen[item] !== 1) {
+							seen[item] = 1;
+							out[j++] = a[i];
+						}
+					}
+					return out;
+			}
+		*/
 
-	// Return entry of an array by its id
-	function getArrayById(id, arr) {
-  		return arr.find(item => item.startsWith(id + "|")) || null;
-	}
+		function uniqe_school(a, keep) {
+			const seen = {};
+			const out = [];
 
-function shuffleArray(array) {
-   		 for (let i = array.length - 1; i > 0; i--) {
-       			 const j = Math.floor(Math.random() * (i + 1));
-        		[array[i], array[j]] = [array[j], array[i]];
-   		 }
-}
-/*
-	function uniqe_school(a) {
-		var seen = {};
-    		var out = [];
-    		var len = a.length;
-    		var j = 0;
-    		for(var i = 0; i < len; i++) {
-         		var item = a[i].split("<b>")[1].split("</b>")[0];
-         		if(seen[item] !== 1) {
-               		seen[item] = 1;
-               		out[j++] = a[i];
-         		}
-    		}
-    		return out;
-	}
+			for (let i = 0; i < a.length; i++) {
+				const item = a[i];
+				const id = item.split("|")[0]; // extract ID before '|'
+				const name = item.split("<b>")[1].split("</b>")[0]; // extract name
+
+				// always keep if ID is in keepSchools
+				if (keep.includes(id)) {
+					out.push(item);
+					continue;
+				}
+
+				// keep only unique names otherwise
+				if (!seen[name]) {
+					seen[name] = true;
+					out.push(item);
+				}
+			}
+
+			return out;
+		}
+
+/*			function uniqe_mage(a) {
+				var seen = {};
+					var out = [];
+					var len = a.length;
+					var j = 0;
+					for(var i = 0; i < len; i++) {
+						var item = a[i].split("<b>")[1].split("</b>")[0];
+						if(seen[item] !== 1) {
+							seen[item] = 1;
+							out[j++] = a[i];
+						}
+					}
+					return out;
+			}
 */
 
-function uniqe_school(a, keep) {
-    const seen = {};
-    const out = [];
+		function uniqe_mage(a, keep) {
+			const seenNames = {};
+			const seenIds = new Set();
+			const out = [];
 
-    for (let i = 0; i < a.length; i++) {
-        const item = a[i];
-        const id = item.split("|")[0]; // extract ID before '|'
-        const name = item.split("<b>")[1].split("</b>")[0]; // extract name
+			// First, add all keepMages in their original order
+			for (let i = 0; i < a.length; i++) {
+				const item = a[i];
+				const id = item.split("|")[0].trim();
+				const name = item.includes(":") ? item.split(":")[1].trim() : item.trim();
 
-        // always keep if ID is in keepSchools
-        if (keep.includes(id)) {
-            out.push(item);
-            continue;
-        }
+				if (keep && keep.includes(id) && !seenIds.has(id)) {
+					out.push(item);
+					seenNames[name] = true;
+					seenIds.add(id);
+				}
+			}
 
-        // keep only unique names otherwise
-        if (!seen[name]) {
-            seen[name] = true;
-            out.push(item);
-        }
-    }
+			// Then, add other unique mages by name, skipping those already in keepMages
+			for (let i = 0; i < a.length; i++) {
+				const item = a[i];
+				const id = item.split("|")[0].trim();
+				const name = item.includes(":") ? item.split(":")[1].trim() : item.trim();
 
-    return out;
-}
+				if (!seenNames[name] && !seenIds.has(id)) {
+					out.push(item);
+					seenNames[name] = true;
+					seenIds.add(id);
+				}
+			}
 
-	function uniqe_mage(a) {
-		var seen = {};
-    		var out = [];
-    		var len = a.length;
-    		var j = 0;
-    		for(var i = 0; i < len; i++) {
-         		var item = a[i].split("<b>")[1].split("</b>")[0];
-         		if(seen[item] !== 1) {
-               		seen[item] = 1;
-               		out[j++] = a[i];
-         		}
-    		}
-    		return out;
-	}
+			return out;
+		}
 
+		/* ============================
+		CONFIG: one-dimensional rooms[] strings "Name|color"
+		Replace these placeholders with your real room names if desired.
+		Must include exactly 19 entries and exactly one "Black Rose Room|black"
+		and exactly one "Throne Room|purple".
+		Colors allowed: black, purple, red, green, blue, gray, yellow
+		============================ */
 
-/* ============================
-   CONFIG: one-dimensional rooms[] strings "Name|color"
-   Replace these placeholders with your real room names if desired.
-   Must include exactly 19 entries and exactly one "Black Rose Room|black"
-   and exactly one "Throne Room|purple".
-   Colors allowed: black, purple, red, green, blue, gray, yellow
-   ============================ */
+		/* ======= Validation of rooms[] counts ======= */
+		const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+		(function validateRoomList() {
+		if (!Array.isArray(rooms) || rooms.length !== 19) {
+			throw new Error("rooms[] must be an array of 19 strings in format 'Name|color'.");
+		}
+		const parsed = rooms.map(s => {
+			if (typeof s !== 'string' || !s.includes('|')) throw new Error("Each rooms[] entry must be 'Name|color'.");
+			const [name, color] = s.split('|').map(x=>x.trim());
+			return {name, color};
+		});
+		const counts = {};
+		parsed.forEach(r => { counts[r.color] = (counts[r.color]||0) + 1; });
+		for (const col of Object.keys(REQUIRED_COUNTS)) {
+			if ((counts[col] || 0) !== REQUIRED_COUNTS[col]) {
+			throw new Error(`Color counts mismatch: need ${REQUIRED_COUNTS[col]} ${col} rooms (found ${counts[col]||0}).`);
+			}
+		}
+		// Ensure exactly one Black Rose Room and one Throne Room by name
+		const names = parsed.map(p=>p.name);
+		if (names.filter(n => n.endsWith("#1")).length !== 1) throw new Error("Must include exactly one 'Black Rose Room' entry.");
+		if (parsed.filter(p => p.name.endsWith("#2") && p.color === "purple").length !== 1) throw new Error("Must include exactly one 'Throne Room|purple' entry.");
+		})();
 
-/* ======= Validation of rooms[] counts ======= */
-const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
-(function validateRoomList() {
-  if (!Array.isArray(rooms) || rooms.length !== 19) {
-    throw new Error("rooms[] must be an array of 19 strings in format 'Name|color'.");
-  }
-  const parsed = rooms.map(s => {
-    if (typeof s !== 'string' || !s.includes('|')) throw new Error("Each rooms[] entry must be 'Name|color'.");
-    const [name, color] = s.split('|').map(x=>x.trim());
-    return {name, color};
-  });
-  const counts = {};
-  parsed.forEach(r => { counts[r.color] = (counts[r.color]||0) + 1; });
-  for (const col of Object.keys(REQUIRED_COUNTS)) {
-    if ((counts[col] || 0) !== REQUIRED_COUNTS[col]) {
-      throw new Error(`Color counts mismatch: need ${REQUIRED_COUNTS[col]} ${col} rooms (found ${counts[col]||0}).`);
-    }
-  }
-  // Ensure exactly one Black Rose Room and one Throne Room by name
-  const names = parsed.map(p=>p.name);
-  if (names.filter(n => n.endsWith("#1")).length !== 1) throw new Error("Must include exactly one 'Black Rose Room' entry.");
-  if (parsed.filter(p => p.name.endsWith("#2") && p.color === "purple").length !== 1) throw new Error("Must include exactly one 'Throne Room|purple' entry.");
-})();
+		/* =========================
+		Hex utilities (axial coords, pointy)
+		========================= */
+		const DIRS = [ [1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1] ];
+		function key(q,r){ return `${q},${r}`; }
+		function unkey(k){ const [q,r] = k.split(',').map(Number); return {q,r}; }
+		function neighbors(q,r){ return DIRS.map(([dq,dr]) => [q+dq, r+dr]); }
+		function axialDistance(a,b){ const dq=a.q-b.q, dr=a.r-b.r, ds=-a.q-a.r + b.q + b.r; return (Math.abs(dq)+Math.abs(dr)+Math.abs(ds))/2; }
+		const MAX_RADIUS = 3;
+		function withinRadius(q,r){ return axialDistance({q,r},{q:0,r:0}) <= MAX_RADIUS; }
 
-/* =========================
-   Hex utilities (axial coords, pointy)
-   ========================= */
-const DIRS = [ [1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1] ];
-function key(q,r){ return `${q},${r}`; }
-function unkey(k){ const [q,r] = k.split(',').map(Number); return {q,r}; }
-function neighbors(q,r){ return DIRS.map(([dq,dr]) => [q+dq, r+dr]); }
-function axialDistance(a,b){ const dq=a.q-b.q, dr=a.r-b.r, ds=-a.q-a.r + b.q + b.r; return (Math.abs(dq)+Math.abs(dr)+Math.abs(ds))/2; }
-const MAX_RADIUS = 3;
-function withinRadius(q,r){ return axialDistance({q,r},{q:0,r:0}) <= MAX_RADIUS; }
+		/* Axial -> pixel (pointy topped) */
+		const HEX_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hex-size'));
+		const HEX_W = Math.sqrt(3)*HEX_SIZE;
+		const HEX_H = 2*HEX_SIZE;
+		/*function axialToPixel(q,r){
+		const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+		const y = HEX_SIZE * 1.5 * r;
+		return {x,y};
+		}*/
 
-/* Axial -> pixel (pointy topped) */
-const HEX_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hex-size'));
-const HEX_W = Math.sqrt(3)*HEX_SIZE;
-const HEX_H = 2*HEX_SIZE;
-/*function axialToPixel(q,r){
-  const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
-  const y = HEX_SIZE * 1.5 * r;
-  return {x,y};
-}*/
+		function axialToPixel(q, r){
+		const x0 = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+		const y0 = HEX_SIZE * 1.5 * r;
 
-function axialToPixel(q, r){
-  const x0 = HEX_SIZE * Math.sqrt(3) * (q + r/2);
-  const y0 = HEX_SIZE * 1.5 * r;
+		// 90° clockwise rotation
+		const x = y0;
+		const y = -x0;
+		return {x, y};
+		}
 
-  // 90° clockwise rotation
-  const x = y0;
-  const y = -x0;
-  return {x, y};
-}
+		/* ===== build full radius-3 set and rings ===== */
+		function buildFullSet(){
+		const set = new Set();
+		for (let q=-MAX_RADIUS;q<=MAX_RADIUS;q++){
+			for (let r=-MAX_RADIUS;r<=MAX_RADIUS;r++){
+			if (withinRadius(q,r)) set.add(key(q,r));
+			}
+		}
+		return set; // should be 37 keys
+		}
+		function ringKeys(dist){
+		const out = [];
+		for (const k of buildFullSet()){
+			const {q,r}=unkey(k);
+			if (axialDistance({q,r},{q:0,r:0}) === dist) out.push(k);
+		}
+		return out;
+		}
 
-/* ===== build full radius-3 set and rings ===== */
-function buildFullSet(){
-  const set = new Set();
-  for (let q=-MAX_RADIUS;q<=MAX_RADIUS;q++){
-    for (let r=-MAX_RADIUS;r<=MAX_RADIUS;r++){
-      if (withinRadius(q,r)) set.add(key(q,r));
-    }
-  }
-  return set; // should be 37 keys
-}
-function ringKeys(dist){
-  const out = [];
-  for (const k of buildFullSet()){
-    const {q,r}=unkey(k);
-    if (axialDistance({q,r},{q:0,r:0}) === dist) out.push(k);
-  }
-  return out;
-}
+		/* ===== helper graph functions (for small graphs; simple BFS checks) ===== */
+		function buildAdjMap(keysSet){
+		const adj = new Map();
+		for (const k of keysSet) adj.set(k, []);
+		for (const k of keysSet){
+			const {q,r} = unkey(k);
+			for (const [nq,nr] of neighbors(q,r)){
+			const nk = key(nq,nr);
+			if (keysSet.has(nk)) adj.get(k).push(nk);
+			}
+		}
+		return adj;
+		}
+		function isConnected(keysSet){
+		if (keysSet.size === 0) return true;
+		if (!keysSet.has(key(0,0))) return false;
+		const adj = buildAdjMap(keysSet);
+		const start = key(0,0);
+		const seen = new Set([start]); const stack = [start];
+		while (stack.length){
+			const cur = stack.pop();
+			for (const nb of adj.get(cur)){
+			if (!seen.has(nb)) { seen.add(nb); stack.push(nb); }
+			}
+		}
+		return seen.size === keysSet.size;
+		}
+		function minDegreeAtLeast(keysSet, minDeg){
+		const adj = buildAdjMap(keysSet);
+		for (const [k, nb] of adj){
+			if (k === key(0,0)) continue; // allow center exemption if you want; but center will usually have many neighbors
+			if (nb.length < minDeg) return false;
+		}
+		return true;
+		}
+		/* articulation check: brute-force for small graph: removing one node and test connectivity */
+		function hasNoArticulationExceptCenter(keysSet){
+		if (!isConnected(keysSet)) return false;
+		for (const k of keysSet){
+			if (k === key(0,0)) continue;
+			const copy = new Set(keysSet);
+			copy.delete(k);
+			if (!isConnected(copy)) return false;
+		}
+		return true;
+		}
 
-/* ===== helper graph functions (for small graphs; simple BFS checks) ===== */
-function buildAdjMap(keysSet){
-  const adj = new Map();
-  for (const k of keysSet) adj.set(k, []);
-  for (const k of keysSet){
-    const {q,r} = unkey(k);
-    for (const [nq,nr] of neighbors(q,r)){
-      const nk = key(nq,nr);
-      if (keysSet.has(nk)) adj.get(k).push(nk);
-    }
-  }
-  return adj;
-}
-function isConnected(keysSet){
-  if (keysSet.size === 0) return true;
-  if (!keysSet.has(key(0,0))) return false;
-  const adj = buildAdjMap(keysSet);
-  const start = key(0,0);
-  const seen = new Set([start]); const stack = [start];
-  while (stack.length){
-    const cur = stack.pop();
-    for (const nb of adj.get(cur)){
-      if (!seen.has(nb)) { seen.add(nb); stack.push(nb); }
-    }
-  }
-  return seen.size === keysSet.size;
-}
-function minDegreeAtLeast(keysSet, minDeg){
-  const adj = buildAdjMap(keysSet);
-  for (const [k, nb] of adj){
-    if (k === key(0,0)) continue; // allow center exemption if you want; but center will usually have many neighbors
-    if (nb.length < minDeg) return false;
-  }
-  return true;
-}
-/* articulation check: brute-force for small graph: removing one node and test connectivity */
-function hasNoArticulationExceptCenter(keysSet){
-  if (!isConnected(keysSet)) return false;
-  for (const k of keysSet){
-    if (k === key(0,0)) continue;
-    const copy = new Set(keysSet);
-    copy.delete(k);
-    if (!isConnected(copy)) return false;
-  }
-  return true;
-}
+		/* hole isolation rule:
+		For every removed cell (in fullSet but not in shape), it must not be surrounded by all 6 present tiles.
+		i.e., at least one of its 6 neighbors must also be missing or outside radius
+		*/
+		function noIsolatedHole(fullSet, shapeSet){
+		for (const k of fullSet){
+			if (shapeSet.has(k)) continue; // only examine holes
+			const {q,r} = unkey(k);
+			let neighborsPresent = 0;
+			for (const [nq,nr] of neighbors(q,r)){
+			const nk = key(nq,nr);
+			if (shapeSet.has(nk)) neighborsPresent++;
+			}
+			if (neighborsPresent === 6) return false; // isolated hole
+		}
+		return true;
+		}
 
-/* hole isolation rule:
-   For every removed cell (in fullSet but not in shape), it must not be surrounded by all 6 present tiles.
-   i.e., at least one of its 6 neighbors must also be missing or outside radius
-*/
-function noIsolatedHole(fullSet, shapeSet){
-  for (const k of fullSet){
-    if (shapeSet.has(k)) continue; // only examine holes
-    const {q,r} = unkey(k);
-    let neighborsPresent = 0;
-    for (const [nq,nr] of neighbors(q,r)){
-      const nk = key(nq,nr);
-      if (shapeSet.has(nk)) neighborsPresent++;
-    }
-    if (neighborsPresent === 6) return false; // isolated hole
-  }
-  return true;
-}
+		/* ========= Build candidate mirror pairs in rings 2 & 3 ========= */
+		function buildCandidatePairs(fullSet){
+		const candidates = [];
+		const blocked = new Set([key(0,0), ...ringKeys(1)]); // never remove center or ring1
+		const visited = new Set();
+		for (const k of fullSet){
+			if (blocked.has(k)) continue;
+			if (visited.has(k)) continue;
+			const {q,r} = unkey(k);
+			const mk = key(-q,-r);
+			if (!fullSet.has(mk)) continue; // safety
+			visited.add(k); visited.add(mk);
+			// canonical ordering to avoid duplicates: only add if k < mk lexicographically
+			if (k < mk) candidates.push([k,mk]);
+			else candidates.push([mk,k]); // still ensure unique pair
+		}
+		return candidates; // should be 15 pairs (since 30 removable tiles)
+		}
 
-/* ========= Build candidate mirror pairs in rings 2 & 3 ========= */
-function buildCandidatePairs(fullSet){
-  const candidates = [];
-  const blocked = new Set([key(0,0), ...ringKeys(1)]); // never remove center or ring1
-  const visited = new Set();
-  for (const k of fullSet){
-    if (blocked.has(k)) continue;
-    if (visited.has(k)) continue;
-    const {q,r} = unkey(k);
-    const mk = key(-q,-r);
-    if (!fullSet.has(mk)) continue; // safety
-    visited.add(k); visited.add(mk);
-    // canonical ordering to avoid duplicates: only add if k < mk lexicographically
-    if (k < mk) candidates.push([k,mk]);
-    else candidates.push([mk,k]); // still ensure unique pair
-  }
-  return candidates; // should be 15 pairs (since 30 removable tiles)
-}
-
-/* ====== Choose exactly removePairsNeeded mirror pairs such that final shape meets graph constraints ====== */
-function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded){
-  // backtracking choose subset of candidates size removePairsNeeded
-  // we try to prune aggressively: after partial selection, ensure current tentative shape has no vertex deg<2 (because removing more won't increase degree)
-  // and remains connected.
-  const totalPairs = candidates.length;
-
-  // Shuffle candidate order to vary results
-  shuffle(candidates);
-
-  const selected = [];
-  let result = null;
-  const targetRemovals = removePairsNeeded * 2;
-
-  function buildShapeFromSelected(selPairs){
-    const shape = new Set(fullSet);
-    for (const [a,b] of selPairs){
-      shape.delete(a); shape.delete(b);
-    }
-    return shape;
-  }
-
-  function pruneCheck(selPairs){
-    const shape = buildShapeFromSelected(selPairs);
-    // quick prune: if any non-center vertex already has degree < 2 -> cannot be fixed later
-    if (!minDegreeAtLeast(shape, 2)) return false;
-    // must remain connected at this partial stage as well
-    if (!isConnected(shape)) return false;
-    // hole-isolation check for currently removed holes:
-    // For any removed cell, if it's isolated (all 6 neighbors present in shape), it's a bad hole already (cannot be fixed)
-    const full = fullSet;
-    if (!noIsolatedHole(full, shape)) return false;
-    // OK so far
-    return true;
-  }
-
-  function backtrack(startIndex){
-    if (result) return true;
-    if (selected.length === removePairsNeeded){
-      // final shape
-      const finalShape = buildShapeFromSelected(selected);
-      if (finalShape.size !== (fullSet.size - targetRemovals)) return false;
-      // final checks: connectivity already checked earlier; do biconnectivity test (no articulation except center)
-      if (!hasNoArticulationExceptCenter(finalShape)) return false;
-      // final hole check
-      if (!noIsolatedHole(fullSet, finalShape)) return false;
-      result = finalShape;
-      return true;
-    }
-    // If not enough candidates left to fill slots -> prune
-    if (startIndex >= totalPairs) return false;
-    const need = removePairsNeeded - selected.length;
-    if (totalPairs - startIndex < need) return false;
-
-    for (let i = startIndex; i < totalPairs; i++){
-      selected.push(candidates[i]);
-      // prune
-      if (pruneCheck(selected)){
-        if (backtrack(i+1)) return true;
-      }
-      selected.pop();
-    }
-    return false;
-  }
-
-  if (backtrack(0)) return result;
-  return null;
-}
-
-/* ===== color assignment backtracking ===== */
-const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
-function assignColorsToShape(shapeSet, throneKey){
-  const nodes = [...shapeSet];
-  const adj = buildAdjMap(shapeSet);
-
-  // fixed assignments
-  const colorOf = new Map();
-  const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
-  colorOf.set(key(0,0), 'black'); counts.black--;
-  colorOf.set(throneKey, 'purple'); counts.purple--;
-
-  // sort nodes by degree descending, but ensure center and throne excluded
-  const toColor = nodes.filter(n => n !== key(0,0) && n !== throneKey)
-                       .sort((a,b) => adj.get(b).length - adj.get(a).length);
-
-  function backtrack(i){
-    if (i >= toColor.length) return true;
-    const node = toColor[i];
-    const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
-    // try colors with remaining counts and not used by adjacent
-    const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
-    // randomize order a bit to generate varied layouts
-    shuffle(choices);
-    for (const c of choices){
-      colorOf.set(node, c);
-      counts[c]--;
-      // early neighbor-same-color constraint satisfied by used set already
-      // Also quick feasibility: ensure remainings counts can fill remaining nodes (trivial here)
-      if (backtrack(i+1)) return true;
-      counts[c]++; colorOf.delete(node);
-    }
-    return false;
-  }
-
-  return backtrack(0) ? colorOf : null;
-}
-
-/* ===== mapping room strings to positions (preserve Throne and Black Rose exactly) ===== */
-function mapRoomsToPositions(colorMap, throneKey){
-  // parse rooms[] into pools
-  const pools = {}; // color -> array of names
-  for (const s of rooms){
-    const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
-    if (!pools[colorRaw]) pools[colorRaw] = [];
-    pools[colorRaw].push(nameRaw);
-  }
-  // ensure Black Rose Room assigned to center
-  const roomByPos = new Map();
-  // center:
-  const centerList = pools['black'] || [];
-  const brIndex = centerList.findIndex(n => n.endsWith("#1"));
-  if (brIndex === -1) throw new Error("Black Rose Room missing from rooms[]");
-  const blackName = centerList.splice(brIndex,1)[0];
-  roomByPos.set(key(0,0), {name: blackName, color:'black'});
-
-  // throne:
-  const thronePool = pools['purple'] || [];
-  const throneIndex = thronePool.findIndex(n => n.endsWith("#2"));
-  if (throneIndex === -1) throw new Error("Throne Room|purple missing from rooms[]");
-  const throneName = thronePool.splice(throneIndex,1)[0];
-  roomByPos.set(throneKey, {name: throneName, color:'purple'});
-
-  // now for remaining colorMap positions, distribute randomly from pools
-  // build list of positions (excluding center and throne)
-  const remainingPositions = [...colorMap.keys()].filter(k => k !== key(0,0) && k !== throneKey);
-  shuffle(remainingPositions);
-
-  // shuffle pools
-  for (const c of Object.keys(pools)) shuffle(pools[c]);
-
-  for (const pos of remainingPositions){
-    const color = colorMap.get(pos);
-    if (!pools[color] || pools[color].length === 0) {
-      throw new Error(`Not enough rooms available for color ${color} while mapping.`);
-    }
-    const name = pools[color].pop();
-    roomByPos.set(pos, {name, color});
-  }
-  return roomByPos;
-}
-
-/* ===== Main generator that ties everything together ===== */
-function generateValidLodge(){
-  var rendered = false;
-  var shape;
-  var fullSet;
-  var candidates;
-  var removePairsNeeded;
-  
-  while(!rendered) {
-    
-    fullSet = buildFullSet(); // 37 keys
-    candidates = buildCandidatePairs(fullSet); // ~15 pairs
-    removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
-
-  // Try candidate combinations; search returns a shapeSet or null
-    shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded);
-  if (shape) rendered =true;//throw new Error("Failed to find a symmetric removal combination that satisfies graph constraints.");
-  }
-  
-  // Choose random throne key from ring 1 (central ring intact)
-  const ring1 = ringKeys(1);
-  const throneKey = ring1[Math.floor(Math.random()*ring1.length)];
-
-  // ensure throneKey is present in shape (ring1 is never removed, so yes)
-  if (!shape.has(throneKey)) throw new Error("Chosen throneKey missing from shape — shouldn't happen.");
-
-  // Now assign colors to shape (backtracking)
-  const colorMap = assignColorsToShape(shape, throneKey);
-  if (!colorMap) throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
-
-  // map room names to positions (ensuring black and throne rooms placed exactly)
-  const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
-  return { fullSet, shape, colorMap, roomPositionMap, throneKey };
-}
-
-/* ======== Rendering ======= */
-var board = document.getElementById('board');
-
-function renderLodge(lodge){
-  	board = document.getElementById("board");
-	if(board == null) return;
-	
-  	board.innerHTML = '';
-
-	const refreshBtn = document.createElement("button");
-    refreshBtn.textContent = "🔄 Refresh Board";
-    refreshBtn.style.marginTop = "10px";
-    refreshBtn.onclick = () => createAndRender();
-    board.appendChild(refreshBtn);
-	
-  	const {fullSet, shape, roomPositionMap, throneKey} = lodge;
-
-  // compute pixel positions and bounding box
-  const pts = [...fullSet].map(k => {
-    const {q,r} = unkey(k);
-    const p = axialToPixel(q,r);
-    return {k, q, r, x:p.x, y:p.y};
-  });
-  const minX = Math.min(...pts.map(p => p.x));
-  const maxX = Math.max(...pts.map(p => p.x));
-  const minY = Math.min(...pts.map(p => p.y));
-  const maxY = Math.max(...pts.map(p => p.y));
-
-  const groupW = (maxX - minX) + HEX_W;
-  const groupH = (maxY - minY) + HEX_H;
-  const offsetX = (board.clientWidth - groupW)/2 - minX;
-  const offsetY = (board.clientHeight - groupH)/2 - minY;
-
-  for (const p of pts){
-    const posKey = p.k;
-    const room = roomPositionMap.get(posKey);
-    const div = document.createElement('div');
-
-    if(room) {
-    div.className = `hex ${room.color}` + (posKey === throneKey ? ' throne' : '');
-    div.style.left = `${Math.round(p.x + offsetX)}px`;
-    div.style.top  = `${Math.round(p.y + offsetY)}px`;
-    const lbl = document.createElement('div');
-    lbl.className = 'label';
-    lbl.textContent = room.name.includes("#") ? room.name.split("#")[0] : room.name;
-    div.appendChild(lbl);
-    board.appendChild(div);
-    } else {
-      //alert("Loop: ");
-        if (axialDistance({q:p.q,r:p.r},{q:0,r:0}) === 3) {
-
-          let neighborsPresent = 0;
-          for (const [nq,nr] of neighbors(p.q,p.r)){
-            const nk = key(nq,nr);
-            if (roomPositionMap.has(nk)) neighborsPresent++;
-          }
-
-          if(neighborsPresent>=2) {  
-            
-            div.style.left = `${Math.round(p.x + offsetX)}px`;
-            div.style.top  = `${Math.round(p.y + offsetY)}px`;
-            div.className = 'hex empty';
-            const lbl = document.createElement('div');
-            lbl.className = 'label';
-            lbl.textContent = 'X';
-            div.appendChild(lbl);
-            board.appendChild(div);
-          }
-        }
-    }
-  }
-}
-
-/* ===== randomize helper ===== */
-function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-
-/* ===== initial render & regen button ===== */
-function createAndRender(){
-  try {
-    const lodge = generateValidLodge();
-    renderLodge(lodge);  
-  } catch (e) {
-    alert("Show Lodge module error: " + e.message);
-    console.error(e);
-  }
-}
+		/* ====== Choose exactly removePairsNeeded mirror pairs such that final shape meets graph constraints ====== */
+		function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge){
+		// backtracking choose subset of candidates size removePairsNeeded
+		// we try to prune aggressively: after partial selection, ensure current tentative shape has no vertex deg<2 (because removing more won't increase degree)
+		// and remains connected.
 		
-// document.getElementById('regen').addEventListener('click', createAndRender);
-// createAndRender();
-
-  // Track toggle state
-  const toggleState = { rebirth: false, brw: false };
-
-  function toggleGroup(group) {
-    let checkboxes;
-
-    if (group === 'rebirth') {
-      // Rebirth = IDs starting with BRW-R-
-      checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-R-']");
-    } else if (group === 'brw') {
-      // BRW = IDs starting with BRW- but NOT BRW-R- and NOT BRW-REV
-      checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-']:not([id^='BRW-R-']):not([id^='BRW-REV']):not([id^='BRW-REB']):not([id^='BRW-DISCORD'])");
-    }
-
-    toggleState[group] = !toggleState[group]; // flip state
-    checkboxes.forEach(cb => cb.checked = toggleState[group]);
-  }	
+		// Only allow removal of pairs where both are at distance 3 from center
 		
+			if(buildStandardLodge == true) {
+				candidates = candidates.filter(([a, b]) => {
+				const qa = unkey(a), qb = unkey(b);
+				return axialDistance(qa, {q:0, r:0}) === 3 && axialDistance(qb, {q:0, r:0}) === 3;
+			});
+			}
+		
+		const totalPairs = candidates.length;
+
+		// Shuffle candidate order to vary results
+		shuffle(candidates);
+
+		const selected = [];
+		let result = null;
+		const targetRemovals = removePairsNeeded * 2;
+
+		function buildShapeFromSelected(selPairs){
+			const shape = new Set(fullSet);
+			for (const [a,b] of selPairs){
+			shape.delete(a); shape.delete(b);
+			}
+			return shape;
+		}
+
+		function pruneCheck(selPairs){
+			const shape = buildShapeFromSelected(selPairs);
+			// quick prune: if any non-center vertex already has degree < 2 -> cannot be fixed later
+			if (!minDegreeAtLeast(shape, 2)) return false;
+			// must remain connected at this partial stage as well
+			if (!isConnected(shape)) return false;
+			// hole-isolation check for currently removed holes:
+			// For any removed cell, if it's isolated (all 6 neighbors present in shape), it's a bad hole already (cannot be fixed)
+			const full = fullSet;
+			if (!noIsolatedHole(full, shape)) return false;
+			// OK so far
+			return true;
+		}
+
+		function backtrack(startIndex){
+			if (result) return true;
+			if (selected.length === removePairsNeeded){
+			// final shape
+			const finalShape = buildShapeFromSelected(selected);
+			if (finalShape.size !== (fullSet.size - targetRemovals)) return false;
+			// final checks: connectivity already checked earlier; do biconnectivity test (no articulation except center)
+			if (!hasNoArticulationExceptCenter(finalShape)) return false;
+			// final hole check
+			if (!noIsolatedHole(fullSet, finalShape)) return false;
+			result = finalShape;
+			return true;
+			}
+			// If not enough candidates left to fill slots -> prune
+			if (startIndex >= totalPairs) return false;
+			const need = removePairsNeeded - selected.length;
+			if (totalPairs - startIndex < need) return false;
+
+			for (let i = startIndex; i < totalPairs; i++){
+			selected.push(candidates[i]);
+			// prune
+			if (pruneCheck(selected)){
+				if (backtrack(i+1)) return true;
+			}
+			selected.pop();
+			}
+			return false;
+		}
+
+		if (backtrack(0)) return result;
+		return null;
+		}
+
+		/* ===== color assignment backtracking ===== */
+		const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+		function assignColorsToShape(shapeSet, throneKey){
+		const nodes = [...shapeSet];
+		const adj = buildAdjMap(shapeSet);
+
+		// fixed assignments
+		const colorOf = new Map();
+		const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+		colorOf.set(key(0,0), 'black'); counts.black--;
+		colorOf.set(throneKey, 'purple'); counts.purple--;
+
+		// sort nodes by degree descending, but ensure center and throne excluded
+		const toColor = nodes.filter(n => n !== key(0,0) && n !== throneKey)
+							.sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+		function backtrack(i){
+			if (i >= toColor.length) return true;
+			const node = toColor[i];
+			const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+			// try colors with remaining counts and not used by adjacent
+			const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+			// randomize order a bit to generate varied layouts
+			shuffle(choices);
+			for (const c of choices){
+			colorOf.set(node, c);
+			counts[c]--;
+			// early neighbor-same-color constraint satisfied by used set already
+			// Also quick feasibility: ensure remainings counts can fill remaining nodes (trivial here)
+			if (backtrack(i+1)) return true;
+			counts[c]++; colorOf.delete(node);
+			}
+			return false;
+		}
+
+		return backtrack(0) ? colorOf : null;
+		}
+
+		/* ===== mapping room strings to positions (preserve Throne and Black Rose exactly) ===== */
+		function mapRoomsToPositions(colorMap, throneKey){
+		// parse rooms[] into pools
+		const pools = {}; // color -> array of names
+		for (const s of rooms){
+			const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
+			if (!pools[colorRaw]) pools[colorRaw] = [];
+			pools[colorRaw].push(nameRaw);
+		}
+		// ensure Black Rose Room assigned to center
+		const roomByPos = new Map();
+		// center:
+		const centerList = pools['black'] || [];
+		const brIndex = centerList.findIndex(n => n.endsWith("#1"));
+		if (brIndex === -1) throw new Error("Black Rose Room missing from rooms[]");
+		const blackName = centerList.splice(brIndex,1)[0];
+		roomByPos.set(key(0,0), {name: blackName, color:'black'});
+
+		// throne:
+		const thronePool = pools['purple'] || [];
+		const throneIndex = thronePool.findIndex(n => n.endsWith("#2"));
+		if (throneIndex === -1) throw new Error("Throne Room|purple missing from rooms[]");
+		const throneName = thronePool.splice(throneIndex,1)[0];
+		roomByPos.set(throneKey, {name: throneName, color:'purple'});
+
+		// now for remaining colorMap positions, distribute randomly from pools
+		// build list of positions (excluding center and throne)
+		const remainingPositions = [...colorMap.keys()].filter(k => k !== key(0,0) && k !== throneKey);
+		shuffle(remainingPositions);
+
+		// shuffle pools
+		for (const c of Object.keys(pools)) shuffle(pools[c]);
+
+		for (const pos of remainingPositions){
+			const color = colorMap.get(pos);
+			if (!pools[color] || pools[color].length === 0) {
+			throw new Error(`Not enough rooms available for color ${color} while mapping.`);
+			}
+			const name = pools[color].pop();
+			roomByPos.set(pos, {name, color});
+		}
+		return roomByPos;
+		}
+
+		/* ===== Main generator that ties everything together ===== */
+		function generateValidLodge(buildStandardLodge){
+		var rendered = false;
+		var shape;
+		var fullSet;
+		var candidates;
+		var removePairsNeeded;
+		
+		while(!rendered) {
+			
+			fullSet = buildFullSet(); // 37 keys
+			candidates = buildCandidatePairs(fullSet); // ~15 pairs
+			removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+
+		// Try candidate combinations; search returns a shapeSet or null
+			shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge);
+		if (shape) rendered =true;//throw new Error("Failed to find a symmetric removal combination that satisfies graph constraints.");
+		}
+		
+		// Choose random throne key from ring 1 (central ring intact)
+		const ring1 = ringKeys(1);
+		const throneKey = ring1[Math.floor(Math.random()*ring1.length)];
+
+		// ensure throneKey is present in shape (ring1 is never removed, so yes)
+		if (!shape.has(throneKey)) throw new Error("Chosen throneKey missing from shape — shouldn't happen.");
+
+		// Now assign colors to shape (backtracking)
+		const colorMap = assignColorsToShape(shape, throneKey);
+		if (!colorMap) throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
+
+		// map room names to positions (ensuring black and throne rooms placed exactly)
+		const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
+		return { fullSet, shape, colorMap, roomPositionMap, throneKey };
+		}
+
+		/* ======== Rendering ======= */
+		var board = document.getElementById('board');
+
+		function renderLodge(lodge){
+			board = document.getElementById("board");
+			if(board == null) return;
+			
+			board.innerHTML = '';
+
+			const refreshBtn = document.createElement("button");
+			refreshBtn.textContent = "🔄 Refresh";
+			refreshBtn.style.marginTop = "10px";
+			refreshBtn.onclick = () => createAndRender();
+			board.appendChild(refreshBtn);
+			
+			const {fullSet, shape, roomPositionMap, throneKey} = lodge;
+
+		// compute pixel positions and bounding box
+		const pts = [...fullSet].map(k => {
+			const {q,r} = unkey(k);
+			const p = axialToPixel(q,r);
+			return {k, q, r, x:p.x, y:p.y};
+		});
+		const minX = Math.min(...pts.map(p => p.x));
+		const maxX = Math.max(...pts.map(p => p.x));
+		const minY = Math.min(...pts.map(p => p.y));
+		const maxY = Math.max(...pts.map(p => p.y));
+
+		const groupW = (maxX - minX) + HEX_W;
+		const groupH = (maxY - minY) + HEX_H;
+		const offsetX = (board.clientWidth - groupW)/2 - minX;
+		const offsetY = (board.clientHeight - groupH)/2 - minY;
+
+		for (const p of pts){
+			const posKey = p.k;
+			const room = roomPositionMap.get(posKey);
+			const div = document.createElement('div');
+
+			if(room) {
+				div.className = `hex ${room.color}` + (posKey === throneKey ? ' throne' : '');
+				div.style.left = `${Math.round(p.x + offsetX)}px`;
+				div.style.top  = `${Math.round(p.y + offsetY)}px`;
+				const lbl = document.createElement('div');
+				lbl.className = 'label';
+				lbl.textContent = room.name.includes("#") ? room.name.split("#")[0] : room.name;
+				div.appendChild(lbl);
+				board.appendChild(div);
+			} else {
+				// Set potential cell positions
+				if (axialDistance({q:p.q,r:p.r},{q:0,r:0}) === 3) {
+
+				let neighborsPresent = 0;
+				for (const [nq,nr] of neighbors(p.q,p.r)){
+					const nk = key(nq,nr);
+					if (roomPositionMap.has(nk)) neighborsPresent++;
+				}
+
+				if(neighborsPresent>=2) {  
+					
+					div.style.left = `${Math.round(p.x + offsetX)}px`;
+					div.style.top  = `${Math.round(p.y + offsetY)}px`;
+					div.className = 'hex empty';
+					const lbl = document.createElement('div');
+					lbl.className = 'label';
+					lbl.textContent = 'X';
+					div.appendChild(lbl);
+					board.appendChild(div);
+				}
+				}
+			}
+		}
+		}
+
+		/* ===== randomize helper ===== */
+		function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+		/* ===== initial render & regen button ===== */
+		function createAndRender(){
+		try {
+			// standardLodge
+			const lodge = generateValidLodge(standardLodge);
+			renderLodge(lodge);  
+		} catch (e) {
+			alert("Show Lodge module error: " + e.message);
+			console.error(e);
+		}
+		}
+				
+		// document.getElementById('regen').addEventListener('click', createAndRender);
+		// createAndRender();
+
+		// Track toggle state
+		const toggleState = { rebirth: false, brw: false };
+
+		function toggleGroup(group) {
+			let checkboxes;
+
+			if (group === 'rebirth') {
+			// Rebirth = IDs starting with BRW-R-
+			checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-R-']");
+			} else if (group === 'brw') {
+			// BRW = IDs starting with BRW- but NOT BRW-R- and NOT BRW-REV
+			checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-']:not([id^='BRW-R-']):not([id^='BRW-REV']):not([id^='BRW-REB']):not([id^='BRW-DISCORD'])");
+			}
+
+			toggleState[group] = !toggleState[group]; // flip state
+			checkboxes.forEach(cb => cb.checked = toggleState[group]);
+
+			updateScenarioDropdown()
+		}	
+		
+
+		// Attach event listeners to all checkboxes to update scenario drop down
+		window.addEventListener('DOMContentLoaded', function() {
+			updateScenarioDropdown();
+			// Only add event listeners to checkboxes before SCHOOL
+			let foundSchool = false;
+			document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+				if (cb.value === "SCHOOL") foundSchool = true;
+				if (!foundSchool) {
+					cb.addEventListener('change', updateScenarioDropdown);
+				}
+			});
+
+			// Add event listener to scenario dropdown
+			const select = document.getElementById('scenario-select');
+			if (select) {
+				select.addEventListener('change', function() {
+					const scenarioCheckbox = document.getElementById('SCENARIO');
+					if (scenarioCheckbox && !scenarioCheckbox.checked) {
+						scenarioCheckbox.checked = true;
+					}
+				});
+			}
+		});
+
+		function updateScenarioDropdown() {
+			const select = document.getElementById('scenario-select');
+			if (!select) return;
+
+			// Get checked box values
+			const checked = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+
+			// Clear dropdown
+			select.innerHTML = '<option value="">(Random scenario)</option>';
+
+			// Add matching scenarios
+			for (let i = 0; i < allscenarios.length; i++) {
+				const parts = allscenarios[i].split('|');
+				if (parts.length < 2) continue;
+				const afterPipe = parts[1].trim();
+				const firstWord = afterPipe.split(' ')[0];
+				const secondWord = afterPipe.substring(afterPipe.indexOf(" ") +1);
+
+				if (afterPipe.split(" ")[0] === '*' || checked.includes(firstWord)) {
+					// Show scenario
+					const name = allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1).split(" - ")[0].trim();
+					const ext = secondWord;
+					const val = allscenarios[i].split('|')[0].trim();
+					const opt = document.createElement('option');
+					opt.value = val;
+					opt.textContent = ext + " - " + name;
+					select.appendChild(opt);
+				}
+			}
+		}
     </script>
+
+
+
 
     <body onload="ruleTip()">
 		
@@ -1974,7 +2155,10 @@ function createAndRender(){
 		<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages</label> &nbsp;&nbsp;
 		<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge</label> &nbsp;&nbsp;
 		<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR"><label for="AVATAR"> Avatar</label>
-		<!-- <br><b>Play a generated Scenario:</b></label> <input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO"><label for="SCENARIO"> -->
+		<br><b>Play a generated Scenario:</b></label> <input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO"><label for="SCENARIO">&nbsp;&nbsp;-&gt;
+		<select id="scenario-select" style="margin-left:10px;">
+  			<option value="">(Random scenario)</option>
+		</select>
 
     	<p>
         <button onclick="displayLibrary();">Amaze me!</button><p>		
