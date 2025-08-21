@@ -317,7 +317,7 @@
 
 		const allscenarios=[
 			"1|* General|Cologne, Germany - You never know|<ul><li>None.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li></ul>|<ul><li>None.</li></ul>|*",
-			"2|BRW-R-ROTAS Rebirth ROTAS|Gizeh, Egypt - The Curse of the Tomb|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77). Schools: (9,7). Mages: (8,9).</ul>|<ul><li>Whenever the Moon Phase changes and the Defender of the Lodge is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the Defender of the Lodge is activated.</li><li>When the Defender of the Lodge is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the Defender of the Lodge, they gain 2pp or draw two cards from their Grimoire.</li></ul>|*",
+			"2|BRW-R-ROTAS Rebirth ROTAS|Gizeh, Egypt - The Curse of the Tomb|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77). Schools: (9,7). Mages: (8,9). Avatars: (9,-10).</ul>|<ul><li>Whenever the Moon Phase changes and the Defender of the Lodge is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the Defender of the Lodge is activated.</li><li>When the Defender of the Lodge is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the Defender of the Lodge, they gain 2pp or draw two cards from their Grimoire.</li></ul>|*",
 			"3|BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|<ul><li>13 Black Rose Power Cards.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.(lodge=standard)</li>Rooms: (62,125). Schools: (29,32,35).<li><b>Draft the Black Rose Power Cards:</b> Each player draws 2 Power Cards from the deck and chooses one and passes the other to the player on his left. Before starting the game each player must reveal a Power Card. The second Power Card will be revealed once you reach the second Moon.</ul>|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
 		];
 
@@ -727,6 +727,8 @@
 		var keepRooms = [];
 		var keepSchools = [];
 		var keepMages = [];
+		var keepAvatars = [];
+		var rejectAvatars = [];
 		
   		clearErrors();	
 		try { 
@@ -875,6 +877,9 @@
 					sSetup = sSetup.replace(/Mages:\s*\([^)]*\)/, `<li><b>Fixed Mages:</b> ${collMages}`);
 				}
 
+				// Find enforced/rejected Avatars
+				sSetup = processTemplatedList(sSetup,"Avatars:", "Fixed Avatars:", allAvatars, keepAvatars) ;
+				
 				// Honorable Mention
 				honmenHTML = "<p><b>Honorable Mention:</b></p>";
 				if(sHonMen=="*") {
@@ -1392,6 +1397,91 @@
 		}	
 	}
 
+		
+/**
+ * Processes a setup string to identify a templated list (e.g., "Keyword: (item1, item2)"),
+ * extracts the items, pushes their display names to a target array, and replaces the section
+ * in the setup string with a formatted list of these display names.
+ *
+ * @param {string} sSetup - The input string containing setup details.
+ * @param {string} keyword - The leading keyword to identify the section (e.g., "Avatars: ").
+ *                           The function expects this keyword to be immediately followed by a parenthesis `(`.
+ * @param {string} outputPrefix - The prefix for the formatted output (e.g., "Fixed Avatars:").
+ * @param {Array<Object>} dataCollection - The collection (e.g., an array of objects) used by `getArrayById`
+ *                                       to fetch item details.
+ * @param {Array<string>} targetArray - The array that will be populated with the *display names* of the processed items.
+ *                                   This array is modified directly by the function (passed by reference).
+ * @returns {string} The modified `sSetup` string.
+ *
+ * @global {function(string, Array<Object>): string} getArrayById - Assumes an external function
+ *         `getArrayById(id, collection)` exists and is accessible. It should return a string
+ *         like "ID: Name" or just "Name". The function will attempt to extract the "Name" part
+ *         (the part after the first ": ").
+ */
+function processTemplatedList(
+    sSetup,
+    keyword,
+    outputPrefix,
+    dataCollection,
+    targetArray
+) {
+    // Ensure the targetArray is indeed an array to prevent runtime errors.
+    if (!Array.isArray(targetArray)) {
+        throw new Error("Error: 'targetArray' must be an array for 'processTemplatedList' function.");
+    }
+
+    // Construct a regular expression dynamically based on the provided keyword.
+    // It looks for the keyword, followed by optional whitespace, then an opening parenthesis,
+    // captures everything inside the parentheses (non-greedy), and then expects a closing parenthesis.
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters in the keyword
+    const regex = new RegExp(`${escapedKeyword}\\s*\\(([^)]*)\\)`);
+    
+    // Attempt to find a match in the input string.
+    const match = sSetup.match(regex);
+
+    // If a match is found and the captured content inside parentheses is not undefined
+    if (match && match[1] !== undefined) {
+        const rawIdsString = match[1]; // Get the raw content inside the parentheses (e.g., "id1, id2")
+        
+        // Split the raw IDs string by comma and trim whitespace from each resulting ID.
+        const parsedIds = rawIdsString.split(",").map(s => s.trim());
+        let collectedDisplayNames = ""; // Accumulator for the formatted display names
+
+        // Iterate over each parsed ID.
+        for (let i = 0; i < parsedIds.length; i++) {
+            const currentId = parsedIds[i];
+
+            // Call the external `getArrayById` function to retrieve the data associated with the current ID.
+            // This function is assumed to be defined globally or accessible in the current scope.
+            const objLine = getArrayById(currentId, dataCollection);
+
+            // Extract the display name from the `objLine` string returned by `getArrayById`.
+            // It assumes a format like "ID: Name" and extracts "Name", or uses the whole string if no colon is present.
+            const displayName = objLine.includes(":") ? objLine.split(": ")[1].trim() : objLine.trim();
+
+            // Push the extracted display name to the targetArray.
+            targetArray.push(displayName);
+
+            // Append the extracted display name to the collection string for the output.
+            collectedDisplayNames += displayName;
+
+            // Add a comma and space separator if it's not the last item in the list.
+            if (i < parsedIds.length - 1) {
+                collectedDisplayNames += ", ";
+            }
+        }
+
+        // Replace the original matched section (e.g., "Avatars: (id1, id2)") in `sSetup`
+        // with the new, formatted string including the `outputPrefix` and collected display names.
+        // `match[0]` contains the entire matched substring.
+        sSetup = sSetup.replace(match[0], `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
+    }
+
+    // Return the potentially modified setup string.
+    return sSetup;
+}
+
+		
 		function ruleTip() {
 			var libraryHTML = "";
 
