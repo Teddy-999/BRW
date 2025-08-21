@@ -1431,7 +1431,8 @@
 				libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
 				libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
 				libraryHTML += '</div><p>';
-				libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
+				libraryHTML += '<div style="padding-left: 20px;">';	
+				libraryHTML += "<b>Additional Components:</b></p><p>" + sComp + "</p>";
 				libraryHTML += "<b>Special Setup:</b>";
 				libraryHTML += sSetup;
 				libraryHTML += "<ul>";
@@ -1439,16 +1440,18 @@
 				libraryHTML += "<li><b>Start Player:</b> " + playerHTML;
 				libraryHTML += "<li><b>Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<br>" + mageHTML;
 				libraryHTML += "</ul>";
+				libraryHTML += '</div><p>';
 
 				libraryHTML += '<div style="padding-left: 20px;">';
 				libraryHTML += schoolHTML;
 				libraryHTML += lodgeHTML;
-				libraryHTML += '<p>';
+				libraryHTML += '</div><p>';
 				//libraryHTML += '</div><p>';
 				//libraryHTML += "<div class='board' id='board'></div>";
-				
+				libraryHTML += '<div style="padding-left: 20px;">';	
 				libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 				libraryHTML += honmenHTML;
+				libraryHTML += '</div><p>';
 			} else {
 				standardLodge=true;
 				
