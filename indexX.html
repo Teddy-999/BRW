@@ -1515,11 +1515,35 @@ function processTemplatedList(
 
             // Extract the display name from the `objLine` string (content after the first '|').
             // If no '|' is found, use the whole line as the display name.
-            let displayName = objLine.includes("|") ? objLine.split("|")[1].trim() : objLine.trim();
+            let displayName = "";
+            const colonIndex = objLine.indexOf(':');
 
+            if (colonIndex >= 0) {
+                // Get the part of the string after the first colon.
+                let partAfterColon = objLine.substring(colonIndex + 1).trim();
+                
+                // Check for " - " in the part after the colon.
+                const dashIndex = partAfterColon.indexOf(" - ");
+                
+                if (dashIndex >= 0) {
+                    // If " - " exists, take only up to that point.
+                    displayName = partAfterColon.substring(0, dashIndex).trim();
+                } else {
+                    // Otherwise, take the entire part after the colon.
+                    displayName = partAfterColon;
+                }
+            } else {
+                // Fallback: If no colon is found, use the whole line (trimmed).
+                // This might indicate an unexpected format from getArrayById.
+                displayName = objLine.trim();
+            }
+			
             // Prefix rejected names for the output string
             if (isRejected) {
                 displayName = `Do not use! ${displayName}`; // Changed prefix
+				rejectIdArray.push(actualId);
+			} else {
+				keepIdArray.push(actualId);
             }
 
             // Append the extracted display name to the collection string for the output.
@@ -1532,7 +1556,8 @@ function processTemplatedList(
         }
 
         // Replace the original matched section with the new, formatted string.
-        sSetup = sSetup.replace(match[0], `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
+        sSetup = sSetup.replace(match[0], `${outputPrefix}</b> ${collectedDisplayNames}`);
+		// sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
     }
 
     // Return the potentially modified setup string.
