@@ -316,10 +316,29 @@
 		];
 
 		const allscenarios=[
-			"1|* General|Cologne, Germany - You never know|<ul><li>None.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li></ul>|<ul><li>None.</li></ul>|*",
-			"2|BRW-R-ROTAS Rebirth ROTAS|Gizeh, Egypt - The Curse of the Tomb|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77) Schools: (9,7) Mages: (8,9) Avatars: (-10)</ul>|<ul><li>Whenever the Moon Phase changes and the Defender of the Lodge is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the Defender of the Lodge is activated.</li><li>When the Defender of the Lodge is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the Defender of the Lodge, they gain 2pp or draw two cards from their Grimoire.</li><li>Anubis cannot be chosen as Avatar when playing this scenario.</li></ul>|*",
-			"3|BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|<ul><li>13 Black Rose Power Cards.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.(lodge=standard)</li>Rooms: (62,125). Schools: (29,32,35).<li><b>Draft the Black Rose Power Cards:</b> Each player draws 2 Power Cards from the deck and chooses one and passes the other to the player on his left. Before starting the game each player must reveal a Power Card. The second Power Card will be revealed once you reach the second Moon.</ul>|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
-		];
+			`1|* General|Cologne, Germany - You never know
+			|<ul><li>None.</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li></ul>
+			|<ul><li>None.</li></ul>
+			|*",
+			`2|BRW-R-ROTAS Rebirth ROTAS|Gizeh, Egypt - The Curse of the Tomb
+			|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77) Schools: (9,7) Mages: (8,9) Avatars: (-10)</ul>
+			|<ul><li>Whenever the Moon Phase changes and the Defender of the Lodge is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the Defender of the Lodge is activated.</li><li>When the Defender of the Lodge is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the Defender of the Lodge, they gain 2pp or draw two cards from their Grimoire.</li><li>Anubis cannot be chosen as Avatar when playing this scenario.</li></ul>
+			|*",
+			`3|BRW-SATOR BRW SATOR|Plymouth, England - The Shattered Rose|<ul><li>13 Black Rose Power Cards.</li></ul>|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.(lodge=standard)</li>Rooms: (62,125) Schools: (29,32,35)<li><b>Draft the Black Rose Power Cards:</b> Each player draws 2 Power Cards from the deck and chooses one and passes the other to the player on his left. Before starting the game each player must reveal a Power Card. The second Power Card will be revealed once you reach the second Moon.</ul>|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>|*",
+			`4|BRW-R-CORE,DUEL-VOID Rebirth Core & Duel Void|Atlantis, Mediterranean - Neptun Temple
+			|<ul><li>3 Atlantean Relics (use any token you have available, preferrably a blue item).</li><li>A six-sided die (1d6).</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge. Place one Atlantean Relic in each blue Room.</li>Rooms: (4,14,34,58,79,100,121) Schools: (18) Mages: (29,30)</ul>
+			|<ul><li>When a Mage activates a room containing an Atlantean Relic and they do not hold a Relic, they may in claim it before the activation.</li>
+				<li>A Mage holding a Relic can place the Relic in a blue room without Relic before or after one of their actions. If they do, they roll 1d6.<br><b>On 1-2: Abyssal Cataclysm</b> - They deal 2 damage to every adjacent Room.<br><b>On 3-4: Roar of the Deep</b> - They summon a Dagon in their Room.It activates. It activates.<br><b>On 5-6: Neptune's Favor</b> - They heal 3 damage, draw a card and gain 1pp.</li>
+				<li>When a Mage holding an Atlantean Relic is defeated, the Mage gaining the Trophy also claim the Relic. If they already hold a Relic, instead they gain 2pp and must place the Relic in a blue room without Relic.</li>
+				<li>When a Mage holds an Atlantean Relic during the Clean-up Phase, they gain 2pp and must place the Relic in a blue room without Relic.</li>
+				<li><b>Rising Tide:</b> When the Moon Phase changes to Second Moon, all Mages must move 1 Room closer to the Deep Black Rose Room. The Black Rose inflicts 2 damage to them. The Black Rose steals 1pp from each of them. All mages holding a Relic ignore these effects.</li>
+				<li><b>Neptune’s Wrath:</b> When the Moon Phase changes to Third Moon, all Mages must move 2 Rooms closer to the Deep Black Rose Room. The Black Rose inflicts 3 damage to them. Each Mage must choose and discard a Ready Spell from their Mage Sheet. All mages holding a Relic ignore these effects.</li>
+				</ul>
+			|*`,
+			];
 
 		var allhonmen=[		
 			"* General|2 pp - Forbidden Madness: At the end of the game, you have a Forgotten Spell in your hand.|",
@@ -773,10 +792,14 @@
 				for (let i = 0; i < allscenarios.length; i++) {
 					if( allscenarios[i].split("|")[1].split(" ")[0] == "*" ) {
 							scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
-					}
-					for (let j = 0; j < checkboxes.length; j++) {
-						if( allscenarios[i].split("|")[1].split(" ")[0] == checkboxes[j].value ) {
-							scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
+					} else {
+						for (let j = 0; j < checkboxes.length; j++) {
+							const boxes = allscenarios[i].split("|")[1].split(" ")[0]+",";
+							const check = checkboxes[j].value + ","
+							if( boxes.split(",").includes(check) ) {
+								scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
+								break; // break inner loop to avoid duplicates
+							}
 						}
 					}
 				}
@@ -1243,7 +1266,7 @@
 				if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");
 
 				lodgeHTML = '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Rooms<span class="toggle-indicator">−</span></div><div class="table-body">';
-				lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr></thead>";
+				lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=385>ROOM</th><th align=left width=220>SETUP</th></tr></thead>";
 
 				// Fill rooms for the rendering component
 				rooms.length = 0;
@@ -1302,45 +1325,45 @@
 				}
 */
 				
-        // Loop through all available avatars.
-        for (let i = 0; i < allavatars.length; i++) {
-            const avatarFullString = allavatars[i];
+				// Loop through all available avatars.
+				for (let i = 0; i < allavatars.length; i++) {
+					const avatarFullString = allavatars[i];
 
-            // 1. Extract the TRUE_ID (the part before the first '|').
-            // This is the ID that will be checked against the `rejectAvatars` list.
-            const trueAvatarId = avatarFullString.split("|")[0];
+					// 1. Extract the TRUE_ID (the part before the first '|').
+					// This is the ID that will be checked against the `rejectAvatars` list.
+					const trueAvatarId = avatarFullString.split("|")[0];
 
-            // 2. Extract the "first word after the first |".
-            // This is the value that is compared with `checkboxes[j].value`.
-            // Example: if avatarFullString is "ava1|Warrior Name: Description",
-            // split(" ") -> ["ava1|Warrior", "Name:", "Description"]
-            // [0] -> "ava1|Warrior"
-            // split("|") -> ["ava1", "Warrior"]
-            // [1] -> "Warrior"
-            const matchingValueFromAvatarString = avatarFullString.split(" ")[0].split("|")[1];
+					// 2. Extract the "first word after the first |".
+					// This is the value that is compared with `checkboxes[j].value`.
+					// Example: if avatarFullString is "ava1|Warrior Name: Description",
+					// split(" ") -> ["ava1|Warrior", "Name:", "Description"]
+				    // [0] -> "ava1|Warrior"
+					// split("|") -> ["ava1", "Warrior"]
+					// [1] -> "Warrior"
+					const matchingValueFromAvatarString = avatarFullString.split(" ")[0].split("|")[1];
 
-            // Check if the `trueAvatarId` is valid AND if it is NOT present in the `rejectAvatars` array.
-            if ( trueAvatarId && !rejectAvatars.includes(trueAvatarId) && (keepAvatars.length === 0 || keepAvatars.includes(trueAvatarId)) ) {
-                // Loop through selected checkboxes to find a match.
-                for (let j = 0; j < checkboxes.length; j++) {
-                    // If the `matchingValueFromAvatarString` matches the `value` of a selected checkbox.
-                    if (matchingValueFromAvatarString === checkboxes[j].value) {
-                        // Extract `avatarBox` and `avatarNameHTML` based on original snippet's logic.
-                        // These also depend on specific string formats within `allavatars[i]`.
-                        const avatarBox = avatarFullString.split(":")[0].substring(avatarFullString.indexOf(' ') + 1);
-                        let avatarNameHTML = avatarFullString.substring(avatarFullString.indexOf(':') + 1);
-                        
-                        // Format the avatar name HTML for display.
-                        avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? 
-                                         "<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : 
-                                         "<b>" + avatarNameHTML + "</b>";
-                        
-                        // Push the formatted avatar string to the `avatars` array.
-                        avatars.push(avatarNameHTML + " [" + avatarBox + "]");                      
-                    }
-                }
-            }
-        }
+					// Check if the `trueAvatarId` is valid AND if it is NOT present in the `rejectAvatars` array.
+					if ( trueAvatarId && !rejectAvatars.includes(trueAvatarId) && (keepAvatars.length === 0 || keepAvatars.includes(trueAvatarId)) ) {
+						// Loop through selected checkboxes to find a match.
+						for (let j = 0; j < checkboxes.length; j++) {
+							// If the `matchingValueFromAvatarString` matches the `value` of a selected checkbox.
+							if (matchingValueFromAvatarString === checkboxes[j].value) {
+								// Extract `avatarBox` and `avatarNameHTML` based on original snippet's logic.
+								// These also depend on specific string formats within `allavatars[i]`.
+								const avatarBox = avatarFullString.split(":")[0].substring(avatarFullString.indexOf(' ') + 1);
+								let avatarNameHTML = avatarFullString.substring(avatarFullString.indexOf(':') + 1);
+								
+								// Format the avatar name HTML for display.
+								avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? 
+												"<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : 
+												"<b>" + avatarNameHTML + "</b>";
+								
+								// Push the formatted avatar string to the `avatars` array.
+								avatars.push(avatarNameHTML + " [" + avatarBox + "]");                      
+							}
+						}
+					}
+				}
 				
 				
 				// Pick first random
@@ -1366,6 +1389,9 @@
 			
 			if( checkboxesVal.includes("SCENARIO") ) {
 				libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
+				libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
+				libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
+				libraryHTML += '</div><p>';
 				libraryHTML += "<p><b>Additional Components:</b></p><p>" + sComp + "</p>";
 				libraryHTML += "<b>Special Setup:</b>";
 				libraryHTML += sSetup;
@@ -1381,9 +1407,6 @@
 				libraryHTML += '<p>';
 				//libraryHTML += '</div><p>';
 				//libraryHTML += "<div class='board' id='board'></div>";
-				libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
-				libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
-				libraryHTML += '</div><p>';
 				
 				libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
 				libraryHTML += honmenHTML;
@@ -1404,7 +1427,7 @@
 				}
 				if( checkboxesVal.includes("MAGE") ) {
 					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
-					libraryHTML += "<table><thead><tr><td>";
+					libraryHTML += "<table  style='width:575px;'><thead><tr  width=585><td>";
 					libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
 					libraryHTML += mageHTML.replaceAll(", ", "<br>");
 					libraryHTML += "</td></tr></thead></table></div></div>";
@@ -2208,13 +2231,25 @@ function processTemplatedList(
 
 			// Add matching scenarios
 			for (let i = 0; i < allscenarios.length; i++) {
+				var containedScenarions = [];
 				const parts = allscenarios[i].split('|');
 				if (parts.length < 2) continue;
 				const afterPipe = parts[1].trim();
 				const firstWord = afterPipe.split(' ')[0];
 				const secondWord = afterPipe.substring(afterPipe.indexOf(" ") +1);
 
-				if (afterPipe.split(" ")[0] === '*' || checked.includes(firstWord)) {
+				// Scenarios can require multiple boxes
+				const scenarioId = parts[0].trim();
+				const boxes = firstWord.split(",");
+				var matchFound = true;
+				for (let j = 0; j < boxes.length; j++) {
+					if( !checked.includes(boxes[j].trim()) ) {
+						matchFound = false;
+						break;
+					}
+				}
+
+				if (afterPipe.split(" ")[0] === '*' || checked.includes(firstWord) || (matchFound && !containedScenarions.includes(scenarioId)) ) {
 					// Show scenario
 					const name = allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1).split(" - ")[0].trim();
 					const ext = secondWord;
@@ -2223,6 +2258,7 @@ function processTemplatedList(
 					opt.value = val;
 					opt.textContent = ext + " - " + name;
 					select.appendChild(opt);
+					containedScenarions.push(scenarioId);
 				}
 			}
 		}
