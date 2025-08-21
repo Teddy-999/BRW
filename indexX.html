@@ -840,7 +840,7 @@
 					}
 					
 					// Replace content inside parentheses
-					sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Fixed Rooms:</b> ${collRooms}`);
+					sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Rooms:</b> ${collRooms}`);
 				}
 
 				// Find enforced schools
@@ -857,7 +857,7 @@
 					}
 					
 					// Replace content inside parentheses
-					sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li><b>Fixed Schools:</b> ${collSchools}`);
+					sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li><b>Schools:</b> ${collSchools}`);
 				}
 			
 				// Find enforced mages
@@ -874,12 +874,12 @@
 					}
 					
 					// Replace content inside parentheses
-					sSetup = sSetup.replace(/Mages:\s*\([^)]*\)/, `<li><b>Fixed Mages:</b> ${collMages}`);
+					sSetup = sSetup.replace(/Mages:\s*\([^)]*\)/, `<li><b>Mages:</b> ${collMages}`);
 				}
 
-				// Find enforced/rejected Avatars
-				sSetup = processTemplatedList(sSetup,"Avatars:", "Avatars:", allavatars, keepAvatars, rejectAvatars);
-				
+				// Find enforced/rejected Avatars - do not create output for them yet!
+				sSetup = processTemplatedList(sSetup,"Avatars:", "", allavatars, keepAvatars, rejectAvatars);
+
 				// Honorable Mention
 				honmenHTML = "<p><b>Honorable Mention:</b></p>";
 				if(sHonMen=="*") {
@@ -1320,7 +1320,7 @@
             const matchingValueFromAvatarString = avatarFullString.split(" ")[0].split("|")[1];
 
             // Check if the `trueAvatarId` is valid AND if it is NOT present in the `rejectAvatars` array.
-            if (trueAvatarId && !rejectAvatars.includes(trueAvatarId)) {
+            if ( trueAvatarId && !rejectAvatars.includes(trueAvatarId) && (keepAvatars.length === 0 || keepAvatars.includes(trueAvatarId)) ) {
                 // Loop through selected checkboxes to find a match.
                 for (let j = 0; j < checkboxes.length; j++) {
                     // If the `matchingValueFromAvatarString` matches the `value` of a selected checkbox.
@@ -1557,8 +1557,11 @@ function processTemplatedList(
         }
 
         // Replace the original matched section with the new, formatted string.
-        sSetup = sSetup.replace(match[0], `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
-		// sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
+		if(outputPrefix=="") {
+        	sSetup = sSetup.replace(match[0], "");
+		} else {
+			sSetup = sSetup.replace(match[0], `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
+		}
     }
 
     // Return the potentially modified setup string.
