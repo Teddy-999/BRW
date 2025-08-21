@@ -878,7 +878,7 @@
 				}
 
 				// Find enforced/rejected Avatars
-				sSetup = processTemplatedList(sSetup,"Avatars:", "Fixed Avatars:", allavatars, keepAvatars, rejectAvatars);
+				sSetup = processTemplatedList(sSetup,"Avatars:", "Avatars:", allavatars, keepAvatars, rejectAvatars);
 				
 				// Honorable Mention
 				honmenHTML = "<p><b>Honorable Mention:</b></p>";
@@ -1500,10 +1500,13 @@ function processTemplatedList(
             const currentItem = parsedItems[i];
             let actualId;
             let isRejected = false;
+			let alreadyRejected = false;
 
             if (currentItem.startsWith('-')) {
                 actualId = currentItem.substring(1); // Get the ID without the '-'
                 isRejected = true;
+				alreadyRejected = true;
+				collectedDisplayNames += "Do not use ";
                 rejectIdArray.push(actualId); // Add to rejectIdArray
             } else {
                 actualId = currentItem;
@@ -1518,6 +1521,7 @@ function processTemplatedList(
             let displayName = "";
             const colonIndex = objLine.indexOf(':');
 
+			// Get Avatar name
             if (colonIndex >= 0) {
                 // Get the part of the string after the first colon.
                 let partAfterColon = objLine.substring(colonIndex + 1).trim();
@@ -1540,7 +1544,7 @@ function processTemplatedList(
 			
             // Prefix rejected names for the output string
             if (isRejected) {
-                displayName = `Do not use! ${displayName}`; // Changed prefix
+                displayName = `${displayName}`; // Changed prefix
             }
 
             // Append the extracted display name to the collection string for the output.
