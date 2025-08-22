@@ -374,11 +374,18 @@
 				</ul>
 			|*`,
 			`6
-			|BRW-R-CORE,BRW-R-GAEA Rebirth Core & Gaea
+			|BRW-R-CORE,BRW-R-GAEA Rebirth Core & Gaea Reborn
 			|Detroit, USA - Verdant Reclamation
+			|<ul><li>The complete Gaea box.</li></ul>
+			|<ul><li>This scenario is designed for 5 or less players.</li><li>Follow the standard setup plus the Gaea setup as indicated in the core box and Gaea Reborn manual. Use the indicated map to create the Lodge.</li><li>No Mage may choose Geomancy as their school.</li></ul><ul>Rooms: (2,54[1/-1],55[0/1],56[-1/0]) Schools: (16) Avatars: (16)</ul>
+			|<ul><li>During the Preparation Phase, every Mage must (in player order starting with the crown holder) draw 2 of their 4 Spell Cards from the Geomancy school and the other 2 from their own School. If the Geomancy deck is empty, cards can be drawn without restrictions.</li><li>If a Combat or Contingency Spell is cast from a <span style="color: green;">green</span> Room and the <b>Spell Effect</b> inflicts damage or places instability, it inflicts +1 damage or places +1 instability.</li></ul>
+			|*`,
+			`7
+			|BRW-R-CORE Rebirth Core
+			|Ponyhof, Nowhereland - Demonstrates fully pre-defined Lodge on a radius 3 matrix
 			|<ul><li>None.</li></ul>
-			|<ul><li>This scenario is designed for 5 or less players.</li><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>No Mage may choose Geomancy as their school.</li></ul><ul>Rooms: (2,54[1/-1],55[0/1],56[-1/0]) Schools: (16) Avatars: (16)</ul>
-			|<ul><li>During the Preparation Phase, every Mage must draw 2 of their 4 Spell Cards from the Geomancy school and the other 2 from their own School.</li><li>If a Combat or Contingency Spell is cast from a <span style="color: green;">green</span> Room and the <b>Spell Effect</b> inflicts damage or places instability, it inflicts +1 damage or places +1 instability.</li></ul>
+			|<ul>Rooms: (74[2/0],11[2/1],1[1/1],29[0/2],116[0/1],115[3/-2],95[2/-1],9[2/-2],30[2/-3],75[1/-2],50[-1/-2],51[-1/-1],52[0/-1],31[-2/-1],76[-2/-0],117[-1/0],96[-3/0],10[-3/1],97[-2/1])</ul>
+			|<ul><li>None</ul>
 			|*`,
 			];
 
@@ -932,6 +939,8 @@
 					// Replace content inside parentheses
 					sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Rooms:</b> ${collRooms}`);
 				}
+
+				if( keepRooms.length >7 && keepRooms.length != 19 ) throw new Error("Scenario: " + sName + ". Number of enforced rooms: " + keepRooms.length + ". The number of enforced scenario rooms should be no more than 6 or exactly 19 for a full lodge. The scenario needs corrections.");
 
 				// Find enforced schools
 				if(sSetup.indexOf("Schools: (")>=0) {
@@ -2168,6 +2177,25 @@ const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow
     return { colorOf, brKey, throneKey };
 }*/
 function assignColorsToShape(shapeSet, reservedRooms) {
+    // Fast path: all 19 rooms are reserved
+    if (reservedRooms.size === 19) {
+        const colorOf = new Map();
+        let brKey = null;
+        let throneKey = null;
+
+        for (const [coord, roomStr] of reservedRooms.entries()) {
+            const [name, color] = roomStr.split('|').map(x => x.trim());
+            colorOf.set(coord, color);
+
+            // track Black Rose and Throne
+            if (color === "black") brKey = coord;
+            if (name.toLowerCase().includes("throne")) throneKey = coord;
+        }
+
+        return { colorOf, brKey, throneKey };
+    }
+
+
     const nodes = [...shapeSet];
     const adj = buildAdjMap(shapeSet);
 
@@ -2469,6 +2497,7 @@ function mapRoomsToPositions(colorResult, reservedRooms) {
 
 
 
+var reservedRooms =[];
 
 /* ===== Main generator that ties everything together ===== */
 function generateValidLodge(buildStandardLodge) {
@@ -2476,27 +2505,36 @@ function generateValidLodge(buildStandardLodge) {
     let shape, fullSet, candidates, removePairsNeeded;
 
     // All reserved rooms (may include Black Rose and/or Throne if coordinates given)
-    const reservedRooms = getRoomCoordsMap(rooms); // Map of "q,r" -> "Room Name|color"
+    reservedRooms = getRoomCoordsMap(rooms); // Map of "q,r" -> "Room Name|color"
 
     while (!rendered) {
         fullSet = buildFullSet(); // 37 keys
-        candidates = buildCandidatePairs(fullSet); // ~15 pairs
-        removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
 
-        // Try candidate combinations; search returns a shapeSet or null
-        shape = chooseRemovalPairCombination(
-            fullSet,
-            candidates,
-            removePairsNeeded,
-            buildStandardLodge,
-            reservedRooms
+		if(reservedRooms.size==19) {
+			removePairsNeeded = 0;
+			candidates = [];
+			shape = new Set(fullSet);
+		} else {
+			candidates = buildCandidatePairs(fullSet); // ~15 pairs
+        	removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+
+			// Try candidate combinations; search returns a shapeSet or null
+        	shape = chooseRemovalPairCombination(
+					fullSet,
+					candidates,
+					removePairsNeeded,
+					buildStandardLodge,
+					reservedRooms
         );
+
+		}
 
         if (shape) rendered = true;
     }
 
     // Assign colors to shape (Black Rose, Throne, reserved rooms first)
     const colorResult = assignColorsToShape(shape, reservedRooms);
+
     if (!colorResult) {
         throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
     }
@@ -2567,26 +2605,31 @@ function generateValidLodge(buildStandardLodge) {
 				div.appendChild(lbl);
 				board.appendChild(div);
 			} else {
-				// Set potential cell positions
-				if (axialDistance({q:p.q,r:p.r},{q:0,r:0}) === 3) {
+				// No starting locations on full predefined 19 room lodges
+				if(reservedRooms.size!=19) {
 
-				let neighborsPresent = 0;
-				for (const [nq,nr] of neighbors(p.q,p.r)){
-					const nk = key(nq,nr);
-					if (roomPositionMap.has(nk)) neighborsPresent++;
-				}
+					// Set potential cell positions
+					if (axialDistance({q:p.q,r:p.r},{q:0,r:0}) === 3) {
 
-				if(neighborsPresent>=2) {  
-					
-					div.style.left = `${Math.round(p.x + offsetX)}px`;
-					div.style.top  = `${Math.round(p.y + offsetY)}px`;
-					div.className = 'hex empty';
-					const lbl = document.createElement('div');
-					lbl.className = 'label';
-					lbl.textContent = 'X';
-					div.appendChild(lbl);
-					board.appendChild(div);
-				}
+						let neighborsPresent = 0;
+						for (const [nq,nr] of neighbors(p.q,p.r)){
+							const nk = key(nq,nr);
+							if (roomPositionMap.has(nk)) neighborsPresent++;
+						}
+
+						// Add possible cell locations
+						if(neighborsPresent>=2) {  
+							
+							div.style.left = `${Math.round(p.x + offsetX)}px`;
+							div.style.top  = `${Math.round(p.y + offsetY)}px`;
+							div.className = 'hex empty';
+							const lbl = document.createElement('div');
+							lbl.className = 'label';
+							lbl.textContent = 'X';
+							div.appendChild(lbl);
+							board.appendChild(div);
+						}
+					}
 				}
 			}
 		}
