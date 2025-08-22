@@ -328,7 +328,7 @@
 			|BRW-R-ROTAS Rebirth ROTAS
 			|Gizeh, Egypt - The Curse of the Tomb
 			|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>
-			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77) Schools: (9,7) Mages: (8,9) Avatars: (-10)</ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77[1/0]) Schools: (9,7) Mages: (8,9) Avatars: (-10)</ul>
 			|<ul><li>Whenever the Moon Phase changes and the Defender of the Lodge is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the Defender of the Lodge is activated.</li><li>When the Defender of the Lodge is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the Defender of the Lodge, they gain 2pp or draw two cards from their Grimoire.</li><li>Anubis cannot be chosen as Avatar when playing this scenario.</li></ul>
 			|*`,
 			`3
@@ -373,6 +373,13 @@
 				<li><b>Wrath of Purity:</b> When the Moon Phase changes to Third Moon, all Mages lose 1pp for every Trophy they hold from other Mages. They may discard up to 2 cards. Each discarded card prevents the loss of 1pp. All mages who claimed the Holy Grail during this game turn ignore these effects.</li>
 				</ul>
 			|*`,
+			`6
+			|BRW-R-CORE,BRW-R-GAEA Rebirth Core & Gaea
+			|Detroit, USA - Verdant Reclamation
+			|<ul><li>None.</li></ul>
+			|<ul><li>This scenario is designed for 5 or less players.</li><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>No Mage may choose Geomancy as their school.</li></ul><ul>Rooms: (2,54[1/-1],55[0/1],56[-1/0]) Schools: (16) Avatars: (16)</ul>
+			|<ul><li>During the Preparation Phase, every Mage must draw 2 of their 4 Spell Cards from the Geomancy school and the other 2 from their own School.</li><li>If a Combat or Contingency Spell is cast from a <span style="color: green;">green</span> Room and the <b>Spell Effect</b> inflicts damage or places instability, it inflicts +1 damage or places +1 instability.</li></ul>
+			|*`,
 			];
 
 		var allhonmen=[		
@@ -399,7 +406,7 @@
 			"* General|3 pp - Master Summoner: At the end of the game, you control 3 Evocations.|",
 			"* General|2 pp - Duelist: During the game, you defeat a Mage alone.|",
 			"* General|2 pp - Opportunist: At the end of the game, you have solved at least 3 Quests.|",
-			"* General|2 pp - Hunter: During the game, you triggered at least 3 Traps.|",
+			"* General|2 pp - Hunter: During the game, at least 3 of your Traps were triggered.|",
 			"* General|3 pp - Tank: During the game, you triggered at least 3 Protection spells.|",
 			"* General|4 pp - Collector: At the end of the game, you hold cards of at least 5 different Schools in your hand.|",
 			"* General|3 pp - Nemesis: At the end of the game, if you have 3 or more Trophies from a single Mage.|",
@@ -779,6 +786,7 @@
 		var scenarios = [];
 		var honmen = [];
 		var keepRooms = [];
+		var roomCoords = {}; // id -> {x, y}
 		var keepSchools = [];
 		var keepMages = [];
 		var keepAvatars = [];
@@ -891,7 +899,26 @@
 				
 				// Find enforced rooms
 				if(sSetup.indexOf("Rooms: (")>=0) {
-					const sRooms = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
+					var sRoomsRaw = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
+
+					// Extract IDs and optional coordinates
+					var sRooms = [];
+
+					for (const entry of sRoomsRaw) {
+						// Match things like "5[-1/2]" or "-3[0/-1]" or just "4"
+						const match = entry.match(/^(-?\d+)(?:\[(-?\d+)\/(-?\d+)\])?$/);
+						if (match) {
+							const id = match[1];  // e.g. "5" or "-3"
+							sRooms.push(id);
+
+							if (match[2] !== undefined && match[3] !== undefined) {
+								const x = parseInt(match[2], 10);
+								const y = parseInt(match[3], 10);
+								roomCoords[id] = {x, y};
+							}
+						}
+					}
+					
 					var collRooms = "";
 					var roomLine = "";
 					for (let i = 0; i < sRooms.length; i++) {
@@ -1302,6 +1329,7 @@
 				var colorout = "";
 				var roomname = "";
 				var roomhash = "";
+				var roomId = "";
 				
 				if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");
 
@@ -1313,6 +1341,7 @@
 					
 				for (let i = 0; i < genrooms.length; i++) {
 					lodgeHTML += "<tr><td>";
+					roomId = genrooms[i].split("|")[0];
 					roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
 					lodgeHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
 					lodgeHTML += '</td><td class="cell">';
@@ -1334,7 +1363,14 @@
 					lodgeHTML += "</td></tr>";
 
 					// Collect rooms of the Lodge for the graphical rendering engine
-					rooms.push(roomname + roomhash + "|" + colorout);
+					// If the room has coordinates from the scenario, also add them here
+					let coordStr = "";
+					if (roomCoords[roomId]) {
+						coordStr = "|" + roomCoords[roomId].x + "," + roomCoords[roomId].y;
+					}
+
+					rooms.push(roomname + roomhash + "|" + colorout + coordStr);
+				
 				}
 					
 				lodgeHTML += "</table></div></div>";
@@ -1772,6 +1808,19 @@ function processTemplatedList(
 		Colors allowed: black, purple, red, green, blue, gray, yellow
 		============================ */
 
+		// Parse rooms with predefined coordinates
+		function getRoomCoordsMap(rooms) {
+			const map = new Map();
+			for (const s of rooms) {
+				const parts = s.split('|');
+				if (parts.length === 3) {
+					const coord = parts[2].trim();
+					map.set(coord, s); // key: "q,r", value: room string
+				}
+			}
+			return map;
+		}
+
 		/* ======= Validation of rooms[] counts ======= */
 		const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
 		(function validateRoomList() {
@@ -1931,7 +1980,7 @@ function processTemplatedList(
 		}
 
 		/* ====== Choose exactly removePairsNeeded mirror pairs such that final shape meets graph constraints ====== */
-		function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge){
+		function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge, reservedRooms){
 		// backtracking choose subset of candidates size removePairsNeeded
 		// we try to prune aggressively: after partial selection, ensure current tentative shape has no vertex deg<2 (because removing more won't increase degree)
 		// and remains connected.
@@ -1957,7 +2006,9 @@ function processTemplatedList(
 		function buildShapeFromSelected(selPairs){
 			const shape = new Set(fullSet);
 			for (const [a,b] of selPairs){
-			shape.delete(a); shape.delete(b);
+				if (!reservedRooms.has(a) && !reservedRooms.has(b) ) {
+					shape.delete(a); shape.delete(b);
+				}
 			}
 			return shape;
 		}
@@ -2010,7 +2061,7 @@ function processTemplatedList(
 		}
 
 		/* ===== color assignment backtracking ===== */
-		const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+/*		const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
 		function assignColorsToShape(shapeSet, throneKey){
 		const nodes = [...shapeSet];
 		const adj = buildAdjMap(shapeSet);
@@ -2046,18 +2097,176 @@ function processTemplatedList(
 
 		return backtrack(0) ? colorOf : null;
 		}
+*/
+
+
+
+
+/* ===== color assignment backtracking with reserved rooms ===== */
+const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+
+/*function assignColorsToShape(shapeSet, reservedRooms) {
+    const nodes = [...shapeSet];
+    const adj = buildAdjMap(shapeSet);
+
+    const colorOf = new Map();
+    const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+
+    // --- Black Rose key ---
+    let brKey;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (color === "black") {
+            brKey = coord;
+            break;
+        }
+    }
+    if (!brKey) {
+        brKey = key(0,0); // fallback default
+    }
+    colorOf.set(brKey, "black");
+    counts.black--;
+
+    // --- Throne key ---
+    let throneKey;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (name.toLowerCase().includes("throne")) {
+            throneKey = coord;
+            break;
+        }
+    }
+    if (!throneKey) {
+        // default: random ring1 neighbor of Black Rose
+        const neighbors = adj.get(brKey).filter(n => ringKeys(1).includes(n));
+        throneKey = neighbors[Math.floor(Math.random()*neighbors.length)];
+    }
+    colorOf.set(throneKey, "purple");
+    counts.purple--;
+
+    // sort nodes by degree, excluding reserved
+    const toColor = nodes.filter(
+        n => !colorOf.has(n)
+    ).sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+    function backtrack(i){
+        if (i >= toColor.length) return true;
+        const node = toColor[i];
+        const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+        const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+        shuffle(choices);
+        for (const c of choices){
+            colorOf.set(node, c);
+            counts[c]--;
+            if (backtrack(i+1)) return true;
+            counts[c]++; colorOf.delete(node);
+        }
+        return false;
+    }
+
+    if (!backtrack(0)) return null;
+    return { colorOf, brKey, throneKey };
+}*/
+function assignColorsToShape(shapeSet, reservedRooms) {
+    const nodes = [...shapeSet];
+    const adj = buildAdjMap(shapeSet);
+
+    const colorOf = new Map();
+    const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+
+    // --- 1. Place Black Rose ---
+    let brKey = null;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (color === "black") {
+            brKey = coord;
+            break;
+        }
+    }
+    if (!brKey) brKey = key(0,0); // default center
+    colorOf.set(brKey, "black");
+    counts.black--;
+
+    // --- 2. Place Throne Room adjacent to Black Rose ---
+    let throneKey = null;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name] = roomStr.split('|').map(x => x.trim());
+        if (name.toLowerCase().includes("throne")) {
+            throneKey = coord;
+            break;
+        }
+    }
+    if (!throneKey) {
+        // compute valid neighbors
+        const neighbors = adj.get(brKey) || [];
+        const validNeighbors = neighbors.filter(n =>
+            shapeSet.has(n) &&
+            !colorOf.has(n) &&
+            (!reservedRooms.has(n) || reservedRooms.get(n).toLowerCase().includes("throne"))
+        );
+        if (validNeighbors.length === 0) {
+            throw new Error("No valid adjacent position for Throne Room next to Black Rose");
+        }
+        shuffle(validNeighbors);
+        throneKey = validNeighbors[0];
+    }
+    colorOf.set(throneKey, "purple");
+    counts.purple--;
+
+    // --- 3. Place other reserved rooms ---
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        if (coord === brKey || coord === throneKey) continue;
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (!counts[color] || counts[color] <= 0) {
+            throw new Error(`Reserved room ${name} needs color ${color}, but none left`);
+        }
+        colorOf.set(coord, color);
+        counts[color]--;
+    }
+
+    // --- 4. Backtracking for remaining nodes ---
+    const toColor = nodes.filter(n => !colorOf.has(n))
+                         .sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+    function backtrack(i) {
+        if (i >= toColor.length) return true;
+        const node = toColor[i];
+        const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+        const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+        shuffle(choices);
+        for (const c of choices) {
+            colorOf.set(node, c);
+            counts[c]--;
+            if (backtrack(i+1)) return true;
+            counts[c]++; colorOf.delete(node);
+        }
+        return false;
+    }
+
+    if (!backtrack(0)) return null;
+
+    return { colorOf, brKey, throneKey };
+}
+
+
+
+
+
 
 		/* ===== mapping room strings to positions (preserve Throne and Black Rose exactly) ===== */
-		function mapRoomsToPositions(colorMap, throneKey){
+		/*function mapRoomsToPositions(colorMap, throneKey, reservedRooms){
 		// parse rooms[] into pools
-		const pools = {}; // color -> array of names
+		const pools = {}; // color -> array of room names
+	
 		for (const s of rooms){
 			const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
 			if (!pools[colorRaw]) pools[colorRaw] = [];
 			pools[colorRaw].push(nameRaw);
 		}
+
 		// ensure Black Rose Room assigned to center
 		const roomByPos = new Map();
+
 		// center:
 		const centerList = pools['black'] || [];
 		const brIndex = centerList.findIndex(n => n.endsWith("#1"));
@@ -2069,36 +2278,167 @@ function processTemplatedList(
 		const thronePool = pools['purple'] || [];
 		const throneIndex = thronePool.findIndex(n => n.endsWith("#2"));
 		if (throneIndex === -1) throw new Error("Throne Room|purple missing from rooms[]");
-		const throneName = thronePool.splice(throneIndex,1)[0];
+		// const throneName = thronePool.splice(throneIndex,1)[0];
 		roomByPos.set(throneKey, {name: throneName, color:'purple'});
+
+		// Place other reserved rooms first
+        for (const [coord, roomStr] of reservedRooms.entries()) {
+			const reservedList = pools[roomStr.split('|')[1].trim()] || [];
+			const reservedIndex = reservedList.findIndex(n => n.endsWith(roomStr.split('|')[0].trim()));
+			if (reservedIndex === -1) throw new Error(roomStr.split('|')[0].trim() + " Room missing from rooms[]");
+            const reservedName = reservedList.splice(reservedIndex,1)[0];
+			roomByPos.set(coord, {
+                name: reservedName,
+                color: roomStr.split('|')[1].trim()
+            });
+			alert("Reserved room " + roomStr);
+        }
 
 		// now for remaining colorMap positions, distribute randomly from pools
 		// build list of positions (excluding center and throne)
-		const remainingPositions = [...colorMap.keys()].filter(k => k !== key(0,0) && k !== throneKey);
+		// Remove reserved positions from remainingPositions
+		const remainingPositions = [...colorMap.keys()].filter(k => !reservedRooms.has(k) && k !== key(0,0) && k !== throneKey);
+		//const remainingPositions = [...colorMap.keys()].filter(k => k !== key(0,0) && k !== throneKey);
 		shuffle(remainingPositions);
 
 		// shuffle pools
 		for (const c of Object.keys(pools)) shuffle(pools[c]);
-
-		for (const pos of remainingPositions){
-			const color = colorMap.get(pos);
-			if (!pools[color] || pools[color].length === 0) {
-			throw new Error(`Not enough rooms available for color ${color} while mapping.`);
+			for (const pos of remainingPositions){
+				const color = colorMap.get(pos);
+				if (!pools[color] || pools[color].length === 0) {
+				throw new Error(`Not enough rooms available for color ${color} while mapping.`);
+				}
+				const name = pools[color].pop();
+				roomByPos.set(pos, {name, color});
 			}
-			const name = pools[color].pop();
-			roomByPos.set(pos, {name, color});
+			return roomByPos;
 		}
-		return roomByPos;
-		}
+		*/
+
+
+/*function mapRoomsToPositions(colorMap, throneKey, reservedRooms) {
+    // 1️⃣ Build color pools from rooms[]
+    const pools = {}; // color -> array of room names
+    for (const s of rooms) {
+        const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
+        if (!pools[colorRaw]) pools[colorRaw] = [];
+        pools[colorRaw].push(nameRaw);
+    }
+
+    const roomByPos = new Map();
+
+    // ===== Black Rose at center (#1) =====
+    const blackList = pools['black'] || [];
+    const brIndex = blackList.findIndex(n => n.endsWith('#1'));
+    if (brIndex === -1) throw new Error("Black Rose Room missing from rooms[]");
+    const blackName = blackList.splice(brIndex, 1)[0]; // remove from pool
+    roomByPos.set(key(0, 0), { name: blackName, color: 'black' });
+
+    // ===== Throne room (#2) =====
+    const throneList = pools['purple'] || [];
+    const throneIndex = throneList.findIndex(n => n.endsWith('#2'));
+    if (throneIndex === -1) throw new Error("Throne Room|purple missing from rooms[]");
+    const throneName = throneList.splice(throneIndex, 1)[0]; // remove from pool
+    roomByPos.set(throneKey, { name: throneName, color: 'purple' });
+
+    // ===== Other reserved rooms (exact match, no #) =====
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        const list = pools[color] || [];
+        const index = list.findIndex(n => n.startsWith(roomStr.split('|')[0].trim())); // exact match
+        if (index === -1) throw new Error(`${name} Room missing from rooms[]`);
+		const reservedName = list.splice(index, 1)[0]; // remove from pool
+        roomByPos.set(coord, { name: reservedName, color });
+    }
+
+    // ===== Remaining positions =====
+    const remainingPositions = [...colorMap.keys()].filter(k => !roomByPos.has(k));
+
+	alert("Remaining Pos " + remainingPositions.length);
+	alert("Room by Pos " + roomByPos.size);
+	alert("Color Map " + colorMap.size);
+
+    for (const pos of remainingPositions) {
+        const color = colorMap.get(pos);
+        const available = pools[color] || [];
+        if (available.length === 0) {
+            throw new Error(`Not enough rooms available for color ${color}`);
+        }
+        const chosenName = available.splice(Math.floor(Math.random() * available.length), 1)[0];
+        roomByPos.set(pos, { name: chosenName, color });
+    }
+				alert("Green Pool " + pools["green"]);
+    return roomByPos;
+}
+*/
+
+
+
+/* ===== mapping room strings to positions ===== */
+function mapRoomsToPositions(colorResult, reservedRooms) {
+    const { colorOf, brKey, throneKey } = colorResult;
+
+    // parse rooms[] into pools
+    const pools = {}; // color -> array of room names
+    for (const s of rooms) {
+        const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
+        if (!pools[colorRaw]) pools[colorRaw] = [];
+        pools[colorRaw].push(nameRaw);
+    }
+
+    // assign actual room names
+    const roomByPos = new Map();
+
+    for (const [pos, color] of colorOf.entries()) {
+        let name;
+
+        // reserved rooms already specify their names
+        if (reservedRooms.has(pos)) {
+            name = reservedRooms.get(pos).split('|')[0].trim();
+        }
+        else if (pos === brKey) {
+            // Black Rose: pick the #1
+            const idx = pools["black"].findIndex(n => n.endsWith("#1"));
+            if (idx === -1) throw new Error("Black Rose Room missing");
+            name = pools["black"].splice(idx,1)[0];
+        }
+        else if (pos === throneKey) {
+            // Throne Room: pick the #2
+            const idx = pools["purple"].findIndex(n => n.endsWith("#2"));
+            if (idx === -1) throw new Error("Throne Room missing");
+            name = pools["purple"].splice(idx,1)[0];
+        }
+        else {
+            // generic: take any remaining of the color
+            if (!pools[color] || pools[color].length === 0) {
+                throw new Error(`Not enough rooms available for color ${color}`);
+            }
+            name = pools[color].splice(0,1)[0];
+        }
+
+        roomByPos.set(pos, { name, color });
+    }
+
+    return roomByPos;
+}
+
+
+
+
+
+
+
 
 		/* ===== Main generator that ties everything together ===== */
-		function generateValidLodge(buildStandardLodge){
+	/*	function generateValidLodge(buildStandardLodge){
 		var rendered = false;
 		var shape;
 		var fullSet;
 		var candidates;
 		var removePairsNeeded;
 		
+    	const reservedRooms = getRoomCoordsMap(rooms); // Map of "q,r" -> room string
+
 		while(!rendered) {
 			
 			fullSet = buildFullSet(); // 37 keys
@@ -2106,7 +2446,7 @@ function processTemplatedList(
 			removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
 
 		// Try candidate combinations; search returns a shapeSet or null
-			shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge);
+			shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge, reservedRooms);
 		if (shape) rendered =true;//throw new Error("Failed to find a symmetric removal combination that satisfies graph constraints.");
 		}
 		
@@ -2118,13 +2458,66 @@ function processTemplatedList(
 		if (!shape.has(throneKey)) throw new Error("Chosen throneKey missing from shape — shouldn't happen.");
 
 		// Now assign colors to shape (backtracking)
-		const colorMap = assignColorsToShape(shape, throneKey);
+		const colorMap = assignColorsToShape(shape, throneKey, reservedRooms);
 		if (!colorMap) throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
 
 		// map room names to positions (ensuring black and throne rooms placed exactly)
-		const roomPositionMap = mapRoomsToPositions(colorMap, throneKey);
+		const roomPositionMap = mapRoomsToPositions(colorMap, throneKey, reservedRooms);
 		return { fullSet, shape, colorMap, roomPositionMap, throneKey };
 		}
+*/
+
+
+
+
+/* ===== Main generator that ties everything together ===== */
+function generateValidLodge(buildStandardLodge) {
+    let rendered = false;
+    let shape, fullSet, candidates, removePairsNeeded;
+
+    // All reserved rooms (may include Black Rose and/or Throne if coordinates given)
+    const reservedRooms = getRoomCoordsMap(rooms); // Map of "q,r" -> "Room Name|color"
+
+    while (!rendered) {
+        fullSet = buildFullSet(); // 37 keys
+        candidates = buildCandidatePairs(fullSet); // ~15 pairs
+        removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+
+        // Try candidate combinations; search returns a shapeSet or null
+        shape = chooseRemovalPairCombination(
+            fullSet,
+            candidates,
+            removePairsNeeded,
+            buildStandardLodge,
+            reservedRooms
+        );
+
+        if (shape) rendered = true;
+    }
+
+    // Assign colors to shape (Black Rose, Throne, reserved rooms first)
+    const colorResult = assignColorsToShape(shape, reservedRooms);
+    if (!colorResult) {
+        throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
+    }
+
+    // Map room names to positions (ensuring Black Rose + Throne + reserved rooms placed exactly)
+    const roomPositionMap = mapRoomsToPositions(colorResult, reservedRooms);
+
+    return {
+        fullSet,
+        shape,
+        colorMap: colorResult.colorOf,
+        roomPositionMap,
+        throneKey: colorResult.throneKey,
+        brKey: colorResult.brKey
+    };
+}
+
+
+
+
+
 
 		/* ======== Rendering ======= */
 		var board = document.getElementById('board');
@@ -2170,7 +2563,7 @@ function processTemplatedList(
 				div.style.top  = `${Math.round(p.y + offsetY)}px`;
 				const lbl = document.createElement('div');
 				lbl.className = 'label';
-				lbl.textContent = room.name.includes("#") ? room.name.split("#")[0] : room.name;
+				lbl.textContent = room.name.includes("#") ? room.name.split("#")[0] : room.name
 				div.appendChild(lbl);
 				board.appendChild(div);
 			} else {
