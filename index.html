@@ -1,6 +1,227 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+	
+<meta charset="utf-8" />
+<title>Black Rose Lodge — Biconnected Symmetric Generator</title>
+<style>
+  :root { --hex-size: 44px; } /* 30% larger than 34px -> 44px */
+  body {
+    background: #eee;
+    color: #111;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    padding: 20px;
+    gap: 12px;
+  }
+  h1 { margin: 0; font-size: 20px; }
+  .toolbar { display:flex; gap:8px; }
+  button {
+    background:#222; color:#eee; border:1px solid #444; padding:8px 12px;
+    border-radius:8px; cursor:pointer;
+  }
+  input[type="checkbox"] {
+  vertical-align: middle;
+  margin-top: 0;
+  margin-bottom: 0;
+  }
+.small-btn {
+  background-color: #f0f0f0;  /* light gray */
+  border: 1px solid #ccc;     /* subtle border */
+  padding: 2px 6px;           /* smaller padding */
+  font-size: 12px;            /* smaller text */
+  color: #666;
+  cursor: pointer;
+  border-radius: 4px;         /* soft corners */
+}
+.small-btn:hover {
+  background-color: #e0e0e0;  /* slightly darker on hover */
+}
+  .board {
+    position: relative;
+	left: 0px;
+    width: 540px;
+    height: 560px;
+    background: linear-gradient(#a49261,#bba66d);
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  .board-container {
+	display: inline-block; /* NEW: makes container shrink-wrap */
+    border: 1px solid #aaa;
+    margin: 10px 0;
+    border-radius: 5px;
+  }
+
+  .board-header {
+    background: #6699cc; /* creamy blue */
+    color: white;
+    padding: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .toggle-indicator {
+    float: right;
+    font-weight: bold;
+  }
+	
+.hex {
+  position: absolute;
+  width: calc(var(--hex-size) * 2);      /* swap width/height for rotation */
+  height: calc(var(--hex-size) * 1.732); /* sqrt(3)*size */
+  clip-path: polygon(
+    0% 50%, 25% 7%, 75% 7%, 100% 50%, 75% 93%, 25% 93%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 0 8px rgba(255,255,255,0.03);
+  user-select: none;
+  text-align: center;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.1;
+  padding: 6px;
+}
+  .hex:hover { transform: translateY(-4px); }
+  .label {
+    background: rgba(0,0,0,0.28); border-radius:6px; padding:2px 6px;
+  }
+  .black  { background:#000; }
+  .purple { background: rebeccapurple; }
+  .red    { background: #b11; }
+  .green  { background: #197a2b; }
+  .blue   { background: #1f4ea3; }
+  .gray   { background: #676e78; }
+  .yellow { background: #d6b500; }
+
+  /* highlight throne */
+  .throne {
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 6px 18px rgba(0,0,0,0.6);
+    border: 2px solid rgba(255,255,255,0.06);
+  }
+   /* highlight empty */
+  .empty { 
+    background: #333333; 
+  }
+	
+  .note { font-size:13px; color:#bbb; }
+
+  .error {
+    border: 1px solid #e63946;
+    background: #ffe8ea;
+    color: #8b0000;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+  .hidden { display: none; }
+  .error ul { margin: 0.25rem 0 0; padding-left: 1.2rem; }
+  .error strong { display: block; margin-bottom: 0.25rem; }
+	
+  table {
+    border-collapse: collapse;
+    width: 100%;  /* makes table match container width */
+  }
+	
+  .table-container {
+    display: inline-block;   /* shrink-wraps to table width */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 1em 12px 1em 0;  /* top, right, bottom, left */
+  }
+
+  .table-header {
+    background: #6699cc; /* creamy blue */
+    color: white;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table-body {
+    display: block;
+  }
+
+  .table-body.hidden {
+    display: none;
+  }
+
+	table th {
+ 		background-color: #999999;  /* medium gray */
+  		color: white;               /* white text */
+  		padding-left: 12px;         /* optional: left padding */
+  		padding-right: 12px;        /* optional: right padding */
+		text-align: left;           /* match your previous align=left */
+	}
+
+	table td,
+	table th {
+  		padding-left: 16px;  /* adjust as needed */
+	}
+	
+	table td:last-child,
+	table th:last-child {
+  		padding-right: 16px;  /* adjust as needed */
+	}
+	
+	td {
+		color: black;
+    }
+    .cell {
+      display: flex;
+    }
+    .first {
+      width: 60px; /* fixed width for first word */
+	  text-align: center;
+    }
+    .second {
+      flex: 1; /* remaining space */
+    }
+</style>
+</head>
+	
     <script>
+		// Generates a 2 distance lodge on true, otherwise 3
+		var standardLodge;
+
+		var rooms = [ 
+  		"Black Rose#1|black",
+  		"Throne Room#2|purple",
+  		"Amethyst Library|purple",
+  		"Violet Sanctum|purple",
+  		"Ruby Forge|red",
+  		"Crimson Hall|red",
+  		"Scarlet Observatory|red",
+  		"Emerald Garden|green",
+  		"Verdant Chapel|green",
+  		"Jade Gallery|green",
+  		"Azure Pool|blue",
+  		"Cobalt Tower|blue",
+  		"Sapphire Crypt|blue",
+  		"Iron Workshop|gray",
+  		"Steel Armory|gray",
+  		"Silver Vault|gray",
+  		"Golden Treasury|yellow",
+  		"Amber Dome|yellow",
+  		"Topaz Chamber|yellow"
+		];
+		
 	var rules=[ 
 "1. [b]Umbras[/b]. They are of arche type nightmare (see evocation card). They are assigned to a mage (max. 1 per evocation slot) and not summoned. Once assigned, they are owned by the Black Rose. Effects allow to take temporary control over them. They are still evocations. They become activated first in the evocation phase. Upon defeat (step 2) of a mage, assigned evocations get removed. Summoned evocations remain in play though.",
 
@@ -21,6 +242,7 @@
 "9. [b]Target Mage or Model[/b]. If one of your spells/effects has the [b]mage or model icon[/b] as target, this EXCLUDES your mage (self).",
 
 "10. [b]Avatar and evocation activation[/b]. The Avatar is considered to be a mage. Therefore, the evocations it owns are activated in play order among the mages in the evocation phase. The activation of the Black Rose‘s evocations at the beginning of this phase only refers to evocations owned by the Black Rose, like of arche type Nightmare (Umbras).",
+
 "11. [b]Activation (mage)[/b]. During the action phase, each mage gets [b]at least 2 activations[/b] and usually 4 to 6 actions. In every activation, you [b]must[/b] take either 1 or 2 actions. Only if there is no action available, you can and must pass. After players have done their first activation in turn order, they will take their second and so on until all mages have passed.",
 
 "12. [b]Ranking for points[/b]. If you are part of a ranking for defeat, rebuilding rooms or game and ranking of trophies or quests, because you have [b]at least 1[/b] according item (cube, trophy, quests) in the ranking, you will ALWAYS get 1 power point. A tie subtracts 1pp, but the result can NEVER be lower than 1.",
@@ -41,11 +263,11 @@
 
 "20. [b]Black Rose room[/b]. To pay the cost for the Black Rose room, you must discard cards [b]from your hand[/b] not the mage board.",
 
-"21. [b]Spell targeting[/b]. A target for a spell is selected once the spell is [b]revealed[/b] and the center instability symbol (if any) has been applied to the room of the casting mage. It’s type must match the target icon on the spell and if there is also a number given with this target icon, the target must be [b]within [/b]this range and in [b]line of sight[/b]. The asterisk stands for everywhere in the Lodge, so no range and line of sight is applied. You cannot target mages in their cells. The 5-point star means special, so you find instructions in the spell‘s effect. Once a [b]valid target[/b] has been selected for the spell, it will remain the same for the spell‘s effect resolution. Even if the target is [b]moved[/b] out of range or line of sight gets lost, you still continue to resolve the effect against the chosen target, [b]unless[/b] the target is a mage and gets put into their cell during the effect resolution.<p> A word about LOS in the Rebirth rules. The Rebirth rules are not exact in this regard. In the old BRW rules there is a better wording and an example. LOS works in a straight line away from the caster. This line runs through the center of every intermediate room. Or in other words, LOS runs through the middle of the doors. Or LOS is like a star with you in the middle.",
+"21. [b]Spell targeting[/b]. A target for a spell is selected once the spell is [b]revealed[/b] and the center instability symbol (if any) has been applied to the room of the casting mage. It's type must match the target icon on the spell and if there is also a number given with this target icon, the target must be [b]within [/b]this range and in [b]line of sight[/b]. The asterisk stands for everywhere in the Lodge, so no range and line of sight is applied. You cannot target mages in their cells. The 5-point star means special, so you find instructions in the spell‘s effect. Once a [b]valid target[/b] has been selected for the spell, it will remain the same for the spell‘s effect resolution. Even if the target is [b]moved[/b] out of range or line of sight gets lost, you still continue to resolve the effect against the chosen target, [b]unless[/b] the target is a mage and gets put into their cell during the effect resolution.<p> A word about LOS in the Rebirth rules. The Rebirth rules are not exact in this regard. In the old BRW rules there is a better wording and an example. LOS works in a straight line away from the caster. This line runs through the center of every intermediate room. Or in other words, LOS runs through the middle of the doors. Or LOS is like a star with you in the middle.",
 
 "22. [b]Defeat interrupting an effect[/b]. Before interrupting an effect to resolve a defeat, execute the effect up to the end of the current sentence (next '.'). In general after the defeat you continue resolving [b]the interrupted effect[/b] with its next sentence of the SAME effect, but [b]consecutive effects of the interrupted action are stopped[/b]. Heh? What does that mean? A spell has only ONE effect (or one reverse effect). See page 15c core rules. If this effect is interrupted by a defeat, it continues resolution with the next sentence of the [b]same[/b] effect. See page 16 core rules how card effects are a series of sentences. The same is true for a rooms effect. Note that if after defeat interruption the continued effect provides a move, this move can get you out of your cell (not clear from the contradicting rules). A physical action is different, because it has a [b]series[/b] of effects (page 16) like 'Move 1.' then 'Move 1.' then 'Punch.'. Thus, after the defeat the consecutive effects are [b]not[/b] executed.",
 
-"23. [b]Room activation[/b]. The rules are a bit vague about what exactly room activation is and how the timing works. If an effect allows you to activate a room (in most cases a physical action), then you first check if the room is available (not showing the red crossed effect or the effect allows activating a used/not available/flipped room). In that case you you ACTIVATE the room. Then triggered effects like ‚when X activates room Y’ happen. Then pay the cost (if the room effect has any) and if you do, you can resolve the effect of the room. Finally, if the room has a room token on the available side, flip that token to the red-crossed used side. This means that you can activate a room, even if you cannot pay for or resolve its effect.",
+"23. [b]Room activation[/b]. The rules are a bit vague about what exactly room activation is and how the timing works. If an effect allows you to activate a room (in most cases a physical action), then you first check if the room is available (not showing the red crossed effect or the effect allows activating a used/not available/flipped room). In that case you you ACTIVATE the room. Then triggered effects like 'when X activates room Y' happen. Then pay the cost (if the room effect has any) and if you do, you can resolve the effect of the room. Finally, if the room has a room token on the available side, flip that token to the red-crossed used side. This means that you can activate a room, even if you cannot pay for or resolve its effect.",
 
 "24. [b]Pay cost for an effect[/b]. You can only resolve an effect if you can pay its full cost. Cost can be for example 'lose 1pp' or 'discard x cards'. In most cases the effect says 'if you do, get this effect' but this is not used consistently. Sometimes or in the old BRW it would just say 'to do this effect'. Just act as if the clause 'if you do, get this effect' would be always there when a cost is involved. If cost is only part of one side of a players choice (or) and you cannot or do not pay the cost, you cannot choose that side of the or choice. In short, if you cannot pay the cost, you cannot reap the benefit tied to it.",
 
@@ -55,7 +277,7 @@
 
 "27. [b]Preparing spells[/b]. It is an easy rule but sometimes missed by beginners. When you place spells face down on your mage board, you must remember that later on you will flip them over once you reveal the spell to resolve it. The effect you want to happen is the one on the bottom, once the card is prepared face down. When revealing a spell, you do [b]not have a choice[/b] of which side to resolve. Also note that prepared cards are considered to be 'ready'. Only ready cards can be cast. In case of trap or protection spells, casting them means putting a respective token on it to show that they are now active and may be triggered. They are [b]not[/b] ready anymore and cannot be used for momentum.",
 
-"28. [b]Card drawing in the study phase[/b]. Especially for beginners there can be some chaos when drawing cards. Make sure that for drawing and selecting cards you [b]use an area of the table which cannot be confused with your memories or grimoire[/b]. If table space is restricted, people tend to lay down cards in front of them (where usually the mage board is), only to pick up the wrong stack of cards later on. First place your hand cards face down in this separate area. Then draw and add the 2 cards from your grimoire to those hand cards. Now draw the 4 cards from the library and put them in the same separate area, but [b]do not mix them up with your hand cards[/b]! Most likely you will now move forth and back several times between those two stacks (hand cards and 4 library drawn cards) to select 2 of the 4 library drawn cards. Many beginners just draw all those cards to their hand and discard two from their hand afterwards. This is against the rules! You must discard 2 cards from the 4 library cards. For beginners it might be easier, if you just lay down your hand cards and the 4 library cards to the left of them [b]face up[/b]. Don’t worry too much. Only the most veteran players will have time and brain capacity to look across the table to identify your cards. Also make sure that the 2 discarded library cards go to the libraries discard and [b]not[/b] your memories or grimoire. ;)  Remember, it’s just a game. As a [b]house rule for beginners[/b], you may forgo the 2 out of 4 choice and simply draw 2 cards from the library to the hand. You can see how this will reduce a beginning players confusion A LOT. Finally, at the end of the study phase, discard your hand cards down to the hand size limit (the one on your mage card).",
+"28. [b]Card drawing in the study phase[/b]. Especially for beginners there can be some chaos when drawing cards. Make sure that for drawing and selecting cards you [b]use an area of the table which cannot be confused with your memories or grimoire[/b]. If table space is restricted, people tend to lay down cards in front of them (where usually the mage board is), only to pick up the wrong stack of cards later on. First place your hand cards face down in this separate area. Then draw and add the 2 cards from your grimoire to those hand cards. Now draw the 4 cards from the library and put them in the same separate area, but [b]do not mix them up with your hand cards[/b]! Most likely you will now move forth and back several times between those two stacks (hand cards and 4 library drawn cards) to select 2 of the 4 library drawn cards. Many beginners just draw all those cards to their hand and discard two from their hand afterwards. This is against the rules! You must discard 2 cards from the 4 library cards. For beginners it might be easier, if you just lay down your hand cards and the 4 library cards to the left of them [b]face up[/b]. Don't worry too much. Only the most veteran players will have time and brain capacity to look across the table to identify your cards. Also make sure that the 2 discarded library cards go to the libraries discard and [b]not[/b] your memories or grimoire. ;)  Remember, it's just a game. As a [b]house rule for beginners[/b], you may forgo the 2 out of 4 choice and simply draw 2 cards from the library to the hand. You can see how this will reduce a beginning players confusion A LOT. Finally, at the end of the study phase, discard your hand cards down to the hand size limit (the one on your mage card).",
 
 "29. [b]Hand size limit[/b]. Hand size is only [b]checked at the end of the study phase[/b] and you eventually have to [b]discard to the memories[/b] to obey the limit. You can have any number of cards in your hand at any other moment of the game. This is similar to active or completed quests, which are only checked during the Black Rose phase against the quest limit. Also note that [b]discarding is always done to your memories[/b] unless an effect says otherwise. Like [b]drawing is done from your grimoire[/b], unless instructed differently.",
 
@@ -83,7 +305,7 @@
 
 "41. [b]Default drawing and discarding of spells[/b]. It may be redundant, but it is asked often by beginners. By DEFAULT spell cards are drawn from your grimoire and discarded to your memories, UNLESS stated otherwise.",
 
-"42. [b]Dummy target[/b]. This is a confusing one. The purpose for this rule is to provide a way to resolve spells even if there is no model available as a target. This is in line with the overall purpose of BRW to resolve as much as possible from a spell or effect. However, technically you can select a dummy target for your spell even if a real target could be chosen instead. There are some rare cases which could lead to  ‚creative optimization to exploit dummy targets instead of real targets’ and which somewhat goes against the spirit of the game. It is up to you if you want to allow those exploits to be used. Remember that the dummy target does NOT apply to physical actions. Punching the air is not an option. ",
+"42. [b]Dummy target[/b]. This is a confusing one. The purpose for this rule is to provide a way to resolve spells even if there is no model available as a target. This is in line with the overall purpose of BRW to resolve as much as possible from a spell or effect. However, technically you can select a dummy target for your spell even if a real target could be chosen instead. There are some rare cases which could lead to  'creative optimization to exploit dummy targets instead of real targets' and which somewhat goes against the spirit of the game. It is up to you if you want to allow those exploits to be used. Remember that the dummy target does NOT apply to physical actions. Punching the air is not an option. ",
 
 "43. [b]Game end[/b]. Surprising enough, the question regularly occurs. The game ends [b]at the end of the clean-up phase[/b] IF a player or the Black Rose have reached or surpassed the End Game trigger / Black Rose Moon Cube on the Power Board which is by default 30.",
 
@@ -93,692 +315,2448 @@
 
 "46. [b]Entering a room[/b]. When moving, you do this in a sequence of 'Move 1.' effects. A model with a speed of 2 may 'Move 1.' and may do another 'Move 1.'. It will enter all rooms on its way except for its starting room. If a model is placed in a room, it will only enter that room but not the rooms between its starting and its end position."
 		];
-	    
+
+		const allscenarios=[
+			`1
+			|* General
+			|Cologne, Germany - You never know
+			|This Lodge is not the most mysterious, but its halls echo with the crackle of spells and the clash of wills. Flames coil through shattered doorways as one mage bends fire into serpents, only to meet a storm of steel conjured from thin air. Illusions dart like shadows, turning friends into foes until only instinct separates truth from trickery. Each duel leaves the air heavier, the stones scorched, and the Lodge trembling under the weight of unchecked power. Victory here will not come from secrets in the walls, but from surviving the merciless brilliance of your rivals.
+			|<ul><li>None.</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li></ul>
+			|<ul><li>None.</li></ul>
+			|<ul>*: (3)</ul>`,
+			`2
+			|BRW-R-ROTAS Rebirth ROTAS Last Dynasty
+			|Gizeh, Egypt - The Curse of the Tomb
+			|In the sands beneath Gizeh, the Lodge rises like a fractured tomb, its rooms carved with echoes of ancient power. Whispers of the Forgotten Spells call forth guardians long lost—Anubis or the Sphinx—only one bound to serve, the other unleashed as the Black Rose's eternal Defender. Each Moon Phase pulls the tomb deeper into unrest, summoning the guardian back from the shadows to strike down intruders. Every duel risks awakening its wrath, forcing rivals to clash not only with each other but with the vengeance of ages. To claim victory here is to survive the curse itself, proving stronger than both mage and myth alike.
+			|<ul><li>The Forgotten Spells summoning Anubis or Sphinx and the Evocation Cards for both Forgotten Evocations.</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.</li><li>Shuffle the Anubis and Sphinx Forgotten Spells. Draw one of them randomly and put it on top of the Forgotten Spell deck. The Forgotten Evocation summoned by the other card will be the <b>Defender of the Lodge</b> for this match. Put that Forgotten Spell back in the box. Place the Forgotten Evocation's model in the Black Rose Room under the control of the Black Rose. Place its evocation card next to the board.</li></ul><ul>Rooms: (77[1/0]) Schools: (9,7) Mages: (8,9) Avatars: (-10)</ul>
+			|<ul><li>Whenever the Moon Phase changes and the <b>Defender of the Lodge</b> is not in the Lodge, place it in the Black Rose Room under the control of the Black Rose.</li><li>Whenever a Mage is defeated, the <b>Defender of the Lodge</b> is activated.</li><li>When the <b>Defender of the Lodge</b> is activated, it uses the Avatar Evocation activation rules.</li><li>If a Mage or one of their Evocations defeats the <b>Defender of the Lodge</b>, they gain 2pp or draw two cards from their Grimoire.</li><li>Anubis cannot be chosen as Avatar when playing this scenario.</li></ul>
+			|<ul>*: (2)</ul>`,
+			`3
+			|BRW-SATOR BRW SATOR
+			|Plymouth, England - The Shattered Rose
+			|In Plymouth, where the sea winds bite and the Lodge lies fractured, the Black Rose itself has splintered into shards of forbidden power. Each mage enters with a secret piece of this ruin, a Power Card that whispers promises of dominance and betrayal. Yet what is hidden cannot remain so for long—every Moon reveals more of the Rose's shattered strength, reshaping alliances and igniting rivalries. The halls tremble with spells both ancient and newly forged, as the broken Rose feeds every duel with unpredictable force. Only the one who can bend these fragments to their will shall rise above the chaos and claim mastery of the Lodge.
+			|<ul><li>13 Black Rose Power Cards.</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge.(lodge=standard)</li>Rooms: (62,125) Schools: (29,32,35)<li><b>Draft the Black Rose Power Cards:</b> Each player draws 2 Power Cards from the deck and chooses one and passes the other to the player on his left. Before starting the game each player must reveal a Power Card. The second Power Card will be revealed once you reach the second Moon.</ul>
+			|<ul><li><b>Black Rose Power Cards:</b> Each player can use the revealed Power Cards in their possession following the rules shown on them.<li><b>Second Moon:</b> Each player reveals their second Power Card.</ul>
+			|<ul>*: (2)</ul>`,
+			`4
+			|BRW-R-CORE,DUEL-VOID Rebirth Core & Duel Void
+			|Atlantis, Mediterranean - Neptun Temple
+			|Beneath the waves of the Mediterranean, the ruins of Atlantis stir with power, and within them stands the sunken Temple of Neptune. Scattered across its flooded halls lie Atlantean Relics, fragments of a lost empire whose magic can bring devastation, summon abyssal horrors, or grant the god's favor to the worthy. But the sea itself resents intruders—the tides rise with each Moon, dragging mages toward the Deep Black Rose Room, punishing those without relics in hand. Battles here are not only against rival sorcerers, but against the crushing weight of the ocean's curse. Only the mage who masters relic and tide alike will survive Neptune's wrath and claim dominion over the drowned Lodge.
+			|<ul><li>3 Atlantean Relics (use any token you have available, preferrably a blue item).</li><li>A six-sided die (1d6).</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge. Place one Atlantean Relic in each <span style="color:blue">blue Room</span>.</li>Rooms: (4,14,34,58,79,100,121) Schools: (18) Mages: (29,30)</ul>
+			|<ul><li><b>Claiming an Atlantean Relic:</b> When a Mage activates a Room containing an Atlantean Relic and they do not hold a Relic, they may in claim it before the activation.</li>
+				<li><b>Using an Atlantean Relic:</b> A Mage holding a Relic can place the Relic in a <span style="color:blue">blue Room</span> without Relic before or after one of their actions. If they do, they roll 1d6.
+					<br><b>1-2: Abyssal Cataclysm</b> - They deal 2 damage to every adjacent Room.
+					<br><b>3-4: Roar of the Deep</b> - They summon a Dagon in their Room. It activates. It activates.
+					<br><b>5-6: Neptune's Favor</b> - They heal 3 damage, draw a Spell card and gain 1pp.
+					</li>
+				<li><b>Losing an Atlantean Relic:</b> When a Mage holding an Atlantean Relic is defeated, the Mage gaining the Trophy also claim the Relic. If they already hold a Relic, instead they gain 2pp and must place the Relic in a <span style="color:blue">blue Room</span> without Relic.</li>
+				<li><b>Holding an Atlantean Relic:</b> When a Mage holds an Atlantean Relic during the Clean-up Phase, they gain 2pp and must place the Relic in a <span style="color:blue">blue Room</span> without Relic.</li>
+				</ul><ul>
+				<li><b>Rising Tide:</b> When the Moon Phase changes to <b>Second Moon</b>, all Mages must move 1 Room closer to the Deep Black Rose Room. The Black Rose inflicts 2 damage to them. The Black Rose steals 1pp from each of them. All mages holding a Relic ignore these effects.</li>
+				<li><b>Neptune's Wrath:</b> When the Moon Phase changes to <b>Third Moon</b>, all Mages must move 2 Rooms closer to the Deep Black Rose Room. The Black Rose inflicts 3 damage to them. Each Mage must choose and discard a Ready Spell from their Mage Sheet. All mages holding a Relic ignore these effects.</li>
+				</ul>
+			|<ul><li><b>2 pp - Neptune's Blessing:</b> At the end of the game, you have claimed 3 or more Atlantean Relics.</li>*: (2)</ul>`,
+			`5
+			|BRW-R-CORE,DUEL-LEX Rebirth Core & Duel Lex
+			|Jerusalem, Israel - The Templar Citadel
+			|Within the Templar Citadel of Jerusalem, the Holy Grail gleams like a beacon of both salvation and peril. To seize it is to invite trial—fire, steel, revelation, or divine wrath—each roll of fate reshaping the battlefield with miracles or ruin. The Grail never rests long, vanishing from one sanctum to reappear in another, always luring the bold to chase its light through bloodstained halls. As the Moon Phases advance, the unworthy are judged: faithless lose their power, and the impure are punished for trophies taken in pride. Only the mage who endures the Citadel's sacred trials may drink from the Grail's radiance and emerge as master of the Lodge.
+			|<ul><li>1 Holy Grail (use any token you have available, preferrably a red item).</li><li>A six-sided die (1d6).</li><li>Add the 2 Upgrades Bone Shield and Explosive Bones to your pool of Upgrades.</li></ul>
+			|<ul><li>Follow the standard setup as indicated in the core box manual. Use the indicated map to create the Lodge. Place the Holy Grail in the Occult Black Rose Room.</li>Rooms: (3,13,33,57,78,99,120) Schools: (17) Mages: (27,28)</ul>
+			|<ul><li>When a Mage enters a Room with the Holy Grail, they claim it. Then they roll 1d6: 
+					<br><b>1: Trial by Fire</b> (<span style="color:red">red</span>) - They deal 3 damage to every other Mage.
+					<br><b>2: Guardian of the Sanctum</b> (<span style="color:gray">gray</span>) - They summon a Templarii in their Room. They upgrade it with their choice of either Bone Shield or Explosive Bones. It activates.
+					<br><b>3: Divine Verdict</b> (<span style="color:yellow">yellow</span>) - Activate an undead Evocation with Health 3 or below. Activate another undead Evocation with Health 3 or below.
+					<br><b>4: Light of Revelation</b> (<span style="color:blue">blue</span>) - Reveal the top 3 cards of the Event Deck. Reveal them and gain 1pp for every Instant Event among them. Remove one Event and place the remaining 2 back on the Event Deck in any order.
+					<br><b>5: Sacred Intervention</b> (<span style="color:purple">purple</span>) - Move a Mage or Evocation up to 1. Move it again up to 1. It may perform a physical attack under your control.
+					<br><b>6: Aura of Purity</b> (<span style="color:green">green</span>) - They heal all their damage, draw a Quest and gain 1pp.
+					<p>After the roll, put the Holy Grail in one of the Rooms in the given color which is as far away from you as possible.
+					</li>
+				<li><b>Trial of the Faithless:</b> When the Moon Phase changes to <b>Second Moon</b>, all Mages lose 3pp minus 1pp for every one of their completed or solved Quest. All mages who claimed the Holy Grail during this game turn ignore these effects.</li>
+				<li><b>Wrath of Purity:</b> When the Moon Phase changes to <b>Third Moon</b>, all Mages lose 1pp for every Trophy they hold from other Mages. They may discard up to 2 cards. Each discarded card prevents the loss of 1pp. All mages who claimed the Holy Grail during this game turn ignore these effects.</li>
+				</ul>
+			|<ul>*: (2)</ul>`,
+			`6
+			|BRW-R-CORE,BRW-R-GAEA Rebirth Core & Gaea Reborn
+			|Detroit, USA - Verdant Reclamation
+			|In Detroit, the ruins of steel and glass have been overtaken by roots and vines, as Gaea herself reclaims what was once drowned in smoke and fire. The Lodge grows wild, its halls shifting with living walls of ivy, its chambers pulsing with the earth's heartbeat. Every mage must draw upon Geomancy's forgotten strength, though none may wield it as their true school—its power belongs to the land alone. From green rooms surge spells of crushing force and creeping instability, striking harder where nature's will is strongest. Here, victory is not only over rival sorcerers, but over the relentless embrace of a city reborn in verdant fury.
+			|<ul><li>The complete Gaea Reborn box.</li></ul>
+			|<ul><li>This scenario is designed for 5 or less players.</li><li>Follow the standard setup plus the Avatar Gaea setup as indicated in the core box and Gaea Reborn manual. Use the indicated map to create the Lodge.</li><li>No Player may choose Geomancy as their school.</li></ul><ul>Rooms: (2,54[1/-1],55[0/1],56[-1/0]) Schools: (16) Avatars: (16)</ul>
+			|<ul><li><b>Mandatory Geomancy School:</b> During the Preparation Phase, every Mage must (in player order starting with the crown holder) draw 2 of their 4 Spell Cards from the Geomancy school and the other 2 from their own School. If the Geomancy deck is empty, cards can be drawn without restrictions.</li>
+				<li><b>Sylvan Infusion:</b> If a Combat or Contingency Spell is cast from a <span style='color: green;'>green Room</span> and the <b>Spell Effect</b> inflicts damage or places instability, it inflicts +1 damage or places +1 instability.</li></ul>
+			|<ul>*: (2)</ul>`,
+			`-7
+			|BRW-R-CORE Rebirth Core
+			|Ponyhof, Nowhereland - Demonstrates fully pre-defined Lodge on a radius 3 matrix
+			|
+			|<ul><li>None.</li></ul>
+			|<ul>Rooms: (74[2/0],11[2/1],1[1/1],29[0/2],116[0/1],115[3/-2],95[2/-1],9[2/-2],30[2/-3],75[1/-2],50[-1/-2],51[-1/-1],52[0/-1],31[-2/-1],76[-2/-0],117[-1/0],96[-3/0],10[-3/1],97[-2/1])</ul>
+			|<ul><li>None.</ul>
+			|<ul><li>None.</ul>`,
+			`8
+			|BRW-R-CORE,BRW-R-FORGE Rebirth Core & Dread Forge
+			|Mount Etna, Sicilia - Echoes in Fire
+			|In the volcanic Lodge beneath Mount Etna, the red rooms thrum with a dangerous gift—every spell cast here can split, erupting again to strike another foe. The mages seize upon this duplicity, bending the mountain’s resonance into a weapon to magnify their power. Yet the Lodge is no empty forge: Etna stirs in the depths, and his fiery servant stalks the halls, eager to punish the reckless. Each echo cast risks drawing their gaze, turning boldness into peril. To master the fire is to claim victory—but under Etna’s shadow, every triumph burns close to ruin.
+			|<ul><li>The complete Dread Forge box.</li></ul>
+			|<ul><li>This scenario is designed for 5 or less players. Please note that Etna can be a pretty strong Avatar to face.</li><li>Follow the standard setup plus the Avatar Etna setup as indicated in the core box and Dread Forge manual. Use the indicated map to create the Lodge.</li><li>No Player may choose Forge as their school.</li></ul>
+			 <ul>Rooms: (51[1/0],29[1/-1],30[0/1],31[-1/0]) Mages: (-19) Schools: (15) Avatars: (15)</ul>
+			|<ul><li><b>Mandatory Forge School:</b> During the Preparation Phase, every Mage must (in player order starting with the crown holder) draw 2 of their 4 Spell Cards from the Forge school and the other 2 from their own School. If the Forge deck is empty, cards can be drawn without restrictions.</li>
+				 <li><b>Forked Spells:</b> If a Player casts a Combat or Contingency Spell from a <span style='color: red;'>red Room</span> and the target of that Spell is at least at distance 1, then after resolving that Spell they may cast the same Spell again at a different target at least at distance 1.</li>
+				 <li><b>Gift of Fire:</b> When a Player defeats Etna or Magma, they may summon any equipment and gain 1pp.</li>
+				 </ul>
+			|<ul>*: (2)</ul>`,
+			`9
+			|BRW-R-ROTAS Rebirth ROTAS Antiquities
+			|Mount Aventine, Italy - Secrets of the Ancients
+			|Perched atop Mount Aventine, the Lodge lies entwined with Rome's forgotten secrets, where relics of antiquity whisper of power and prophecy. The Oracle's presence guides—or punishes—those who dare interpret the visions of the past, while Grypas prowls the Ludus Arena, offering cunning mages both danger and opportunity. Yet a darker shadow looms: the fearsome Avatar Cacus stirs beneath the ruins, its fiery wrath threatening any who linger too long in the Lodge's depths. Each Moon Phase brings fresh omens, and every duel risks awakening ancient power, where foresight, ambition, and survival collide. Only those who can navigate prophecy and survive the twin threats of Grypas and Cacus will leave Mount Aventine with their mastery and their lives intact.
+			|<ul><li>The complete ROTAS Antiquities box.</li></ul>
+			|<ul><li>This scenario is designed for 5 or less players.</li>
+				<li>Follow the standard setup plus the Avatar Cacus setup as indicated in the core box and ROTAS Antiquities manual. Use the indicated map to create the Lodge.</li>
+				<li>Remove the Forgotten Spell which summons Grypas from the Forgotten Spell deck. Place the Grypas Evocation card next to the Board. Place the Grypas model in the Ludus Arena.</li>
+				<li>No Player may choose Oracle as their school.</li></ul>
+				<ul>Rooms: (32[1/0],77[-1/0]) Mages: (-81,-7) Schools: (2,16) Avatars: (8)</ul>
+			|<ul><li><b>Mandatory Oracle School:</b> During the Preparation Phase, every Mage must (in player order starting with the crown holder) draw 2 of their 4 Spell Cards from the Oracle school and the other 2 from their own School. If the Oracle deck is empty, cards can be drawn without restrictions.</li>
+				<li><b>Oracle's Curse:</b> Whenever a Mage is defeated, <b>Prophecy</b>.</li>
+				<li><b>Oracle's Wisdom:</b> Whenever a Mage enters the Balck Rose Room, <b>Prophecy</b>.</li>
+				<li><b>Grypas' Rules:</b> Grypas is controlled by the Black Rose. When Grypas is defeated, the Mage defeating it gains 2pp. Place it immediately in the Ludus Arena again.</li>
+				<li><b>Grypas' Revenge:</b> When a Mage activates, they take control of Grypas until end of their activation (not occupying any of their Evocation slots and not conflicting with the one big base evocation limit). They may move Grypas <b>once</b> up to 2 Rooms during their avtivation, before or after taking an action. Grypas ability does support their other Evocations. Players cannot use Command or a Spells effect to activate Grypas</b>.</li>
+				</ul><ul>
+				<li><b>Oracle's Foresight:</b> Whenever the Moon Phase changes, after placing the new Moon's Event deck, each Player draws an Event.
+					<br><b>Black Rose Event</b> - Heal 3 damage on yourself or on one of your evocations.
+					<br><b>Action Event</b> - Summon an Aruspice in your room.
+					<br><b>Instant Event</b> - Draw a Spell card from the Oracle deck.
+					<br>Put the drawn Events under the current event deck. The Black Rose does not get points for these Events and the Crown will not change its holder.
+					</li>
+				</ul>
+			|<ul><li><b>1 pp - Oracle's Insight:</b> During step 1 of the Clean-up Phase each Mage who discards 2 or more Oracle Spells from their Mage Board gains 1pp.</li>
+				*: (2)</ul>`,
+			];
+
+		var allhonmen=[		
+			"* General|2 pp - Forbidden Madness: At the end of the game, you have a Forgotten Spell in your hand.|",
+			"* General|3 pp - Deep Mysteries: You did cast 2 or more Forgotten Spells during the game.|",
+			"* General|4 pp - Multi Talent: You did cast at least 1 spell from each School in the Library.|",
+			"* General|3 pp - Battle Hardened: At the end of the game, if you have given away more Trophies than any other Mage.|",
+			"* General|4 pp - Invincible: At the end of the game, no opposing Mage has one of your Trophies.|",
+			"* General|3 pp - Here I stand: At the end of the game, your Mage is the only Mage in the Black Rose Room.|",
+			"* General|1 pp - Master of the Rose: At the end of the game, your Mage is in the Black Rose Room.|",
+			"* General|2 pp - Forbidden Knowledge: You used a Forgotten Spell during the game.|",			
+			"* General|2 pp - Royal Blood: At the end of the game, you hold the Crown.|",
+			"* General|X pp - Reckless: At the end of the game, you have at least one Trophy from each enemy Mage. Gain 1 pp for every enemy Mage.|",
+			"* General|3 pp - Professor: At the end of the game, you have at least 5 Spells in your hand.|",
+			"* General|X pp - Influencer (red): During the game, gain 1 pp for every red Room which you rank 1st on rebuilding or destruction.|",
+			"* General|X pp - Influencer (green): During the game, gain 1 pp for every green Room which you rank 1st on rebuilding or destruction.|",
+			"* General|X pp - Influencer (yellow): During the game, gain 1 pp for every yellow Room which you rank 1st on rebuilding or destruction.|",
+			"* General|X pp - Influencer (blue): During the game, gain 1 pp for every blue Room which you rank 1st on rebuilding or destruction.|",
+			"* General|X pp - Influencer (purple): During the game, gain 1 pp for every purple Room which you rank 1st on rebuilding or destruction.|",
+			"* General|X pp - Influencer (gray): During the game, gain 1 pp for every gray Room which you rank 1st on rebuilding or destruction.|",
+			"BRW-R-CORE Rebirth Core|2 pp - Architect of Tomorrow: At the end of the game, you have ranked 1st or 2nd on rebuilding at least 4 Rooms.|",
+			"BRW-CORE BRW Core|2 pp - Architect of Ruin: At the end of the game, you have ranked 1st or 2nd on destroying at least 4 Rooms.|",
+			"* General|3 pp - Shadow Walker: At the end of the game, you have an Evocation in each purple Room.|",
+			"* General|3 pp - Master Summoner: At the end of the game, you control 3 Evocations.|",
+			"* General|2 pp - Duelist: During the game, you defeat a Mage alone.|",
+			"* General|2 pp - Opportunist: At the end of the game, you have solved at least 3 Quests.|",
+			"* General|2 pp - Hunter: During the game, at least 3 of your Traps were triggered.|",
+			"* General|3 pp - Tank: During the game, you triggered at least 3 of your Protection spells.|",
+			"* General|4 pp - Collector: At the end of the game, you hold cards of at least 5 different Schools in your hand.|",
+			"* General|3 pp - Nemesis: At the end of the game, if you have 3 or more Trophies from a single Mage.|",
+			"* General|2 pp - Elementalist: During the game, whenever you reveal the 4th spell with the same Element on your Mage Sheet.|",
+		];
+
+		
+		
         var allschools=[
-           			"BRW-R-CORE Rebirth Core: <b>Alchemy</b> Setup: Nigredo <b>Mages:</b> Angela, Bella",
-				"BRW-R-CORE Rebirth Core: <b>Agony</b> Setup: Succubus <b>Mages:</b> Rikkart, Bella, Prospero",
-				"BRW-R-CORE Rebirth Core: <b>Hex</b> Setup: Jinxes <b>Mages:</b> Gramigna, Alisha, Maelice, Saba",
-				"BRW-R-CORE Rebirth Core: <b>Nightmare</b> Setup: Umbra <b>Mages:</b> Baron Doria",
-				"BRW-R-CORE Rebirth Core: <b>Shamanic</b> Setup: Totem <b>Mages:</b> Sefu, Dai Jin",
-           			"BRW-R-CORE Rebirth Core: <b>Technomancy</b> Setup: Cadaver, Colossus, Upgrades <b>Mages:</b> Arianna, Pyotr, Dai Jin",
-				"BRW-R-ROTAS Rebirth ROTAS Madness: <b>Chaos</b> Setup:  Vastum Tokens, Chaos Effect cards <b>Mages:</b> Landolfo II",
-				"BRW-R-ROTAS Rebirth ROTAS North Winds: <b>Druid</b> Setup: Bjorn/Ursa, Loki/Krokodilus <b>Mages:</b> Kormac, Dai Jin",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: <b>Heka</b> Setup: Jinxes, Pharaoh; OPTIONAL: Rebirth ROTAS Sanctuary of Anubis Room to summon Pharoah more easily <b>Mages:</b> Imhotep, Saba, Graminga, Maelice",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: <b>Oracle</b> Setup: Aruspice <b>Mages:</b> Cassandra, Dai Jin",
-				"BRW-R-APO Rebirth Apocalypse: <b>Death</b> Setup: Destiny Tokens <b>Mages:</b> Mors",
-				"BRW-R-APO Rebirth Apocalypse: <b>Famine</b> Setup: None <b>Mages:</b> Fames, Bella, Venticello, Irene",
-				"BRW-R-APO Rebirth Apocalypse: <b>Pestilence</b> Setup: Pestis and Infectio Tokens, Pestice Evocation cards for all players<b>Mages:</b> Pestilentia, Dai Jin",
-				"BRW-R-APO Rebirth Apocalypse: <b>War</b> Setup: Apocalypse Equipments <b>Mages:</b> Bellum, Etns, Venticello, Irene",
-				"BRW-R-FORGE Rebirth Dread Forge: <b>Forge</b> Setup: Forge Equipments and Upgrades, Pupa <b>Mages:</b> Angela, Etna",
-				"BRW-R-GAEA Rebirth Gaea Reborn: <b>Geomancy</b> Setup: None <b>Mages:</b> Talia, Venticello, Irene, Prospero",
-				"DUEL-LEX Duel Lex: <b>Lex</b> Setup: Templarii, Lex Upgrades <b>Mages:</b> Bartholomaus, Ulrich, Hogwartz",
-				"DUEL-VOID Duel Void: <b>Void</b> Setup: Dagon <b>Mages:</b> Aluce, Alhazred",
-				"BRW-CORE BRW Core: <b>Conspiracy</b> Setup: None <b>Mages:</b> Geneve, Corax",
-				"BRW-CORE BRW Core: <b>Destruction</b> Setup: Malacoda <b>Mages:</b> Nero, Vivian",
-				"BRW-CORE BRW Core: <b>Divination</b> Setup: Divine Altar <b>Mages:</b> Jaf'ar",
-				"BRW-CORE BRW Core: <b>Illusion</b> Setup: Andromedar <b>Mages:</b> Marco, Corax, D. Schiavon",
-				"BRW-CORE BRW Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetery Room to provide Landsknecht <b>Mages:</b> Rebecca, Skultor",
-				"BRW-CORE BRW Core: <b>Transmutation</b> Setup: Abomination, Mutant Altar <b>Mages:</b> Tessa",
-				"BRW-SATOR BRW SATOR: <b>Bardic</b> Setup: Landsknecht; OPTIONAL: BRW Core Cemetary Room to summon Landsknecht more easily <b>Mages:</b> Arthur Vox",
-				"BRW-SATOR BRW SATOR: <b>Blood</b> Setup: Hashomer and its Action Cards, Poison Tokens <b>Mages:</b> Elizmbra",
-				"BRW-SATOR BRW SATOR: <b>Cartomancy</b> Setup: MinoTower, Quest Tokens <b>Mages:</b> Baba Yaga",
-				"BRW-SATOR BRW SATOR: <b>Chronomancy</b> Setup: Clockwork Golem <b>Mages:</b> Old Jukas, Telmia",
-				"BRW-SATOR BRW SATOR: <b>Demonology</b> Setup: Kappa, Kyuubi no Kitsune, NureOna, Omi, Tengu <b>Mages:</b> Tora, Skultor",
-				"BRW-SATOR BRW SATOR: <b>Elementalism</b> Setup: Chantico, Ehecatl, Itztli, Atlaua <b>Mages:</b> Ishuicole, Viviane",
-				"BRW-SATOR BRW SATOR: <b>Enchantment</b> Setup: Dancing Blades, SATOR Equipments <b>Mages:</b> Bronte",
-				"BRW-SATOR BRW SATOR: <b>Mind</b> Setup: Pigman <b>Mages:</b> Circe",
-				"BRW-SATOR BRW SATOR: <b>Omnia</b> Setup: Ichabod the spoiled Cat <b>Mages:</b> Arianna, Bella",
-				"BRW-SATOR BRW SATOR: <b>Trickery</b> Setup: Nimbo, Room Infestation Tokens, Bucket Equipment <b>Mages:</b> Dukas, Bella",
-				"BRW-SATOR BRW SATOR: <b>Void</b> Setup: Dagon <b>Mages:</b> Howard, Old Jukas",
-				"BRW-CRONO BRW Crono: <b>Myth</b> Setup: Disgrace of Crete, SATOR Equipment; OPTIONAL: Medusa <b>Mages:</b> Medusa",
-				"BRW-REV-CORE Revised Core: <b>Conspiracy</b> Setup: None <b>Mages:</b> Geneve, Corax",
-				"BRW-REV-CORE Revised Core: <b>Destruction</b> Setup: Malacoda <b>Mages:</b> Nero, Vivian",
-				"BRW-REV-CORE Revised Core: <b>Divination</b> Setup: Divine Altar <b>Mages:</b> Jaf'ar",
-				"BRW-REV-CORE Revised Core: <b>Illusion</b> Setup: Andromedar <b>Mages:</b> Marco, Corax, D. Schiavon",
-				"BRW-REV-CORE Revised Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetery Room to provide Landsknecht <b>Mages:</b> Rebecca, Skultor",
-				"BRW-REV-CORE Revised Core: <b>Transmutation</b> Setup: Abomination, Mutant Altar <b>Mages:</b> Tessa",
-				"BRW-REV-TENET Revised TENET: <b>Twilight</b> Setup: unknown",
-				"BRW-REV-TENET Revised TENET: <b>Ritualism</b> Setup: unknown <b>Mages:</b> S'Arzadori",
-				"REQ Requiem Crossover: <b>Totentanz</b> Setup: unknown",
-				"BRW-DISCORD Discord Custom Items: <b>Legion</b> Setup: TBD; ask Thorbot <b>Mages:</b> Morningstar",
-				"BRW-DISCORD Discord Custom Items: <b>Angelic</b> Setup: TBD; ask Chromium <b>Mages:</b> St. Boniface",
-				"BRW-DISCORD Discord Custom Items: <b>Phyrexian</b> Setup: TBD; ask Montrovant <b>Mages:</b> Elesh Norn",
-				"BRW-DISCORD Discord Custom Items: <b>Reflective</b> Setup: Both Bella mages from SATOR and ROTAS Once Upon a Time; ask HirkingS <b>Mages:</b> Bella",
+           		"1|BRW-R-CORE Rebirth Core: <b>Alchemy</b> Setup: Nigredo <b>Mages:</b> Angela, Bella",
+				"2|BRW-R-CORE Rebirth Core: <b>Agony</b> Setup: Succubus <b>Mages:</b> Rikkart, Bella, Prospero",
+				"3|BRW-R-CORE Rebirth Core: <b>Hex</b> Setup: Jinxes <b>Mages:</b> Gramigna, Alisha, Maelice, Saba",
+				"4|BRW-R-CORE Rebirth Core: <b>Nightmare</b> Setup: Umbra <b>Mages:</b> Baron Doria",
+				"5|BRW-R-CORE Rebirth Core: <b>Shamanic</b> Setup: Totem <b>Mages:</b> Sefu, Dai Jin",
+           		"6|BRW-R-CORE Rebirth Core: <b>Technomancy</b> Setup: Cadaver, Colossus, Upgrades <b>Mages:</b> Arianna, Pyotr, Dai Jin",
+				"7|BRW-R-ROTAS Rebirth ROTAS Madness: <b>Chaos</b> Setup:  Vastum Tokens, Chaos Effect cards <b>Mages:</b> Landolfo II",
+				"8|BRW-R-ROTAS Rebirth ROTAS North Winds: <b>Druid</b> Setup: Bjorn/Ursa, Loki/Krokodilus <b>Mages:</b> Kormac, Dai Jin",
+				"9|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: <b>Heka</b> Setup: Jinxes, Pharaoh; OPTIONAL: Rebirth ROTAS Sanctuary of Anubis Room to summon Pharoah more easily <b>Mages:</b> Imhotep, Saba, Graminga, Maelice",
+				"10|BRW-R-ROTAS Rebirth ROTAS Antiquities: <b>Oracle</b> Setup: Aruspice <b>Mages:</b> Cassandra, Dai Jin",
+				"11|BRW-R-APO Rebirth Apocalypse: <b>Death</b> Setup: Destiny Tokens <b>Mages:</b> Mors",
+				"12|BRW-R-APO Rebirth Apocalypse: <b>Famine</b> Setup: None <b>Mages:</b> Fames, Bella, Venticello, Irene",
+				"13|BRW-R-APO Rebirth Apocalypse: <b>Pestilence</b> Setup: Pestis and Infectio Tokens, Pestice Evocation cards for all players<b>Mages:</b> Pestilentia, Dai Jin",
+				"14|BRW-R-APO Rebirth Apocalypse: <b>War</b> Setup: Apocalypse Equipments <b>Mages:</b> Bellum, Etns, Venticello, Irene",
+				"15|BRW-R-FORGE Rebirth Dread Forge: <b>Forge</b> Setup: Forge Equipments and Upgrades, Pupa <b>Mages:</b> Angela, Etna",
+				"16|BRW-R-GAEA Rebirth Gaea Reborn: <b>Geomancy</b> Setup: None <b>Mages:</b> Talia, Venticello, Irene, Prospero",
+				"17|DUEL-LEX Duel Lex: <b>Lex</b> Setup: Templarii, Lex Upgrades <b>Mages:</b> Bartholomaus, Ulrich, Hogwartz",
+				"18|DUEL-VOID Duel Void: <b>Void</b> Setup: Dagon <b>Mages:</b> Aluce, Alhazred",
+				"19|BRW-CORE BRW Core: <b>Conspiracy</b> Setup: None <b>Mages:</b> Geneve, Corax",
+				"20|BRW-CORE BRW Core: <b>Destruction</b> Setup: Malacoda <b>Mages:</b> Nero, Vivian",
+				"21|BRW-CORE BRW Core: <b>Divination</b> Setup: Divine Altar <b>Mages:</b> Jaf'ar",
+				"22|BRW-CORE BRW Core: <b>Illusion</b> Setup: Andromedar <b>Mages:</b> Marco, Corax, D. Schiavon",
+				"23|BRW-CORE BRW Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetery Room to provide Landsknecht <b>Mages:</b> Rebecca, Skultor",
+				"24|BRW-CORE BRW Core: <b>Transmutation</b> Setup: Abomination, Mutant Altar <b>Mages:</b> Tessa",
+				"25|BRW-SATOR BRW SATOR: <b>Bardic</b> Setup: Landsknecht; OPTIONAL: BRW Core Cemetary Room to summon Landsknecht more easily <b>Mages:</b> Arthur Vox",
+				"26|BRW-SATOR BRW SATOR: <b>Blood</b> Setup: Hashomer and its Action Cards, Poison Tokens <b>Mages:</b> Elizmbra",
+				"27|BRW-SATOR BRW SATOR: <b>Cartomancy</b> Setup: MinoTower, Quest Tokens <b>Mages:</b> Baba Yaga",
+				"28|BRW-SATOR BRW SATOR: <b>Chronomancy</b> Setup: Clockwork Golem <b>Mages:</b> Old Jukas, Telmia",
+				"29|BRW-SATOR BRW SATOR: <b>Demonology</b> Setup: Kappa, Kyuubi no Kitsune, NureOna, Omi, Tengu <b>Mages:</b> Tora, Skultor",
+				"30|BRW-SATOR BRW SATOR: <b>Elementalism</b> Setup: Chantico, Ehecatl, Itztli, Atlaua <b>Mages:</b> Ishuicole, Viviane",
+				"31|BRW-SATOR BRW SATOR: <b>Enchantment</b> Setup: Dancing Blades, SATOR Equipments <b>Mages:</b> Bronte",
+				"32|BRW-SATOR BRW SATOR: <b>Mind</b> Setup: Pigman <b>Mages:</b> Circe",
+				"33|BRW-SATOR BRW SATOR: <b>Omnia</b> Setup: Ichabod the spoiled Cat <b>Mages:</b> Arianna, Bella",
+				"34|BRW-SATOR BRW SATOR: <b>Trickery</b> Setup: Nimbo, Room Infestation Tokens, Bucket Equipment <b>Mages:</b> Dukas, Bella",
+				"35|BRW-SATOR BRW SATOR: <b>Void</b> Setup: Dagon <b>Mages:</b> Howard, Old Jukas",
+				"36|BRW-CRONO BRW Crono: <b>Myth</b> Setup: Disgrace of Crete, SATOR Equipment; OPTIONAL: Medusa <b>Mages:</b> Medusa",
+				"37|BRW-REV-CORE Revised Core: <b>Conspiracy</b> Setup: None <b>Mages:</b> Geneve, Corax",
+				"38|BRW-REV-CORE Revised Core: <b>Destruction</b> Setup: Malacoda <b>Mages:</b> Nero, Vivian",
+				"39|BRW-REV-CORE Revised Core: <b>Divination</b> Setup: Divine Altar <b>Mages:</b> Jaf'ar",
+				"40|BRW-REV-CORE Revised Core: <b>Illusion</b> Setup: Andromedar <b>Mages:</b> Marco, Corax, D. Schiavon",
+				"41|BRW-REV-CORE Revised Core: <b>Necromancy</b> Setup: Landsknecht, Bone Knight; OPTIONAL: Cemetery Room to provide Landsknecht <b>Mages:</b> Rebecca, Skultor",
+				"42|BRW-REV-CORE Revised Core: <b>Transmutation</b> Setup: Abomination, Mutant Altar <b>Mages:</b> Tessa",
+				"43|BRW-REV-TENET Revised TENET: <b>Twilight</b> Setup: unknown",
+				"44|BRW-REV-TENET Revised TENET: <b>Ritualism</b> Setup: unknown <b>Mages:</b> S'Arzadori",
+				"45|REQ Requiem Crossover: <b>Totentanz</b> Setup: unknown",
+				"46|BRW-DISCORD Discord Custom Items: <b>Legion</b> Setup: TBD; contact Thorbot",
+				"47|BRW-DISCORD Discord Custom Items: <b>Angelic</b> Setup: 5 Alters, 3 Guardian Angels, 12 Blessing tokens, and set aside the 3 Thrice Blessed Prayer cards. Those are not part of the 36 School cards. Contact Chromium <b>Mages:</b> St. Boniface, Morningstar",
+				"48|BRW-DISCORD Discord Custom Items: <b>Phyrexian</b> Setup: TBD; contact Montrovant <b>Mages:</b> Elesh Norn",
+				"49|BRW-DISCORD Discord Custom Items: <b>Reflective</b> Setup: Both Bella mages from SATOR and ROTAS Once Upon a Time; contact HirkingS <b>Mages:</b> Bella",
 				];
 
 	    	var allmages =[
-				"BRW-R-CORE Rebirth Core: Rikkart",
-				"BRW-R-CORE Rebirth Core: Arianna",
-				"BRW-R-CORE Rebirth Core: Gramigna",
-				"BRW-R-CORE Rebirth Core: Baron Doria",
-				"BRW-R-CORE-DM Rebirth Deadly Masks: Seifu",
-				"BRW-R-CORE-DM Rebirth Deadly Masks: Angela",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Cassandra",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Imhotep",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Saba",
-				"BRW-R-ROTAS Rebirth ROTAS Madness: Landolfo II",
-				"BRW-R-ROTAS Rebirth ROTAS North Winds: Kormac",
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hogwartz",	
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Maelice",	
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Venticello",
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Bella",
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Alisha",	
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Pyotr",	
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Dai Jin",	
-				"BRW-R-FORGE Rebirth Dread Forge: Etna",
-				"BRW-R-GAEA Rebirth Gaea Reborn: Talia",
-				"BRW-R-APO Rebirth Apocalypse: Mors",
-				"BRW-R-APO Rebirth Apocalypse: Bellum",
-				"BRW-R-APO Rebirth Apocalypse: Pestilentia",
-				"BRW-R-APO Rebirth Apocalypse: Fames",
-				"BRW-R-IRENE Rebirth Irene's Quest: Irene",
-				"BRW-R-SOF Rebirth Seal of Fire: Prospero",
-				"DUEL-LEX Duel Lex: Ulrich",
-				"DUEL-LEX Duel Lex: Bartholom&auml;us",
-				"DUEL-VOID Duel Void: Alhazred",
-				"DUEL-VOID Dual Void: Alice",
-				"BRW-CORE BRW Core: Nero", 
-				"BRW-CORE BRW Core: Rebecca", 
-				"BRW-CORE BRW Core: Tessa", 
-				"BRW-CORE BRW Core: Jaf'ar", 
-				"BRW-CORE-HT BRW Hidden Thorns: Geneve", 
-				"BRW-CORE-HT BRW Hidden Thorns: Marco",
-				"BRW-SATOR BRW SATOR: Corax",
-				"BRW-SATOR BRW SATOR: Dukas",
-				"BRW-SATOR BRW SATOR: Vivian",
-				"BRW-SATOR BRW SATOR: Bella",
-				"BRW-SATOR BRW SATOR: Arianna",
-				"BRW-SATOR BRW SATOR: Skultor",
-				"BRW-SATOR BRW SATOR: Old Man Jukas",
-				"BRW-SATOR BRW SATOR: Eliumbra",
-				"BRW-SATOR BRW SATOR: Tlahuicole",
-				"BRW-SATOR BRW SATOR: Arthur Vox",
-				"BRW-SATOR BRW SATOR: Baba Yaga",
-				"BRW-SATOR BRW SATOR: Circe",
-				"BRW-SATOR BRW SATOR: Bronte",
-				"BRW-SATOR BRW SATOR: Tora",
-				"BRW-SATOR BRW SATOR: Howard",
-				"BRW-SATOR BRW SATOR: Davide Schiavon",
-				"BRW-SATOR BRW SATOR: Telmia",
-				"BRW-CRONO BRW Crono: Medusa",
-				"ASHES Ashes Magazine: Cosma",
-				"ASHES Ashes Magazine: Helblindi",
-				"ASHES Ashes Magazine: Slenderman",
-				"NA Nova Aetas Crossover: Agorix",
-				"NA Nova Aetas Crossover: Boogeyman",
-				"NA Nova Aetas Crossover: Onamor",
-				"NA Nova Aetas Crossover: Hyperion",
-				"NA Nova Aetas Crossover: Mediceo",
-				"REQ Requiem Crossover: Istvan",
-				"REQ Requiem Crossover: Herick",
-				"BRW-REV-CORE Revised Core: Nero",
-				"BRW-REV-CORE Revised Core: Jafar",
-				"BRW-REV-CORE Revised Core: Tessa",
-				"BRW-REV-CORE Revised Core: Rebecca",
-				"BRW-REV-CORE-HT Revised Hidden Thorns: Marco",
-				"BRW-REV-CORE-HT Revised Hidden Thorns: Geneve",
-				"BRW-REV-TENET Revised TENET: Malombra",
-				"BRW-REV-TENET Revised TENET: Efialte",
-				"BRW-REV-TENET Revised TENET: S'Arzadori",
-				"BRW-REV-TENET Revised TENET: Haruka",
-				"BRW-REV-TENET Revised TENET: Jukas",
-				"BRW-REV-TENET Revised TENET: Isadora",
-				"BRW-REV-TENET Revised TENET: Elektra",
-				"BRW-REV-TENET Revised TENET: Scarlatto",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Anubis",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Architect",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Cacus",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Fenrir",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Gaea",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Hastur",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Jukas",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Ignis",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Minotaurus",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Parcae",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Rubedo",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Janara",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Albedo",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Griphon",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Razvan",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Jack",
-				"BRW-REB-CUSTCONV Rebirth Custom Conversion Kit:  Odin",
-				"BRW-DISCORD Discord Custom Items: Morningstar",
-				"BRW-DISCORD Discord Custom Items: St. Boneface",
-				"BRW-DISCORD Discord Custom Items: Elesh Norn",
+				"1|BRW-R-CORE Rebirth Core: Rikkart",
+				"2|BRW-R-CORE Rebirth Core: Arianna",
+				"3|BRW-R-CORE Rebirth Core: Gramigna",
+				"4|BRW-R-CORE Rebirth Core: Baron Doria",
+				"5|BRW-R-CORE-DM Rebirth Deadly Masks: Seifu",
+				"6|BRW-R-CORE-DM Rebirth Deadly Masks: Angela",
+				"7|BRW-R-ROTAS Rebirth ROTAS Antiquities: Cassandra",
+				"8|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Imhotep",
+				"9|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Saba",
+				"10|BRW-R-ROTAS Rebirth ROTAS Madness: Landolfo II",
+				"11|BRW-R-ROTAS Rebirth ROTAS North Winds: Kormac",
+				"12|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hogwartz",
+				"13|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Maelice",
+				"14|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Venticello",
+				"15|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Bella",
+				"16|BRW-R-ROTAS Rebirth ROTAS Silk Road: Alisha",
+				"17|BRW-R-ROTAS Rebirth ROTAS Silk Road: Pyotr",
+				"18|BRW-R-ROTAS Rebirth ROTAS Silk Road: Dai Jin",
+				"19|BRW-R-FORGE Rebirth Dread Forge: Etna",
+				"20|BRW-R-GAEA Rebirth Gaea Reborn: Talia",
+				"21|BRW-R-APO Rebirth Apocalypse: Mors",
+				"22|BRW-R-APO Rebirth Apocalypse: Bellum",
+				"23|BRW-R-APO Rebirth Apocalypse: Pestilentia",
+				"24|BRW-R-APO Rebirth Apocalypse: Fames",
+				"25|BRW-R-IRENE Rebirth Irene's Quest: Irene",
+				"26|BRW-R-SOF Rebirth Seal of Fire: Prospero",
+				"27|DUEL-LEX Duel Lex: Ulrich",
+				"28|DUEL-LEX Duel Lex: Bartholom&auml;us",
+				"29|DUEL-VOID Duel Void: Alhazred",
+				"30|DUEL-VOID Dual Void: Alice",
+				"31|BRW-CORE BRW Core: Nero",
+				"32|BRW-CORE BRW Core: Rebecca",
+				"33|BRW-CORE BRW Core: Tessa",
+				"34|BRW-CORE BRW Core: Jaf'ar",
+				"35|BRW-CORE-HT BRW Hidden Thorns: Geneve",
+				"36|BRW-CORE-HT BRW Hidden Thorns: Marco",
+				"37|BRW-SATOR BRW SATOR: Corax",
+				"38|BRW-SATOR BRW SATOR: Dukas",
+				"39|BRW-SATOR BRW SATOR: Vivian",
+				"40|BRW-SATOR BRW SATOR: Bella",
+				"41|BRW-SATOR BRW SATOR: Arianna",
+				"42|BRW-SATOR BRW SATOR: Skultor",
+				"43|BRW-SATOR BRW SATOR: Old Man Jukas",
+				"44|BRW-SATOR BRW SATOR: Eliumbra",
+				"45|BRW-SATOR BRW SATOR: Tlahuicole",
+				"46|BRW-SATOR BRW SATOR: Arthur Vox",
+				"47|BRW-SATOR BRW SATOR: Baba Yaga",
+				"48|BRW-SATOR BRW SATOR: Circe",
+				"49|BRW-SATOR BRW SATOR: Bronte",
+				"50|BRW-SATOR BRW SATOR: Tora",
+				"51|BRW-SATOR BRW SATOR: Howard",
+				"52|BRW-SATOR BRW SATOR: Davide Schiavon",
+				"53|BRW-SATOR BRW SATOR: Telmia",
+				"54|BRW-CRONO BRW Crono: Medusa",
+				"55|ASHES Ashes Magazine: Cosma",
+				"56|ASHES Ashes Magazine: Helblindi",
+				"57|ASHES Ashes Magazine: Slenderman",
+				"58|NA Nova Aetas Crossover: Agorix",
+				"59|NA Nova Aetas Crossover: Boogeyman",
+				"60|NA Nova Aetas Crossover: Onamor",
+				"61|NA Nova Aetas Crossover: Hyperion",
+				"62|NA Nova Aetas Crossover: Mediceo",
+				"63|REQ Requiem Crossover: Istvan",
+				"64|REQ Requiem Crossover: Herick",
+				"65|BRW-REV-CORE Revised Core: Nero",
+				"66|BRW-REV-CORE Revised Core: Jafar",
+				"67|BRW-REV-CORE Revised Core: Tessa",
+				"68|BRW-REV-CORE Revised Core: Rebecca",
+				"69|BRW-REV-CORE-HT Revised Hidden Thorns: Marco",
+				"70|BRW-REV-CORE-HT Revised Hidden Thorns: Geneve",
+				"71|BRW-REV-TENET Revised TENET: Malombra",
+				"72|BRW-REV-TENET Revised TENET: Efialte",
+				"73|BRW-REV-TENET Revised TENET: S'Arzadori",
+				"74|BRW-REV-TENET Revised TENET: Haruka",
+				"75|BRW-REV-TENET Revised TENET: Jukas",
+				"76|BRW-REV-TENET Revised TENET: Isadora",
+				"77|BRW-REV-TENET Revised TENET: Elektra",
+				"78|BRW-REV-TENET Revised TENET: Scarlatto",
+				"79|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Anubis",
+				"80|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Architect",
+				"81|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Cacus",
+				"82|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Fenrir",
+				"83|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Gaea",
+				"84|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Hastur",
+				"85|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Jukas",
+				"86|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Ignis",
+				"87|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Minotaurus",
+				"88|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Parcae",
+				"89|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Rubedo",
+				"90|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Janara",
+				"91|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Albedo",
+				"92|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Griphon",
+				"93|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Razvan",
+				"94|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Jack",
+				"95|BRW-REB-CUSTCONV Rebirth Custom Conversion Kit: Odin",
+				"96|BRW-DISCORD Discord Custom Items: Morningstar",
+				"97|BRW-DISCORD Discord Custom Items: St. Boneface",
+				"98|BRW-DISCORD Discord Custom Items: Elesh Norn",
+
 			
 			];
 
 	    		var allrooms = [
-				"BRW-R-CORE (black): Rebirth Core: The Black Rose (black)#1",
-				"BRW-R-GAEA (black): Rebirth Gaea Reborn: Emerald Rose (black)#1",
-				"DUEL-LEX (black): Duel Lex: Occult Black Rose Room (black)#1",
-				"DUEL-VOID (black): Duel Void: Deep Black Rose Room (black)#1",
-				"BRW-CORE (black): BRW Core: The Black Rose (black)#1",
-				"BRW-INFERNOX (black): BRW Inferno: Tartaro (black)#1",
-				"BRW-REV-CORE (black): Revised Core: The Black Rose (black)#1",
-				"BRW-CRONO (black): BRW Crono: Revenge Room (black)#1",
-				"BRW-R-CORE (purple): Rebirth Core: Throne Room [crown](purple)#2",
-				"BRW-R-CORE (purple): Rebirth Core: Pleasure Room (purple)#3",
-				"BRW-R-CORE (purple): Rebirth Core: Armory (purple)#4",
-				"BRW-R-ROTAS (purple): Rebirth ROTAS Once Upon a Time: Skull Throne Room [crown](purple)#2",
-				"DUEL-LEX (purple): Duel Lex: Templars' Armory (purple)#4",
-				"DUEL-VOID (purple): Duel Void: Ancient Pleasures' Room (purple)#3",
-				"BRW-CORE (purple): BRW Core: Throne Room [crown](purple)#2",
-				"BRW-CORE (purple): BRW Core: Pleasure Room (purple)#3",
-				"BRW-CORE (purple): BRW Core: Armory (purple)#4",
-				"BRW-SATOR (purple): BRW SATOR: Card's Room (purple)",
-				"BRW-SATOR (purple): BRW SATOR: Pigmen's Room - Setup: Mutated Pigmen (purple)",
-				"BRW-INFERNO (purple): BRW Inferno: Armory - infernal - Setup: Arpia (purple)#4",
-				"BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
-				"BRW-INFERNOX (purple): BRW Inferno: Cerchio dei Lussuriosi (purple)",
-				"BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ruffiani (purple)",
-				"BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ladri [crown](purple)#2",
-				"BRW-CRONO (purple): BRW Crono: Room of Corrupt Power [crown](purple)#2",
-				"BRW-REV-CORE (purple): Revised Core: Throne Room [crown](purple)#2",
-				"BRW-REV-CORE (purple): Revised Core: Pleasure Room (purple)#3",
-				"BRW-REV-CORE (purple): Revised Core: Armory (purple)#4",
-				"BRW-R-CORE (red): Rebirth Core: Arena (red)#5",
-				"BRW-R-CORE (red): Rebirth Core: Laboratory (red)#6",
-				"BRW-R-CORE (red): Rebirth Core: Summoner Room - Setup: Nigredo (red)#7",
-				"BRW-R-ROTAS (red): Rebirth ROTAS Antiquities: Ludus Magnus Arena - Setup: Aruspice (red)#5",
-				"DUEL-LEX (red): Duel Lex: Crusaders' Summoner Room (red)#7",
-				"DUEL-VOID (red): Duel Void: Lost Alchemical Laboratory (red)#6",
-				"BRW-CORE (red): BRW Core: Arena (red)#5",
-				"BRW-CORE (red): BRW Core: Laboratory (red)#6",
-				"BRW-CORE (red): BRW Core: Summoner Room - Setup: Cerbero (red)#7",
-				"BRW-SATOR (red): BRW SATOR: Assassin's Brotherhood - Setup: Ezio Auditore (red)",
-				"BRW-SATOR (red): BRW SATOR: Garden of Ice and Fire (red)",
-				"BRW-SATOR (red): BRW SATOR: Cyclop's Room - Setup: Artifact deck (red)",
-				"BRW-INFERNO (red): BRW Inferno: Arena - infernal (red)#5",
-				"BRW-INFERNO (red): BRW Inferno: Summoner Room - infernal - Setup: Cerbero (red)#7",
-				"BRW-INFERNO (red): BRW Inferno: Porta dell'Inferno (red)",
-				"BRW-INFERNO (red): BRW Inferno: Girone degli Omicidi - Setup: Centauro (red)",
-				"BRW-INFERNO (red): BRW Inferno: Cerchio degli Iracondi (red)",
-				"BRW-CRONO (red): BRW Crono: Sanctuary of Flames (red)",
-				"BRW-FAMILIARS (red): BRW Familiars: Cerberus - Setup: Cerberus Familiars (red)",
-				"BRW-REV-CORE (red): Revised Core: Arena (red)#5",
-				"BRW-REV-CORE (red): Revised Core: Laboratory (red)#6",
-				"BRW-REV-CORE (red): Revised Core: Summoner Room - Setup: Cerbero (red)#7",
-				"BRW-R-CORE (green): Rebirth Core: Garden (green)#8",
-				"BRW-R-CORE (green): Rebirth Core: Forge (green)#9",
-				"BRW-R-CORE (green): Rebirth Core: Treasure Room (green)#10",
-				"BRW-R-ROTAS (green): Rebirth ROTAS Silk Road: Zen Garden (green)#8",
-				"BRW-R-GAEA (green): Rebirth Gaea Reborn: Thorny Clearing (green)",	
-				"BRW-R-GAEA (green): Rebirth Gaea Reborn: Indoor Forrest (green)",	
-				"BRW-R-GAEA (green): Rebirth Gaea Reborn: Life Fountain (green)",
-				"DUEL-LEX (green): Duel Lex: Templars' Treasure Room (green)#10",
-				"DUEL-VOID (green): Duel Void: Forge of the Void (green)#9",
-				"BRW-CORE (green): BRW Core: Garden (green)#8",
-				"BRW-CORE (green): BRW Core: Forge (green)#9",
-				"BRW-CORE (green): BRW Core: Treasure Room (green)#10",
-				"BRW-SATOR (green): BRW SATOR: Clinging Swamp (green)",
-				"BRW-SATOR (green): BRW SATOR: Tana dei Troll (green)",
-				"BRW-INFERNO (green): BRW Inferno: Garden - infernal (green)#8",
-				"BRW-INFERNO (green): BRW Inferno: Treasure Room - infernal - Setup: Centauro (green)#10",
-				"BRW-INFERNOX (green): BRW Inferno: Selva Oscura (green)",
-				"BRW-INFERNO (green): BRW Inferno: Girone dei Bestemmiator (green)",
-				"BRW-INFERNO (green): BRW Inferno: Cerchio dei Golosi - Setup: Cerbero (green)",
-				"BRW-CRONO (green): BRW Crono: Training Room (green)",
-				"BRW-FAMILIARS (green): BRW Familiars: Draco - Setup: Draco Familiars (green)",
-				"BRW-REV-CORE (green): Revised Core: Garden (green)#8",
-				"BRW-REV-CORE (green): Revised Core: Forge (green)#9",
-				"BRW-REV-CORE (green): Revised Core: Treasure Room (green)#10",
-				"BRW-R-CORE (yellow): Rebirth Core: Bibliotheca (yellow)#11",
-				"BRW-R-CORE (yellow): Rebirth Core: Observatory (yellow)#12",
-				"BRW-R-CORE (yellow): Rebirth Core: Sanctuary (yellow)#13",
-				"BRW-R-ROTAS (yellow): Rebirth ROTAS Last Dynasty: Sanctuary of Anubis - Setup: Pharaoh (yellow)#13",
-				"DUEL-LEX (yellow): Duel Lex: Bibliotheca of the Order (yellow)#11",
-				"DUEL-VOID (yellow): Duel Void: Abyssal Observatory (yellow)#12",
-				"BRW-CORE (yellow): BRW Core: Bibliotheca (yellow)#11",
-				"BRW-CORE (yellow): BRW Core: Observatory (yellow)#12",
-				"BRW-CORE (yellow): BRW Core: Sanctuary (yellow)#13",
-				"BRW-SATOR (yellow): BRW SATOR: Alehouse (yellow)",
-				"BRW-SATOR (yellow): BRW SATOR: Eerie Machinery (yellow)",
-				"BRW-SATOR (yellow): BRW SATOR: Cyclop's Forge (yellow)",
-				"BRW-INFERNO (yellow): BRW Inferno: Sanctuary - infernal (yellow)#13",
-				"BRW-INFERNO (yellow): BRW Inferno: Bolgia dei Simoniaci (yellow)",
-				"BRW-INFERNOX (yellow): BRW Inferno: Limbo (yellow)",
-				"BRW-INFERNO (yellow): BRW Inferno: Cerchio degli Avari (yellow)",
-				"BRW-CRONO (yellow): BRW Crono: Hell's Door - Setup: Bone Knight (yellow)",
-				"BRW-FAMILIARS (yellow): BRW Familiars: Griffin - Setup: Griffin Familiars (yellow)",
-				"BRW-REV-CORE (yellow): Revised Core: Bibliotheca (yellow)#11",
-				"BRW-REV-CORE (yellow): Revised Core: Observatory (yellow)#12",
-				"BRW-REV-CORE (yellow): Revised Core: Sanctuary (yellow)#13",
-				"BRW-R-CORE (blue): Rebirth Core: The Abyss (blue)#14",
-				"BRW-R-CORE (blue): Rebirth Core: Mirrors' Room (blue)#15",
-				"BRW-R-CORE (blue): Rebirth Core: Oracle Room (blue)#16",
-				"BRW-R-ROTAS (blue): Rebirth ROTAS North Winds: The Abyss of Hel - Setup: Crocodilus, Ursa (blue)#14",
-				"DUEL-LEX (blue): Duel Lex: Abyss of Faith (blue)#14",
-				"DUEL-VOID (blue): Duel Void: Blasphemous Oracle (blue)#16",
-				"BRW-CORE (blue): BRW Core: The Abyss (blue)#14",
-				"BRW-CORE (blue): BRW Core: Mirrors' Room (blue)#15",
-				"BRW-CORE (blue): BRW Core: Oracle Room (blue)#16",
-				"BRW-SATOR (blue): BRW SATOR: Horologium (blue)",
-				"BRW-SATOR (blue): BRW SATOR: Theater (blue)",
-				"BRW-INFERNO (blue): BRW Inferno: Oracle Room - infernal (blue)#16",
-				"BRW-INFERNO (blue): BRW Inferno: The Abyss - infernal - Setup: Farfarello (blue)#14",
-				"BRW-INFERNO (blue): BRW Inferno: Bolgia dei Barattieri - Setup: Farfarello (blue)",
-				"BRW-INFERNO (blue): BRW Inferno: Cerchio dei Traditori (blue)",
-				"BRW-INFERNO (blue): BRW Inferno: Bolgia dei Maghi (blue)",
-				"BRW-FAMILIARS (blue): BRW Familiars: Hydra - Setup: Hydra Familiars (blue)",
-				"BRW-REV-CORE (blue): Revised Core: The Abyss (blue)#14",
-				"BRW-REV-CORE (blue): Revised Core: Mirrors' Room (blue)#15",
-				"BRW-REV-CORE (blue): Revised Core: Oracle Room (blue)#16",
-				"BRW-R-CORE (gray): Rebirth Core: Cemetery - Setup: Cadaver, Colossus (gray)#17",
-				"BRW-R-CORE (gray): Rebirth Core: Crypt - Setup: Cadaver (gray)#18",
-				"BRW-R-CORE (gray): Rebirth Core: Sacrificial Altar - Setup: Cadaver (gray)#19",
-				"BRW-R-ROTAS (gray): Rebirth ROTAS Madness: Sacrificial Altar of Madness (gray)#19",
-				"BRW-R-SOF (gray): Rebirth Seal of Fire: Room of Rebirth - Setup: Phoenix Familiars (gray)",
-				"DUEL-LEX (gray): Duel Lex: Crypt of the Saint - Setup: Templarii (gray)#18",
-				"DUEL-VOID (gray): Duel Void: Whales Cemetary - Setup: Dagon (gray)#17",
-				"BRW-CORE (gray): BRW Core: Cemetery - Setup: Landsknecht (gray)#17",
-				"BRW-CORE (gray): BRW Core: Crypt (gray)#18",
-				"BRW-CORE (gray): BRW Core: Sacrificial Altar (gray)#19",
-				"BRW-SATOR (gray): BRW SATOR: Cursed Temple - Setup: Landsknecht (gray)",
-				"BRW-INFERNOX (gray): BRW Inferno: Cerchio degli Erefici (gray)",
-				"BRW-INFERNO (gray): BRW Inferno: Antinferno (gray)",
-				"BRW-INFERNO (gray): BRW Inferno: Girone dei Suicidi - Setup: Arpia (gray)",
-				"BRW-INFERNO (gray): BRW Inferno: Cemetery - infernal - Setup: Landsknecht (gray)#17",
-				"BRW-INFERNO (gray): BRW Inferno: Sacrificial Altar - infernal - Setup: Malacoda (gray)#19",
-				"BRW-REV-CORE (gray): Revised Core: Cemetery (gray)#17",
-				"BRW-REV-CORE (gray): Revised Core: Crypt - Setup: Landsknecht (gray)#18",
-				"BRW-REV-CORE (gray): Revised Core: Sacrificial Altar (gray)#19",
+				"1|BRW-R-CORE (black): Rebirth Core: The Black Rose (black)#1",
+				"2|BRW-R-GAEA (black): Rebirth Gaea Reborn: Emerald Rose (black)#1",
+				"3|DUEL-LEX (black): Duel Lex: Occult Black Rose Room (black)#1",
+				"4|DUEL-VOID (black): Duel Void: Deep Black Rose Room (black)#1",
+				"5|BRW-CORE (black): BRW Core: The Black Rose (black)#1",
+				"6|BRW-INFERNOX (black): BRW Inferno: Tartaro (black)#1",
+				"7|BRW-REV-CORE (black): Revised Core: The Black Rose (black)#1",
+				"8|BRW-CRONO (black): BRW Crono: Revenge Room (black)#1",
+				"9|BRW-R-CORE (purple): Rebirth Core: Throne Room [crown](purple)#2",
+				"10|BRW-R-CORE (purple): Rebirth Core: Pleasure Room (purple)#3",
+				"11|BRW-R-CORE (purple): Rebirth Core: Armory (purple)#4",
+				"12|BRW-R-ROTAS (purple): Rebirth ROTAS Once Upon a Time: Skull Throne Room [crown](purple)#2",
+				"13|DUEL-LEX (purple): Duel Lex: Templars' Armory (purple)#4",
+				"14|DUEL-VOID (purple): Duel Void: Ancient Pleasures' Room (purple)#3",
+				"15|BRW-CORE (purple): BRW Core: Throne Room [crown](purple)#2",
+				"16|BRW-CORE (purple): BRW Core: Pleasure Room (purple)#3",
+				"17|BRW-CORE (purple): BRW Core: Armory (purple)#4",
+				"18|BRW-SATOR (purple): BRW SATOR: Card's Room (purple)",
+				"19|BRW-SATOR (purple): BRW SATOR: Pigmen's Room - Setup: Mutated Pigmen (purple)",
+				"20|BRW-INFERNO (purple): BRW Inferno: Armory - infernal - Setup: Arpia (purple)#4",
+				"21|BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
+				"22|BRW-INFERNOX (purple): BRW Inferno: Cerchio dei Lussuriosi (purple)",
+				"23|BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ruffiani (purple)",
+				"24|BRW-INFERNO (purple): BRW Inferno: Bolgia dei Ladri [crown](purple)#2",
+				"25|BRW-CRONO (purple): BRW Crono: Room of Corrupt Power [crown](purple)#2",
+				"26|BRW-REV-CORE (purple): Revised Core: Throne Room [crown](purple)#2",
+				"27|BRW-REV-CORE (purple): Revised Core: Pleasure Room (purple)#3",
+				"28|BRW-REV-CORE (purple): Revised Core: Armory (purple)#4",
+				"29|BRW-R-CORE (red): Rebirth Core: Arena (red)#5",
+				"30|BRW-R-CORE (red): Rebirth Core: Laboratory (red)#6",
+				"31|BRW-R-CORE (red): Rebirth Core: Summoner Room - Setup: Nigredo (red)#7",
+				"32|BRW-R-ROTAS (red): Rebirth ROTAS Antiquities: Ludus Arena - Setup: Aruspice (red)#5",
+				"33|DUEL-LEX (red): Duel Lex: Crusaders' Summoner Room (red)#7",
+				"34|DUEL-VOID (red): Duel Void: Lost Alchemical Laboratory (red)#6",
+				"35|BRW-CORE (red): BRW Core: Arena (red)#5",
+				"36|BRW-CORE (red): BRW Core: Laboratory (red)#6",
+				"37|BRW-CORE (red): BRW Core: Summoner Room - Setup: Cerbero (red)#7",
+				"38|BRW-SATOR (red): BRW SATOR: Assassin's Brotherhood - Setup: Ezio Auditore (red)",
+				"39|BRW-SATOR (red): BRW SATOR: Garden of Ice and Fire (red)",
+				"40|BRW-SATOR (red): BRW SATOR: Cyclop's Room - Setup: Artifact deck (red)",
+				"41|BRW-INFERNO (red): BRW Inferno: Arena - infernal (red)#5",
+				"42|BRW-INFERNO (red): BRW Inferno: Summoner Room - infernal - Setup: Cerbero (red)#7",
+				"43|BRW-INFERNO (red): BRW Inferno: Porta dell'Inferno (red)",
+				"44|BRW-INFERNO (red): BRW Inferno: Girone degli Omicidi - Setup: Centauro (red)",
+				"45|BRW-INFERNO (red): BRW Inferno: Cerchio degli Iracondi (red)",
+				"46|BRW-CRONO (red): BRW Crono: Sanctuary of Flames (red)",
+				"47|BRW-FAMILIARS (red): BRW Familiars: Cerberus - Setup: Cerberus Familiars (red)",
+				"47|BRW-REV-CORE (red): Revised Core: Arena (red)#5",
+				"48|BRW-REV-CORE (red): Revised Core: Laboratory (red)#6",
+				"49|BRW-REV-CORE (red): Revised Core: Summoner Room - Setup: Cerbero (red)#7",
+				"50|BRW-R-CORE (green): Rebirth Core: Garden (green)#8",
+				"51|BRW-R-CORE (green): Rebirth Core: Forge (green)#9",
+				"52|BRW-R-CORE (green): Rebirth Core: Treasure Room (green)#10",
+				"53|BRW-R-ROTAS (green): Rebirth ROTAS Silk Road: Zen Garden (green)#8",
+				"54|BRW-R-GAEA (green): Rebirth Gaea Reborn: Thorny Clearing (green)",	
+				"55|BRW-R-GAEA (green): Rebirth Gaea Reborn: Indoor Forrest (green)",	
+				"56|BRW-R-GAEA (green): Rebirth Gaea Reborn: Life Fountain (green)",
+				"57|DUEL-LEX (green): Duel Lex: Templars' Treasure Room (green)#10",
+				"58|DUEL-VOID (green): Duel Void: Forge of the Void (green)#9",
+				"59|BRW-CORE (green): BRW Core: Garden (green)#8",
+				"60|BRW-CORE (green): BRW Core: Forge (green)#9",
+				"61|BRW-CORE (green): BRW Core: Treasure Room (green)#10",
+				"62|BRW-SATOR (green): BRW SATOR: Clinging Swamp (green)",
+				"63|BRW-SATOR (green): BRW SATOR: Tana dei Troll (green)",
+				"64|BRW-INFERNO (green): BRW Inferno: Garden - infernal (green)#8",
+				"65|BRW-INFERNO (green): BRW Inferno: Treasure Room - infernal - Setup: Centauro (green)#10",
+				"66|BRW-INFERNOX (green): BRW Inferno: Selva Oscura (green)",
+				"67|BRW-INFERNO (green): BRW Inferno: Girone dei Bestemmiator (green)",
+				"68|BRW-INFERNO (green): BRW Inferno: Cerchio dei Golosi - Setup: Cerbero (green)",
+				"69|BRW-CRONO (green): BRW Crono: Training Room (green)",
+				"70|BRW-FAMILIARS (green): BRW Familiars: Draco - Setup: Draco Familiars (green)",
+				"71|BRW-REV-CORE (green): Revised Core: Garden (green)#8",
+				"72|BRW-REV-CORE (green): Revised Core: Forge (green)#9",
+				"73|BRW-REV-CORE (green): Revised Core: Treasure Room (green)#10",
+				"74|BRW-R-CORE (yellow): Rebirth Core: Bibliotheca (yellow)#11",
+				"75|BRW-R-CORE (yellow): Rebirth Core: Observatory (yellow)#12",
+				"76|BRW-R-CORE (yellow): Rebirth Core: Sanctuary (yellow)#13",
+				"77|BRW-R-ROTAS (yellow): Rebirth ROTAS Last Dynasty: Sanctuary of Anubis - Setup: Pharaoh (yellow)#13",
+				"78|DUEL-LEX (yellow): Duel Lex: Bibliotheca of the Order (yellow)#11",
+				"79|DUEL-VOID (yellow): Duel Void: Abyssal Observatory (yellow)#12",
+				"80|BRW-CORE (yellow): BRW Core: Bibliotheca (yellow)#11",
+				"81|BRW-CORE (yellow): BRW Core: Observatory (yellow)#12",
+				"82|BRW-CORE (yellow): BRW Core: Sanctuary (yellow)#13",
+				"83|BRW-SATOR (yellow): BRW SATOR: Alehouse (yellow)",
+				"84|BRW-SATOR (yellow): BRW SATOR: Eerie Machinery (yellow)",
+				"85|BRW-SATOR (yellow): BRW SATOR: Cyclop's Forge (yellow)",
+				"86|BRW-INFERNO (yellow): BRW Inferno: Sanctuary - infernal (yellow)#13",
+				"87|BRW-INFERNO (yellow): BRW Inferno: Bolgia dei Simoniaci (yellow)",
+				"88|BRW-INFERNOX (yellow): BRW Inferno: Limbo (yellow)",
+				"89|BRW-INFERNO (yellow): BRW Inferno: Cerchio degli Avari (yellow)",
+				"90|BRW-CRONO (yellow): BRW Crono: Hell's Door - Setup: Bone Knight (yellow)",
+				"91|BRW-FAMILIARS (yellow): BRW Familiars: Griffin - Setup: Griffin Familiars (yellow)",
+				"92|BRW-REV-CORE (yellow): Revised Core: Bibliotheca (yellow)#11",
+				"93|BRW-REV-CORE (yellow): Revised Core: Observatory (yellow)#12",
+				"94|BRW-REV-CORE (yellow): Revised Core: Sanctuary (yellow)#13",
+				"95|BRW-R-CORE (blue): Rebirth Core: The Abyss (blue)#14",
+				"96|BRW-R-CORE (blue): Rebirth Core: Mirrors' Room (blue)#15",
+				"97|BRW-R-CORE (blue): Rebirth Core: Oracle Room (blue)#16",
+				"98|BRW-R-ROTAS (blue): Rebirth ROTAS North Winds: The Abyss of Hel - Setup: Crocodilus, Ursa (blue)#14",
+				"99|DUEL-LEX (blue): Duel Lex: Abyss of Faith (blue)#14",
+				"100|DUEL-VOID (blue): Duel Void: Blasphemous Oracle (blue)#16",
+				"101|BRW-CORE (blue): BRW Core: The Abyss (blue)#14",
+				"102|BRW-CORE (blue): BRW Core: Mirrors' Room (blue)#15",
+				"103|BRW-CORE (blue): BRW Core: Oracle Room (blue)#16",
+				"104|BRW-SATOR (blue): BRW SATOR: Horologium (blue)",
+				"105|BRW-SATOR (blue): BRW SATOR: Theater (blue)",
+				"106|BRW-INFERNO (blue): BRW Inferno: Oracle Room - infernal (blue)#16",
+				"107|BRW-INFERNO (blue): BRW Inferno: The Abyss - infernal - Setup: Farfarello (blue)#14",
+				"108|BRW-INFERNO (blue): BRW Inferno: Bolgia dei Barattieri - Setup: Farfarello (blue)",
+				"109|BRW-INFERNO (blue): BRW Inferno: Cerchio dei Traditori (blue)",
+				"110|BRW-INFERNO (blue): BRW Inferno: Bolgia dei Maghi (blue)",
+				"111|BRW-FAMILIARS (blue): BRW Familiars: Hydra - Setup: Hydra Familiars (blue)",
+				"112|BRW-REV-CORE (blue): Revised Core: The Abyss (blue)#14",
+				"113|BRW-REV-CORE (blue): Revised Core: Mirrors' Room (blue)#15",
+				"114|BRW-REV-CORE (blue): Revised Core: Oracle Room (blue)#16",
+				"115|BRW-R-CORE (gray): Rebirth Core: Cemetery - Setup: Cadaver, Colossus (gray)#17",
+				"116|BRW-R-CORE (gray): Rebirth Core: Crypt - Setup: Cadaver (gray)#18",
+				"117|BRW-R-CORE (gray): Rebirth Core: Sacrificial Altar - Setup: Cadaver (gray)#19",
+				"118|BRW-R-ROTAS (gray): Rebirth ROTAS Madness: Sacrificial Altar of Madness (gray)#19",
+				"119|BRW-R-SOF (gray): Rebirth Seal of Fire: Room of Rebirth - Setup: Phoenix Familiars (gray)",
+				"120|DUEL-LEX (gray): Duel Lex: Crypt of the Saint - Setup: Templarii (gray)#18",
+				"121|DUEL-VOID (gray): Duel Void: Whales Cemetary - Setup: Dagon (gray)#17",
+				"122|BRW-CORE (gray): BRW Core: Cemetery - Setup: Landsknecht (gray)#17",
+				"123|BRW-CORE (gray): BRW Core: Crypt (gray)#18",
+				"124|BRW-CORE (gray): BRW Core: Sacrificial Altar (gray)#19",
+				"125|BRW-SATOR (gray): BRW SATOR: Cursed Temple - Setup: Landsknecht (gray)",
+				"126|BRW-INFERNOX (gray): BRW Inferno: Cerchio degli Erefici (gray)",
+				"127|BRW-INFERNO (gray): BRW Inferno: Antinferno (gray)",
+				"128|BRW-INFERNO (gray): BRW Inferno: Girone dei Suicidi - Setup: Arpia (gray)",
+				"129|BRW-INFERNO (gray): BRW Inferno: Cemetery - infernal - Setup: Landsknecht (gray)#17",
+				"130|BRW-INFERNO (gray): BRW Inferno: Sacrificial Altar - infernal - Setup: Malacoda (gray)#19",
+				"131|BRW-REV-CORE (gray): Revised Core: Cemetery (gray)#17",
+				"132|BRW-REV-CORE (gray): Revised Core: Crypt - Setup: Landsknecht (gray)#18",
+				"133|BRW-REV-CORE (gray): Revised Core: Sacrificial Altar (gray)#19",
 			];
 
 			var allavatars =[
-				"BRW-R-CORE Rebirth Core: The Possessed (no dedicated model available)",
-				"BRW-R-CORE Rebirth Core: Jukas or if not available use The Possessed (no dedicated model available)",
-				"BRW-REV-CORE Revised Core: Slenderman (model from Ashes Magazine 11)",
-				"BRW-REV-CORE Revised Core: Titonauta or if not available use Slenderman (model from Ashes Magazine 11)",
-				"BRW-REV-TENET Revised TENET: Infamy of Crete",
-				"BRW-REV-TENET Revised TENET: Caronte",
-				"ASHES Ashes Magazine: The Architect (recommended for Duel games otherwise use The Possessed)",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Cacus (2 Avatar cards)",
-				"BRW-R-ROTAS Rebirth ROTAS Antiquities: Parcae",
-				"BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Anubis",
-				"BRW-R-ROTAS Rebirth ROTAS Madness: Rubedo",
-				"BRW-R-ROTAS Rebirth ROTAS North Winds: Odin",
-				"BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hastur",	
-				"BRW-R-ROTAS Rebirth ROTAS Silk Road: Devi",
-				"BRW-R-FORGE Rebirth Dread Forge: Etna",
-				"BRW-R-GAEA Rebirth Gaea Reborn: Gaea",
-				"REQ Requiem Crossover: Invaders",
-				"BRW-DISCORD Discord Custom Items: Arianna (ask Teddy)",
+				"1|BRW-R-CORE Rebirth Core: The Possessed - no dedicated model available",
+				"2|BRW-R-CORE Rebirth Core: Jukas or if not available use The Possessed - no dedicated model available",
+				"3|BRW-REV-CORE Revised Core: Slenderman - model from Ashes Magazine 11",
+				"4|BRW-REV-CORE Revised Core: Titonauta or if not available use Slenderman - model from Ashes Magazine 11",
+				"5|BRW-REV-TENET Revised TENET: Infamy of Crete",
+				"6|BRW-REV-TENET Revised TENET: Caronte",
+				"7|ASHES Ashes Magazine: The Architect - recommended for Duel games otherwise use The Possessed",
+				"8|BRW-R-ROTAS Rebirth ROTAS Antiquities: Cacus - 2 Avatar cards",
+				"9|BRW-R-ROTAS Rebirth ROTAS Antiquities: Parcae",
+				"10|BRW-R-ROTAS Rebirth ROTAS Last Dynasty: Anubis",
+				"11|BRW-R-ROTAS Rebirth ROTAS Madness: Rubedo",
+				"12|BRW-R-ROTAS Rebirth ROTAS North Winds: Odin",
+				"13|BRW-R-ROTAS Rebirth ROTAS Once Upon a Time: Hastur",	
+				"14|BRW-R-ROTAS Rebirth ROTAS Silk Road: Devi",
+				"15|BRW-R-FORGE Rebirth Dread Forge: Etna",
+				"16|BRW-R-GAEA Rebirth Gaea Reborn: Gaea",
+				"17|REQ Requiem Crossover: Invaders",
+				"18|BRW-DISCORD Discord Custom Items: Arianna - ask Teddy",
 	    		];
-	    
-		var colors =[
-			"red", 
-			"blue", 
-			"green", 
-			"yellow", 
-			"white", 
-			"purple"
-		];
+		
+	    	// player colors
+			var colors =[
+				"purple",
+				"red", 
+				"blue", 
+				"green", 
+				"yellow", 
+				"white" 
+			];
 
+	    	// room colors		
 	    	var roomcolors =[
 			"black",
+			"purple",
 			"red", 
 			"blue", 
 			"green", 
 			"yellow", 
-			"gray", 
-			"purple"
+			"gray"
 		];
+		
+	  	// Show one or multiple error messages
+  		function showErrors(messages) {
+    		const box = document.getElementById('error-messages');
+    		const list = Array.isArray(messages) ? messages : [messages];
 
+    		box.innerHTML =
+      			`<strong>There ${list.length === 1 ? 'was an error' : 'were errors'}:</strong>
+       			<ul>${list.map(m => `<li>${m}</li>`).join('')}</ul>`;
 
-	    
-	// Show a random Library build from selected BRW boxes
-        function displayLibrary(){
-            	let schools = []; 
-	    	var mages = [];
-		var rooms = [];
+    		box.classList.remove('hidden');
+  		}
+
+  		// Hide/clear errors
+  		function clearErrors() {
+    		const box = document.getElementById('error-messages');
+   		 	box.classList.add('hidden');
+    		box.textContent = '';
+  		}    
+
+		
+	// ########################################################################################
+	// ### Show a random Library build from selected BRW boxes
+	// ########################################################################################		
+ 
+    function displayLibrary(){
+        let schools = []; 
+	    var mages = [];
+		var genrooms = [];
 		var duprooms = [];
 		var purplerooms = [];
 		var avatars = [];
-            	var libraryHTML = "";
-        	var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+        var libraryHTML = "";
+        var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
 		var checkboxesVal = [];
-
-	// Get checkbox values as array
-	for (var i = 0; i < checkboxes.length; i++) {
-  		checkboxesVal.push(checkboxes[i].value)
-	}
-
-	if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("PLAYER") || checkboxesVal.includes("MAGE") || checkboxesVal.includes("LODGE") || checkboxesVal.includes("AVATAR") ) {	
-		libraryHTML += "<b>The Black Rose came up with this Setup for you:</b><p>";
-	}
-	else {
-		libraryHTML += "<font color=#FF0000>Select at least one out of Schools, Start Player, Mages, the Lodge or Avatar to generate!</font><p>";
-	}
-	libraryHTML += "<div style='padding-left:20px;'>";
+		var scenarios = [];
+		var honmen = [];
+		var keepRooms = [];
+		var roomCoords = {}; // id -> {x, y}
+		var keepSchools = [];
+		var keepMages = [];
+		var rejectMages = [];
+		var keepAvatars = [];
+		var rejectAvatars = [];
 		
-	if( checkboxesVal.includes("SCHOOL") ) {	
-	    // Add schools based on selected BRW boxes
-            for (let i = 0; i < allschools.length; i++) {
-		for (let j = 0; j < checkboxes.length; j++) {
-			if(checkboxes[j].value == allschools[i].split(" ")[0]) {
-				schools.push(allschools[i].substring(allschools[i].indexOf(' ') + 1));
+  		clearErrors();	
+		try { 
+			
+			// Get checkbox values as array
+			for (var i = 0; i < checkboxes.length; i++) {
+				checkboxesVal.push(checkboxes[i].value)
 			}
-		}
-            }
 
-		// Remove duplicate school names
-		shuffleArray(schools);
-		schools = uniqe_school(schools);
-		
-		// Remove random schools until only 6 remain
-            	while(schools.length > 6) {
-                	schools.splice(Math.floor(Math.random()*schools.length), 1);
-           	}
+			// Check selected boxes for errors
+			const allowed = ["SCENARIO", "SCHOOL", "PLAYER", "MAGE", "LODGE", "AVATAR"];
+			var components = 0;
 
-		// Show Library as HTML table				
-		if(schools.length<6) {
-			libraryHTML += "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
-		} else {
-			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left>SETUP</th></tr>";
-            		for (let i = 0; i < schools.length; i++) {
-				schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
-				schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
-                 		libraryHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
-            		}
-			libraryHTML += "</table><p>";
-		}
-	}
-
-	if( checkboxesVal.includes("PLAYER") ) {	
-		// start player
-		shuffleArray(colors);
-		libraryHTML += "<b>Start player: </b>";
-		for (let i = 0; i < colors.length; i++) {
-			if(i!=0) libraryHTML += " &gt; ";
-			libraryHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
-		}
-		libraryHTML += "<p>";
-	}
-
-	if( checkboxesVal.includes("MAGE") ) {	
-		
-		// Random mages
-		libraryHTML += "<b>Random Mages:</b> Either draft them or assign them in the order of schools or players from above.<p>";
-		
-		// Select mages from selected boxes
-            for (let i = 0; i < allmages.length; i++) {
-		for (let j = 0; j < checkboxes.length; j++) {
-			if( allmages[i].split(" ")[0] == checkboxes[j].value ) {
-				mages.push( "<b>" + allmages[i].substring(allmages[i].indexOf(':') + 1) + "</b> (" + allmages[i].split(":")[0].substring(allmages[i].indexOf(' ') + 1) + ")" );
-			}
-		}
-            }
-
-		// Remove duplicate school names
-		shuffleArray(mages);
-		mages = uniqe_mage(mages);
-		
-		// Remove random mage until only 6 remain
-            	while(mages.length > 6) {
-                	mages.splice(Math.floor(Math.random()*mages.length), 1);	
-           	}
-		shuffleArray(mages);
-
-		// Show mages			
-		if(mages.length<6) {
-			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 6 mages!</font>";
-		} else {
-			for (let i = 0; i < mages.length; i++) {
-                 		libraryHTML += mages[i];
-				if(i!=mages.length-1) libraryHTML += ", ";
-            		}
-		}		
-		
-		libraryHTML += "<p>";
-	}
-
-	if( checkboxesVal.includes("LODGE") ) {	
-
-		
-		// Random rooms
-		// libraryHTML += "<b>Random Rooms:</b><br>";
-
-		// Select rooms from selected boxes
-            	for (let i = 0; i < allrooms.length; i++) {
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allrooms[i].split(" ")[0] == checkboxes[j].value ) {
-					duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
-					if( allrooms[i].indexOf("(purple)")>0 ) purplerooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
+			for (var i = 0; i < checkboxes.length; i++) {
+				if (allowed.includes(checkboxes[i].value)) {
+					components++;
 				}
 			}
-            	}
+			
+			if( components == 0 ) throw new Error("No component to generate selected. Select Scenario or at least one of the other options from School, Start Player, Mages, Lodge or Avatar!");
+			if( checkboxes.length - components == 0 ) throw new Error("No BRW game boxes selected to pick setup items from. Select at least one game box! You may want to start with a core set.");
 
-		// Deduplicate randomly same # number rooms
-		var rc=0;
-		var delroom=0;
-		var foundrooms=0;
-		var hashval="";
-		
-            	for (let i = 0; i < duprooms.length; i++) {
-			rc=0;
-			hashval=duprooms[i].split("#")[1];
-			// libraryHTML += duprooms[i] + "'" + hashval + "'<br>";
 
-			if( duprooms[i].indexOf("#") >= 0 )
-			{	
-				for (let j = 0; j < duprooms.length; j++) {
-					if( duprooms[j].split("#")[1] == hashval ) rc++;
+			// ########################################################################################
+			// ### SCENARIO setup
+			// ########################################################################################
+			// ### 
+			// ###
+			// ########################################################################################
+
+			var scenarioHTML = "";
+			var sName = "";
+			var sStory = "";
+			var sComp = "";
+			var sSetup = "";
+			var sRules = "";
+			var sHonMen = "";
+			var honmenHTML = "";
+
+			if( checkboxesVal.includes("SCENARIO") ) {
+
+				// Select scenarios for selected boxes
+				for (let i = 0; i < allscenarios.length; i++) {
+					if(allscenarios[i].split("|")[0].indexOf("-")<0) {
+						if( allscenarios[i].split("|")[1].split(" ")[0] == "*" ) {
+								scenarios.push( allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
+						} else {
+							// Check if scenario is available for selected boxes
+							// If all boxes required for a scenario are checked, add it to scenarios
+							const requiredBoxes = allscenarios[i].split("|")[1].split(" ")[0].split(",");
+							let allBoxesChecked = true;
+							for (let b = 0; b < requiredBoxes.length; b++) {
+								if (!checkboxesVal.includes(requiredBoxes[b].trim())) {
+									allBoxesChecked = false;
+									break;
+								}
+							}
+							if (allBoxesChecked) {
+								scenarios.push(allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1));
+							}
+						}
+					}
 				}
-				if( rc > 1 ) {
-					delroom = Math.floor(Math.random()*rc)+1;
-					foundrooms=0;
-					for (let j = 0; j < duprooms.length; j++) {
-						if( duprooms[j].split("#")[1] == hashval ) {
-							foundrooms++;
-							if( foundrooms == delroom ) rooms.push(duprooms[j]);
-							duprooms.splice(j,1);
-							j=-1;
+				if(scenarios.length == 0) throw new Error("No Scenario available for your selection. Try selecting a core box, ROTAS or SATOR for a wider list of scenarios! Smaller expansions may not have scenarios designed for them specifically.");
+
+				// Get selected scenario from dropdown
+				const select = document.getElementById('scenario-select');
+				const selectedId = select && select.value ? select.value : "";
+
+				// handle user selected scenario
+				if (selectedId) {
+					// Find scenario by its id (first part before '|')
+					const scenarioRow = allscenarios.find(row => row.split('|')[0].trim() === selectedId);
+					if (scenarioRow) {
+						scenarios = [scenarioRow.substring(scenarioRow.indexOf('|', scenarioRow.indexOf('|') + 1) + 1)];
+					} else {
+						throw new Error("Selected scenario not found.");
+					}
+				} else {
+					// No scenario selected, keep existing random logic
+					shuffleArray(scenarios);
+				}
+
+				// Select honorable mention
+				for (let i = 0; i < allhonmen.length; i++) {
+					if( allhonmen[i].split(" ")[0] == "*" ) {
+							honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
+					}
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allhonmen[i].split(" ")[0] == checkboxes[j].value ) {
+							honmen.push( allhonmen[i].substring(allhonmen[i].indexOf('|')+1) );
+						}
+					}
+				}
+
+				sName = scenarios[0].split("|")[0];
+				sStory = scenarios[0].split("|")[1];
+				sComp = scenarios[0].split("|")[2];
+				sSetup = scenarios[0].split("|")[3];
+				sRules = scenarios[0].split("|")[4];
+				sHonMen = scenarios[0].split("|")[5];
+
+				// Create standard Lodge form?
+				if( sSetup.indexOf("(lodge=standard)") >=0 ) {
+					sSetup.replace("(lodge=standard)", "");
+					standardLodge = true;
+				} else {
+					standardLodge = false;
+				}
+				
+				// Find enforced rooms
+				if(sSetup.indexOf("Rooms: (")>=0) {
+					var sRoomsRaw = sSetup.split("Rooms: (")[1].split(")")[0].split(",").map(s => s.trim());
+
+					// Extract IDs and optional coordinates
+					var sRooms = [];
+
+					for (const entry of sRoomsRaw) {
+						// Match things like "5[-1/2]" or "-3[0/-1]" or just "4"
+						const match = entry.match(/^(-?\d+)(?:\[(-?\d+)\/(-?\d+)\])?$/);
+						if (match) {
+							const id = match[1];  // e.g. "5" or "-3"
+							sRooms.push(id);
+
+							if (match[2] !== undefined && match[3] !== undefined) {
+								const x = parseInt(match[2], 10);
+								const y = parseInt(match[3], 10);
+								roomCoords[id] = {x, y};
+							}
+						}
+					}
+					
+					var collRooms = "";
+					var roomLine = "";
+					for (let i = 0; i < sRooms.length; i++) {
+						keepRooms.push(sRooms[i]);
+						roomLine = getArrayById(sRooms[i], allrooms);
+						collRooms += roomLine.substring(roomLine.indexOf(':', roomLine.indexOf(':') + 1) + 1).substring(1).split("(")[0].trim().split(" - Setup:")[0];
+						if(i<sRooms.length-1) collRooms += ", ";
+						// alert("Generator: " + collRooms);
+					}
+					
+					// Replace content inside parentheses
+					sSetup = sSetup.replace(/Rooms:\s*\([^)]*\)/, `<li><b>Rooms:</b> ${collRooms}`);
+				}
+
+				if( keepRooms.length >7 && keepRooms.length != 19 ) throw new Error("Scenario: " + sName + ". Number of enforced rooms: " + keepRooms.length + ". The number of enforced scenario rooms should be no more than 6 or exactly 19 for a full lodge. The scenario needs corrections.");
+
+				// Find enforced schools
+				if(sSetup.indexOf("Schools: (")>=0) {
+					const sSchools = sSetup.split("Schools: (")[1].split(")")[0].split(",").map(s => s.trim());
+					var collSchools = "";
+					var schoolLine = "";
+					for (let i = 0; i < sSchools.length; i++) {
+						keepSchools.push(sSchools[i]);
+						schoolLine = getArrayById(sSchools[i], allschools);
+						collSchools += schoolLine.split("<b>")[1].split("</b>")[0].trim();
+						if(i<sSchools.length-1) collSchools += ", ";
+						// alert("Generator: " + collSchools);
+					}
+					
+					// Replace content inside parentheses
+					sSetup = sSetup.replace(/Schools:\s*\([^)]*\)/, `<li><b>Schools:</b> ${collSchools}`);
+				}
+			
+				// Find enforced mages
+				if(sSetup.indexOf("Mages: (")>=0) {
+					const sMages = sSetup.split("Mages: (")[1].split(")")[0].split(",").map(s => s.trim());
+					var collMages = "";
+					var mageLine = "";
+					var firstRejected = true;
+					for (let i = 0; i < sMages.length; i++) {
+						if (sMages[i].startsWith('-')) {
+							const actualId = sMages[i].substring(1); // Get the ID without the '-'
+							rejectMages.push(actualId);
+							if(firstRejected) collMages += "Do not use ";
+							mageLine = getArrayById(actualId, allmages);
+							collMages += mageLine.split(": ")[1].trim();
+							firstRejected = false;
+						} else {
+							keepMages.push(sMages[i]);
+							mageLine = getArrayById(sMages[i], allmages);
+							collMages += mageLine.split(": ")[1].trim();
+							// alert("Generator: " + collMages);
+						}
+						if(i<sMages.length-1) collMages += ", ";
+					}
+					
+					// Replace content inside parentheses
+					sSetup = sSetup.replace(/Mages:\s*\([^)]*\)/, `<li><b>Mages:</b> ${collMages}`);
+				}
+
+				// Find enforced/rejected Avatars - do not create output for them yet!
+				sSetup = processTemplatedList(sSetup,"Avatars:", "", allavatars, keepAvatars, rejectAvatars);
+
+				// Honorable Mention
+				honmenHTML = "<p><b>Honorable Mention:</b></p>";
+				let match = sHonMen.match(/\*:\s*\((-?\d+)\)/);
+				if(match) {
+					const number = parseInt(match[1], 10);
+					const numhonmen = Math.floor(Math.random()*number+1);
+					var rndHonMen = "";
+
+					shuffleArray(honmen);
+
+					for (let i = 0; i < numhonmen; i++) {
+						rndHonMen += "<li><b>" + honmen[i].split("|")[0].split(":")[0] + ":</b>" + honmen[i].split("|")[0].split(":")[1] + "</li>"; 
+					}
+					sHonMen = sHonMen.replace(/\*:\s*\([^)]*\)/, `${rndHonMen}`);
+				}
+				honmenHTML += sHonMen;
+			}
+
+			
+			// ########################################################################################
+			// ### SCHOOL setup
+			// ########################################################################################
+			// ### - Respects keepSchools from scenario to enforce certain schools
+			// ###
+			// ########################################################################################
+			
+			var schoolHTML = "";
+			
+			if( checkboxesVal.includes("SCHOOL") || checkboxesVal.includes("SCENARIO") ) {
+				
+				// Add schools based on selected BRW boxes
+				for (let i = 0; i < allschools.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if(checkboxes[j].value == allschools[i].split(" ")[0].split("|")[1]) {
+							schools.push(allschools[i]);
+						}
+					}
+				}
+
+				// Remove duplicate school names
+				shuffleArray(schools);
+				schools = uniqe_school(schools, keepSchools);
+				
+				// Remove random schools until only 6 remain, respecting keepSchools
+				while (schools.length > 6) {
+					// build a list of removable indices
+					let removable = [];
+					for (let i = 0; i < schools.length; i++) {
+						const id = schools[i].split("|")[0]; // assume ID is before '|'
+						if (!keepSchools.includes(id)) removable.push(i);
+					}
+
+					// if nothing can be removed, break to avoid infinite loop
+					if (removable.length === 0) break;
+
+					// pick a random removable school and remove it
+					const randIdx = removable[Math.floor(Math.random() * removable.length)];
+					schools.splice(randIdx, 1);
+				}
+
+				// Show Library as HTML table				
+				if(schools.length<6) throw new Error("Not enough schools available. Select more BRW boxes to choose schools from!");
+
+				schoolHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Schools<span class="toggle-indicator">−</span></div><div class="table-body">';
+				schoolHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=135>SCHOOL</th><th align=left width=220>SETUP</th><th align=left width=220>RECOMMENDED MAGES</th></tr></thead>";
+				for (let i = 0; i < schools.length; i++) {
+					schools[i] = schools[i].substring(schools[i].indexOf(' ') + 1);
+					schools[i] = schools[i].replace("Setup: ","</td><td style='vertical-align:top'>");
+					schools[i] = schools[i].replace(": <b>"," </td><td style='vertical-align:top'><b>");
+					if(schools[i].indexOf("<b>Mages:</b> ")>=0) {
+						schools[i] = schools[i].replace("<b>Mages:</b> ","</td><td style='vertical-align:top'>");
+					} else {
+						schools[i] = schools[i] + "</td><td style='vertical-align:top'>";
+					}
+					schoolHTML += "<tr><td style='vertical-align:top'>" + schools[i] + "</td></tr>";
+				}
+				schoolHTML += "</table></div></div>";
+				
+			}
+
+			
+			// ########################################################################################
+			// ### START PLAYER setup
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+			
+			var playerHTML = "";
+			
+			if( checkboxesVal.includes("PLAYER") || checkboxesVal.includes("SCENARIO") ) {	
+				// start player
+				shuffleArray(colors);
+				for (let i = 0; i < colors.length; i++) {
+					if(i!=0) playerHTML += " &gt; ";
+					playerHTML += "<span style='color: " + colors[i] + ";background-color: #aaaaaa;'>" + colors[i] + "</span>";
+				}
+			}
+
+			
+			// ########################################################################################
+			// ### MAGE setup
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+			
+			var mageHTML = "";
+			
+			if( checkboxesVal.includes("MAGE") || checkboxesVal.includes("SCENARIO") ) {	
+				
+				// Select mages from selected boxes
+				// Remove the ones which are rejected for a scenario
+				for (let i = 0; i < allmages.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allmages[i].split(" ")[0].split("|")[1] == checkboxes[j].value && !rejectMages.includes( allmages[i].split("|")[0].trim() ) ) {
+							mages.push( allmages[i] );	
+						}
+					}
+				}
+				
+				// Remove duplicate school names
+				shuffleArray(mages);
+				mages = uniqe_mage(mages, keepMages);
+				
+				// Remove random mage until only 6 remain, but never remove a mage with id in keepMages
+				while (mages.length > 6) {
+					// Find removable indices (mages not in keepMages)
+					let removable = [];
+					for (let i = 0; i < mages.length; i++) {
+						let mageId = mages[i].split("|")[0].trim();
+						if (!keepMages.includes(mageId)) removable.push(i);
+					}
+					// If nothing can be removed, break to avoid infinite loop
+					if (removable.length === 0) break;
+					// Remove a random removable mage
+					let idx = removable[Math.floor(Math.random() * removable.length)];
+					mages.splice(idx, 1);
+				}
+
+				// Show mages			
+				if(mages.length<6) throw new Error("Not enough mages available. Select more BRW boxes to provide at least 6 mages!");
+
+				for (let i = 0; i < mages.length; i++) {
+					mageHTML += "<b>" + mages[i].substring(mages[i].indexOf(':') + 1) + "</b> [" + mages[i].split(":")[0].substring(mages[i].indexOf(' ') + 1) + "]";
+					if(i!=mages.length-1) mageHTML += ", ";
+				}
+			}
+
+			
+			// ########################################################################################
+			// ### LODGE setup
+			// ########################################################################################
+			// ### - Respects keepSchools from scenario to enforce certain rooms
+			// ###
+			// ########################################################################################
+			
+			var lodgeHTML = "";
+			
+			if( checkboxesVal.includes("LODGE") || checkboxesVal.includes("SCENARIO") ) {	
+				
+				// Random rooms
+				// lodgeHTML += "<b>Random Rooms:</b><br>";
+
+				// Select rooms from selected boxes
+				for (let i = 0; i < allrooms.length; i++) {
+					for (let j = 0; j < checkboxes.length; j++) {
+						if( allrooms[i].split(" ")[0].split("|")[1] == checkboxes[j].value ) {
+							// duprooms.push(allrooms[i].substring(allrooms[i].indexOf('(') + 1));
+							duprooms.push(allrooms[i]);
+							if( allrooms[i].indexOf("(purple)")>0 ) purplerooms.push(allrooms[i]);
+						}
+					}
+				}
+
+				// Deduplicate randomly same # number rooms
+				
+		/*		var rc=0;
+				var delroom=0;
+				var foundrooms=0;
+				var hashval="";
+				
+				for (let i = 0; i < duprooms.length; i++) {
+					rc=0;
+					hashval=duprooms[i].split("#")[1];
+					// libraryHTML += duprooms[i] + "'" + hashval + "'<br>";
+
+					if( duprooms[i].indexOf("#") >= 0 )
+					{	
+						for (let j = 0; j < duprooms.length; j++) {
+							if( duprooms[j].split("#")[1] == hashval ) rc++;
+						}
+						if( rc > 1 ) {
+							delroom = Math.floor(Math.random()*rc)+1;
+							foundrooms=0;
+							for (let j = 0; j < duprooms.length; j++) {
+								if( duprooms[j].split("#")[1] == hashval ) {
+									foundrooms++;
+									if( foundrooms == delroom ) genrooms.push(duprooms[j]);
+									duprooms.splice(j,1);
+									j=-1;
+									i=-1;
+								}
+							}
+						} else {
+							genrooms.push(duprooms[i]);
+							duprooms.splice(i,1);
 							i=-1;
 						}
+					} else {
+						genrooms.push(duprooms[i]);
+						duprooms.splice(i,1);
+						i=-1;
 					}
-				} else {
-					rooms.push(duprooms[i]);
-					duprooms.splice(i,1);
-					i=-1;
+				} */
+				let groups = {};
+
+				// group duprooms by hash value
+				for (let i = 0; i < duprooms.length; i++) {
+					let item = duprooms[i];
+					let [id, rest] = item.split("|");
+					let parts = rest.split("#");
+					let base = parts[0];
+					let hashval = parts[1] || base; // use # value if present, otherwise unique base
+
+					if (!groups[hashval]) groups[hashval] = [];
+					groups[hashval].push({ id, item });
 				}
+
+				// now process each group
+				for (let key in groups) {
+					let arr = groups[key];
+
+					// check if group contains any keepRooms
+					let kept = arr.filter(r => keepRooms.includes(r.id));
+
+					if (kept.length > 0) {
+						// keep *all* forced rooms
+						kept.forEach(r => genrooms.push(r.item));
+					} else {
+						// pick one random entry
+						let pick = arr[Math.floor(Math.random() * arr.length)];
+						genrooms.push(pick.item);
+					}
+				}
+
+				// Remove random rooms until only 1 black and 3 of each color remain
+				
+		/*        for (let i = 0; i < roomcolors.length; i++) {
+					do {
+					rc=0;
+					for (let j = 0; j < rooms.length; j++) {
+						if( rooms[j].split(")")[0].split("(")[1] == roomcolors[i] ) rc++;
+					}
+					if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
+						delroom = Math.floor(Math.random()*rc)+1;
+						// while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
+						foundrooms=0;
+						for (let j = 0; j < rooms.length; j++) {
+							if( rooms[j].split(")")[0].split("(")[1] == roomcolors[i] ) {
+								foundrooms++;
+								if( foundrooms == delroom && rooms[j].split("#")[1] != 2 ) {
+									rooms.splice(j, 1);
+									rc--;
+									j--;
+								}
+							}
+						}
+					}
+					} while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
+				}
+		*/
+				
+		for (let color of roomcolors) {
+		// split rooms into this color and others
+		let colorRooms = genrooms.filter(r => r.split(")")[0].split("(")[1] === color);
+		let otherRooms = genrooms.filter(r => r.split(")")[0].split("(")[1] !== color);
+
+		let maxAllowed = (color === "black" ? 1 : 3);
+
+		// separate protected and non-protected
+		let protectedRooms = colorRooms.filter(r => {
+			let id = r.split("|")[0];
+			let hash = r.split("#")[1];
+			return hash == 2 || keepRooms.includes(id);
+		});
+		let nonProtectedRooms = colorRooms.filter(r => !protectedRooms.includes(r));
+
+		// randomly remove non-protected rooms until maxAllowed is satisfied
+		while (protectedRooms.length + nonProtectedRooms.length > maxAllowed) {
+			if (nonProtectedRooms.length > 0) {
+			let idx = Math.floor(Math.random() * nonProtectedRooms.length);
+			nonProtectedRooms.splice(idx, 1);
 			} else {
-				rooms.push(duprooms[i]);
-				duprooms.splice(i,1);
-				i=-1;
+			// remove protected if necessary
+			let idx = Math.floor(Math.random() * protectedRooms.length);
+			protectedRooms.splice(idx, 1);
 			}
 		}
 
-		// Remove random rooms until only 1 black and 3 of each color remain
-            	for (let i = 0; i < roomcolors.length; i++) {
-		    do {
-			rc=0;
-			for (let j = 0; j < rooms.length; j++) {
-				if( rooms[j].split(")")[0] == roomcolors[i] ) rc++;
+		// rebuild rooms array
+		genrooms = otherRooms.concat(protectedRooms, nonProtectedRooms);
+		}
+
+
+		// create a lookup for color order
+		const colorOrder = {};
+		for (let i = 0; i < roomcolors.length; i++) {
+		colorOrder[roomcolors[i]] = i;
+		}
+
+		// sort rooms based on the color order
+		genrooms.sort((a, b) => {
+		const colorA = a.split(")")[0].split("(")[1];
+		const colorB = b.split(")")[0].split("(")[1];
+		return colorOrder[colorA] - colorOrder[colorB];
+		});
+				
+				// Inferno: Pleasure Room needs at least one other room to summon Cerbero or Centauro
+				// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
+				var foundInfernalPleasure = -1;
+				var foundSupportRoom = false;
+				for (let i = 0; i < genrooms.length; i++) {
+					if( genrooms[i].indexOf("Cerbero")>0 || genrooms[i].indexOf("Centauro")>0 ) {
+						foundSupportRoom = true;
+					}
+					if( genrooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
+						foundInfernalPleasure = i;
+					}
+				}
+				if( foundSupportRoom == false && foundInfernalPleasure>0 ) {
+					// no supporting room, Pleasure Room - infernsl must be replaced
+					// genrooms.splice(foundInfernalPleasure, 1);
+					
+					for (let i = 0; i < purplerooms.length; i++) {
+						if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
+							|| purplerooms[i].indexOf("#")<=0
+							) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
+						) {
+							// found possible replacement, now check if already contained in Lodge
+							// genrooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
+							var containsRoomAlready=false;
+							for (let j = 0; j < genrooms.length; j++) {
+								if( genrooms[j] == purplerooms[i] ) containsRoomAlready=true;
+							}
+							if( !containsRoomAlready ) {
+								genrooms[foundInfernalPleasure] = purplerooms[i];
+								//genrooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
+							}
+							// genrooms.push( purplerooms[i] );
+							// genrooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
+						}
+					}
+				}
+				
+				// Output rooms
+				var roomoutPre = "";
+				var roomout = "";
+				var colorout = "";
+				var roomname = "";
+				var roomhash = "";
+				var roomId = "";
+				
+				if(genrooms.length<19) throw new Error("Not enough rooms available to build a valid Lodge. Select more BRW boxes to provide at least 19 rooms including 1 black and 3 of each other color.");
+
+				lodgeHTML = '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Rooms<span class="toggle-indicator">−</span></div><div class="table-body">';
+				lodgeHTML += "<table><thead><tr><th align=left width=250>BOX</th><th align=left width=385>ROOM</th><th align=left width=220>SETUP</th></tr></thead>";
+
+				// Fill rooms for the rendering component
+				rooms.length = 0;
+					
+				for (let i = 0; i < genrooms.length; i++) {
+					lodgeHTML += "<tr><td>";
+					roomId = genrooms[i].split("|")[0];
+					roomhash = genrooms[i].includes("#") ? "#" + genrooms[i].split("#")[1] : "";
+					lodgeHTML += genrooms[i].substring(genrooms[i].indexOf(':') + 1).split(":")[0];
+					lodgeHTML += '</td><td class="cell">';
+					roomout = "<b>" + genrooms[i].substring(genrooms[i].indexOf(':', genrooms[i].indexOf(':') + 1) + 1).substring(1);
+					colorout = roomout.split("(")[1].split(")")[0];
+					lodgeHTML += "<span class='first' style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
+						
+					// filter setup instructions
+					if(roomout.indexOf(" - Setup:")>0) {
+						roomname = roomout.split(" - Setup:")[0].split("(")[0].split("<b>")[1].trim();
+						lodgeHTML += "&nbsp;&nbsp;" + roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
+						lodgeHTML += '</td><td>';
+						lodgeHTML += roomout.split(" - Setup:")[1].split("(")[0];
+					} else {
+						roomname = roomout.split("(")[0].split("<b>")[1].trim();
+						lodgeHTML += "&nbsp;&nbsp;" + roomout.split("(")[0] + "</b>";
+						lodgeHTML += "</td><td>";
+					}
+					lodgeHTML += "</td></tr>";
+
+					// Collect rooms of the Lodge for the graphical rendering engine
+					// If the room has coordinates from the scenario, also add them here
+					let coordStr = "";
+					if (roomCoords[roomId]) {
+						coordStr = "|" + roomCoords[roomId].x + "," + roomCoords[roomId].y;
+					}
+
+					rooms.push(roomname + roomhash + "|" + colorout + coordStr);
+				
+				}
+					
+				lodgeHTML += "</table></div></div>";
 			}
-			if( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) ) {
-				delroom = Math.floor(Math.random()*rc)+1;
-				// while( rooms.split("#")[1] == 2 ) delroom = Math.floor(Math.random()*rc)+1;
-				foundrooms=0;
-				for (let j = 0; j < rooms.length; j++) {
-					if( rooms[j].split(")")[0] == roomcolors[i] ) {
-						foundrooms++;
-						if( foundrooms == delroom && rooms[j].split("#")[1] != 2 ) {
-							rooms.splice(j, 1);
-							rc--;
-							j--;
+
+
+			// ########################################################################################
+			// ### AVATAR setup
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+			
+			var avatarHTML = "";
+			
+			if( checkboxesVal.includes("AVATAR") || checkboxesVal.includes("SCENARIO") ) {
+
+				
+				// Loop through all available avatars.
+				for (let i = 0; i < allavatars.length; i++) {
+					const avatarFullString = allavatars[i];
+
+					// 1. Extract the TRUE_ID (the part before the first '|').
+					// This is the ID that will be checked against the `rejectAvatars` list.
+					const trueAvatarId = avatarFullString.split("|")[0];
+
+					// 2. Extract the "first word after the first |".
+					// This is the value that is compared with `checkboxes[j].value`.
+					// Example: if avatarFullString is "ava1|Warrior Name: Description",
+					// split(" ") -> ["ava1|Warrior", "Name:", "Description"]
+				    // [0] -> "ava1|Warrior"
+					// split("|") -> ["ava1", "Warrior"]
+					// [1] -> "Warrior"
+					const matchingValueFromAvatarString = avatarFullString.split(" ")[0].split("|")[1];
+
+					// Check if the `trueAvatarId` is valid AND if it is NOT present in the `rejectAvatars` array.
+					if ( trueAvatarId && !rejectAvatars.includes(trueAvatarId) && (keepAvatars.length === 0 || keepAvatars.includes(trueAvatarId)) ) {
+						// Loop through selected checkboxes to find a match.
+						for (let j = 0; j < checkboxes.length; j++) {
+							// If the `matchingValueFromAvatarString` matches the `value` of a selected checkbox.
+							if (matchingValueFromAvatarString === checkboxes[j].value) {
+								// Extract `avatarBox` and `avatarNameHTML` based on original snippet's logic.
+								// These also depend on specific string formats within `allavatars[i]`.
+								const avatarBox = avatarFullString.split(":")[0].substring(avatarFullString.indexOf(' ') + 1);
+								let avatarNameHTML = avatarFullString.substring(avatarFullString.indexOf(':') + 1);
+								
+								// Format the avatar name HTML for display.
+								avatarNameHTML = (avatarNameHTML.indexOf(" - ") >= 0) ? 
+												"<b>" + avatarNameHTML.split(" - ")[0] + "</b> - " + avatarNameHTML.split(" - ")[1] : 
+												"<b>" + avatarNameHTML + "</b>";
+								
+								// Push the formatted avatar string to the `avatars` array.
+								avatars.push(avatarNameHTML + " [" + avatarBox + "]");                      
+							}
+						}
+					}
+				}
+				
+				
+				// Pick first random
+				shuffleArray(avatars);
+
+				// Show avatar		
+				if(avatars.length<1 && !checkboxesVal.includes("SCENARIO")) throw new Error("Select more BRW boxes to provide at least one Avatar! Original BRW did not have Avatars. The BRW Rebirth ROTAS box is a great source for Avatars.");
+
+				// TBD - another error message if the Scenario requires an Avatar and cannot find it
+				
+				avatarHTML += avatars[0];
+			}	
+
+			
+			// ########################################################################################
+			// ### Combine generated output
+			// ########################################################################################
+			// ###
+			// ###
+			// ########################################################################################
+
+			libraryHTML += "<div style='padding-left:20px;'>";
+			
+			if( checkboxesVal.includes("SCENARIO") ) {
+				libraryHTML += "<p><b>Scenario:</b> " + sName + "</p>";
+				libraryHTML += "<p><i>" + sStory + "</i>";
+				libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
+				libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
+				libraryHTML += '</div><p>';
+				libraryHTML += '<div style="padding-left: 20px;">';	
+				libraryHTML += "<b>Additional Components:</b></p><p>" + sComp + "</p>";
+				libraryHTML += "<b>Special Setup:</b>";
+				libraryHTML += sSetup;
+				libraryHTML += "<ul>";
+				if( keepAvatars.length >0 || rejectAvatars.length > 0) libraryHTML += "<li><b>Mandatory Avatar:</b> " + avatarHTML;
+				libraryHTML += "<li><b>Start Player:</b> " + playerHTML;
+				libraryHTML += "<li><b>Mages:</b> Either draft Mages or assign them in the order of Schools or Players.<br>" + mageHTML;
+				libraryHTML += "</ul>";
+				libraryHTML += '</div><p>';
+
+				libraryHTML += '<div style="padding-left: 20px;">';
+				libraryHTML += schoolHTML;
+				libraryHTML += lodgeHTML;
+				libraryHTML += '</div><p>';
+				//libraryHTML += '</div><p>';
+				//libraryHTML += "<div class='board' id='board'></div>";
+				libraryHTML += '<div style="padding-left: 20px;">';	
+				libraryHTML += "<p><b>Rules:</b></p><p>" + sRules + "</p>";
+				libraryHTML += honmenHTML;
+				libraryHTML += '</div><p>';
+			} else {
+				standardLodge=true;
+				
+				if( checkboxesVal.includes("AVATAR") ) {
+					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Avatar<span class="toggle-indicator">−</span></div><div class="table-body">';
+					libraryHTML += "<table><thead><tr><td>";
+					libraryHTML += avatarHTML;
+					libraryHTML += "</td></tr></thead></table></div></div>";
+				}
+				if( checkboxesVal.includes("PLAYER") ) {
+					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">First Player<span class="toggle-indicator">−</span></div><div class="table-body">';
+					libraryHTML += "<table><thead><tr><td>";
+					libraryHTML += playerHTML;
+					libraryHTML += "</td></tr></thead></table></div></div>";
+				}
+				if( checkboxesVal.includes("MAGE") ) {
+					libraryHTML += '<div class="table-container"><div class="table-header" onclick="toggleTable(this)">Mages<span class="toggle-indicator">−</span></div><div class="table-body">';
+					libraryHTML += "<table  style='width:575px;'><thead><tr  width=585><td>";
+					libraryHTML += "Either draft Mages or assign them in the order of Schools or Players.<p>";
+					libraryHTML += mageHTML.replaceAll(", ", "<br>");
+					libraryHTML += "</td></tr></thead></table></div></div>";
+				}
+				if( checkboxesVal.includes("SCHOOL") ) {
+					libraryHTML += schoolHTML;
+				}
+				if( checkboxesVal.includes("LODGE") ) {
+					libraryHTML += lodgeHTML;		
+					libraryHTML += '<p>';
+					// libraryHTML += "<div class='board' id='board' style='left:0px;'></div>";
+					libraryHTML += '<div class="board-container"><div class="board-header" onclick="toggleTable(this)">Lodge<span class="toggle-indicator">−</span></div>';
+					libraryHTML += '<div class="board-content"><div class="board" id="board"></div></div></div>';
+				}
+			}
+			
+			libraryHTML += "</div><p>";
+			
+			document.getElementById("result").innerHTML = libraryHTML;
+
+			// wait until DOM is painted
+			requestAnimationFrame(() => {
+				createAndRender();
+			});
+
+			// Scroll to top after update
+			window.scrollTo({ top: 0, behavior: "smooth" });
+
+		} catch (e) {
+			showErrors(e.message);
+			// "<font color=#FF0000>Select more BRW boxes to choose schools from!</font><p>";
+			// alert("Generator error: " + e.message);
+			// console.error(e);
+		}	
+	}
+
+		
+/**
+ * Processes a setup string to identify a templated list (e.g., "Keyword: (item1, -item2, item3)"),
+ * extracts item IDs, categorizes them as "kept" or "rejected", populates respective ID arrays,
+ * and replaces the section in the setup string with a formatted list of the items' display names.
+ *
+ * @param {string} sSetup - The input string containing setup details.
+ * @param {string} keyword - The leading keyword to identify the section (e.g., "Avatars: ").
+ *                           The function expects this keyword to be immediately followed by a parenthesis `(`.
+ * @param {string} outputPrefix - The prefix for the formatted output (e.g., "Fixed Avatars:").
+ * @param {Array<Object>} gameComponentCollection - The collection (e.g., an array of objects) used by `getArrayById`
+ *                                       to fetch item details. (Renamed)
+ * @param {Array<string>} keepIdArray - The array that will be populated with the *IDs* of "kept" items.
+ *                                   This array is modified directly by the function (passed by reference).
+ * @param {Array<string>} rejectIdArray - The array that will be populated with the *IDs* of "rejected" items.
+ *                                    This array is modified directly by the function (passed by reference).
+ * @returns {string} The modified `sSetup` string.
+ *
+ * @global {function(string, Array<Object>): string} getArrayById - Assumes an external function
+ *         `getArrayById(id, collection)` exists and is accessible. It should return a string
+ *         in the format "ID|Other Content". The function will extract "Other Content" as the display name.
+ */
+function processTemplatedList(
+    sSetup,
+    keyword,
+    outputPrefix,
+    gameComponentCollection, // Renamed parameter
+    keepIdArray,
+    rejectIdArray
+) {
+    // Ensure the ID arrays are indeed arrays to prevent runtime errors.
+    if (!Array.isArray(keepIdArray)) {
+        console.error("Error: 'keepIdArray' must be an array for 'processTemplatedList' function.");
+        return sSetup;
+    }
+    if (!Array.isArray(rejectIdArray)) {
+        console.error("Error: 'rejectIdArray' must be an array for 'processTemplatedList' function.");
+        return sSetup;
+    }
+
+    // Construct a regular expression dynamically based on the provided keyword.
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
+    const regex = new RegExp(`${escapedKeyword}\\s*\\(([^)]*)\\)`);
+    
+    // Attempt to find a match in the input string.
+    const match = sSetup.match(regex);
+
+    // If a match is found and the captured content inside parentheses is not undefined
+    if (match && match[1] !== undefined) {
+        const rawIdsString = match[1];
+        
+        // Split the raw IDs string by comma and trim whitespace from each resulting ID.
+        const parsedItems = rawIdsString.split(",").map(s => s.trim());
+        let collectedDisplayNames = ""; // Accumulator for the formatted display names
+
+        // Iterate over each parsed item (which might be an ID or a rejected ID like -ID).
+        for (let i = 0; i < parsedItems.length; i++) {
+            const currentItem = parsedItems[i];
+            let actualId;
+            let isRejected = false;
+			let alreadyRejected = false;
+
+            if (currentItem.startsWith('-')) {
+                actualId = currentItem.substring(1); // Get the ID without the '-'
+                isRejected = true;
+				alreadyRejected = true;
+				collectedDisplayNames += "Do not use ";
+                rejectIdArray.push(actualId); // Add to rejectIdArray
+            } else {
+                actualId = currentItem;
+                keepIdArray.push(actualId); // Add to keepIdArray
+            }
+
+            // Call the external `getArrayById` function to retrieve the full line for the actual ID.
+            const objLine = getArrayById(actualId, gameComponentCollection); // Use renamed parameter
+
+            // Extract the display name from the `objLine` string (content after the first '|').
+            // If no '|' is found, use the whole line as the display name.
+            let displayName = "";
+            const colonIndex = objLine.indexOf(':');
+
+			// Get Avatar name
+            if (colonIndex >= 0) {
+                // Get the part of the string after the first colon.
+                let partAfterColon = objLine.substring(colonIndex + 1).trim();
+                
+                // Check for " - " in the part after the colon.
+                const dashIndex = partAfterColon.indexOf(" - ");
+                
+                if (dashIndex >= 0) {
+                    // If " - " exists, take only up to that point.
+                    displayName = partAfterColon.substring(0, dashIndex).trim();
+                } else {
+                    // Otherwise, take the entire part after the colon.
+                    displayName = partAfterColon;
+                }
+            } else {
+                // Fallback: If no colon is found, use the whole line (trimmed).
+                // This might indicate an unexpected format from getArrayById.
+                displayName = objLine.trim();
+            }
+			
+            // Prefix rejected names for the output string
+            if (isRejected) {
+                displayName = `${displayName}`; // Changed prefix
+            }
+
+            // Append the extracted display name to the collection string for the output.
+            collectedDisplayNames += displayName;
+
+            // Add a comma and space separator if it's not the last item in the list.
+            if (i < parsedItems.length - 1) {
+                collectedDisplayNames += ", ";
+            }
+        }
+
+        // Replace the original matched section with the new, formatted string.
+		if(outputPrefix=="") {
+        	sSetup = sSetup.replace(match[0], "");
+		} else {
+			sSetup = sSetup.replace(match[0], `<li><b>${outputPrefix}</b> ${collectedDisplayNames}`);
+		}
+    }
+
+    // Return the potentially modified setup string.
+    return sSetup;
+}
+
+		
+		function ruleTip() {
+			var libraryHTML = "";
+
+			// Rule tip
+			libraryHTML += "<b>Rebirth rule tip "; 
+			libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
+			libraryHTML += "</font></div>";
+					
+			document.getElementById("result").innerHTML = libraryHTML;
+		}
+
+		function toggleBoard(header) {
+			const body = header.nextElementSibling;
+			const indicator = header.querySelector(".toggle-indicator");
+			body.classList.toggle("hidden");
+			indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
+		}
+				
+		function toggleTable(header) {
+			const body = header.nextElementSibling;
+			const indicator = header.querySelector(".toggle-indicator");
+			body.classList.toggle("hidden");
+			indicator.textContent = body.classList.contains("hidden") ? "+" : "−";
+		}
+
+			// Return entry of an array by its id
+			function getArrayById(id, arr) {
+				return arr.find(item => item.startsWith(id + "|")) || null;
+			}
+
+		function shuffleArray(array) {
+				for (let i = array.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						[array[i], array[j]] = [array[j], array[i]];
+				}
+		}
+		/*
+			function uniqe_school(a) {
+				var seen = {};
+					var out = [];
+					var len = a.length;
+					var j = 0;
+					for(var i = 0; i < len; i++) {
+						var item = a[i].split("<b>")[1].split("</b>")[0];
+						if(seen[item] !== 1) {
+							seen[item] = 1;
+							out[j++] = a[i];
+						}
+					}
+					return out;
+			}
+		*/
+
+		function uniqe_school(a, keep) {
+			const seen = {};
+			const out = [];
+
+			for (let i = 0; i < a.length; i++) {
+				const item = a[i];
+				const id = item.split("|")[0]; // extract ID before '|'
+				const name = item.split("<b>")[1].split("</b>")[0]; // extract name
+
+				// always keep if ID is in keepSchools
+				if (keep.includes(id)) {
+					out.push(item);
+					continue;
+				}
+
+				// keep only unique names otherwise
+				if (!seen[name]) {
+					seen[name] = true;
+					out.push(item);
+				}
+			}
+
+			return out;
+		}
+
+/*			function uniqe_mage(a) {
+				var seen = {};
+					var out = [];
+					var len = a.length;
+					var j = 0;
+					for(var i = 0; i < len; i++) {
+						var item = a[i].split("<b>")[1].split("</b>")[0];
+						if(seen[item] !== 1) {
+							seen[item] = 1;
+							out[j++] = a[i];
+						}
+					}
+					return out;
+			}
+*/
+
+		function uniqe_mage(a, keep) {
+			const seenNames = {};
+			const seenIds = new Set();
+			const out = [];
+
+			// First, add all keepMages in their original order
+			for (let i = 0; i < a.length; i++) {
+				const item = a[i];
+				const id = item.split("|")[0].trim();
+				const name = item.includes(":") ? item.split(":")[1].trim() : item.trim();
+
+				if (keep && keep.includes(id) && !seenIds.has(id)) {
+					out.push(item);
+					seenNames[name] = true;
+					seenIds.add(id);
+				}
+			}
+
+			// Then, add other unique mages by name, skipping those already in keepMages
+			for (let i = 0; i < a.length; i++) {
+				const item = a[i];
+				const id = item.split("|")[0].trim();
+				const name = item.includes(":") ? item.split(":")[1].trim() : item.trim();
+
+				if (!seenNames[name] && !seenIds.has(id)) {
+					out.push(item);
+					seenNames[name] = true;
+					seenIds.add(id);
+				}
+			}
+
+			return out;
+		}
+
+		/* ============================
+		CONFIG: one-dimensional rooms[] strings "Name|color"
+		Replace these placeholders with your real room names if desired.
+		Must include exactly 19 entries and exactly one "Black Rose Room|black"
+		and exactly one "Throne Room|purple".
+		Colors allowed: black, purple, red, green, blue, gray, yellow
+		============================ */
+
+		// Parse rooms with predefined coordinates
+		function getRoomCoordsMap(rooms) {
+			const map = new Map();
+			for (const s of rooms) {
+				const parts = s.split('|');
+				if (parts.length === 3) {
+					const coord = parts[2].trim();
+					map.set(coord, s); // key: "q,r", value: room string
+				}
+			}
+			return map;
+		}
+
+		/* ======= Validation of rooms[] counts ======= */
+		const REQUIRED_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+		(function validateRoomList() {
+		if (!Array.isArray(rooms) || rooms.length !== 19) {
+			throw new Error("rooms[] must be an array of 19 strings in format 'Name|color'.");
+		}
+		const parsed = rooms.map(s => {
+			if (typeof s !== 'string' || !s.includes('|')) throw new Error("Each rooms[] entry must be 'Name|color'.");
+			const [name, color] = s.split('|').map(x=>x.trim());
+			return {name, color};
+		});
+		const counts = {};
+		parsed.forEach(r => { counts[r.color] = (counts[r.color]||0) + 1; });
+		for (const col of Object.keys(REQUIRED_COUNTS)) {
+			if ((counts[col] || 0) !== REQUIRED_COUNTS[col]) {
+			throw new Error(`Color counts mismatch: need ${REQUIRED_COUNTS[col]} ${col} rooms (found ${counts[col]||0}).`);
+			}
+		}
+		// Ensure exactly one Black Rose Room and one Throne Room by name
+		const names = parsed.map(p=>p.name);
+		if (names.filter(n => n.endsWith("#1")).length !== 1) throw new Error("Must include exactly one 'Black Rose Room' entry.");
+		if (parsed.filter(p => p.name.endsWith("#2") && p.color === "purple").length !== 1) throw new Error("Must include exactly one 'Throne Room|purple' entry.");
+		})();
+
+		/* =========================
+		Hex utilities (axial coords, pointy)
+		========================= */
+		const DIRS = [ [1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1] ];
+		function key(q,r){ return `${q},${r}`; }
+		function unkey(k){ const [q,r] = k.split(',').map(Number); return {q,r}; }
+		function neighbors(q,r){ return DIRS.map(([dq,dr]) => [q+dq, r+dr]); }
+		function axialDistance(a,b){ const dq=a.q-b.q, dr=a.r-b.r, ds=-a.q-a.r + b.q + b.r; return (Math.abs(dq)+Math.abs(dr)+Math.abs(ds))/2; }
+		const MAX_RADIUS = 3;
+		function withinRadius(q,r){ return axialDistance({q,r},{q:0,r:0}) <= MAX_RADIUS; }
+
+		/* Axial -> pixel (pointy topped) */
+		const HEX_SIZE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hex-size'));
+		const HEX_W = Math.sqrt(3)*HEX_SIZE;
+		const HEX_H = 2*HEX_SIZE;
+		/*function axialToPixel(q,r){
+		const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+		const y = HEX_SIZE * 1.5 * r;
+		return {x,y};
+		}*/
+
+		function axialToPixel(q, r){
+		const x0 = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+		const y0 = HEX_SIZE * 1.5 * r;
+
+		// 90° clockwise rotation
+		const x = y0;
+		const y = -x0;
+		return {x, y};
+		}
+
+		/* ===== build full radius-3 set and rings ===== */
+		function buildFullSet(){
+		const set = new Set();
+		for (let q=-MAX_RADIUS;q<=MAX_RADIUS;q++){
+			for (let r=-MAX_RADIUS;r<=MAX_RADIUS;r++){
+			if (withinRadius(q,r)) set.add(key(q,r));
+			}
+		}
+		return set; // should be 37 keys
+		}
+		function ringKeys(dist){
+		const out = [];
+		for (const k of buildFullSet()){
+			const {q,r}=unkey(k);
+			if (axialDistance({q,r},{q:0,r:0}) === dist) out.push(k);
+		}
+		return out;
+		}
+
+		/* ===== helper graph functions (for small graphs; simple BFS checks) ===== */
+		function buildAdjMap(keysSet){
+		const adj = new Map();
+		for (const k of keysSet) adj.set(k, []);
+		for (const k of keysSet){
+			const {q,r} = unkey(k);
+			for (const [nq,nr] of neighbors(q,r)){
+			const nk = key(nq,nr);
+			if (keysSet.has(nk)) adj.get(k).push(nk);
+			}
+		}
+		return adj;
+		}
+		function isConnected(keysSet){
+		if (keysSet.size === 0) return true;
+		if (!keysSet.has(key(0,0))) return false;
+		const adj = buildAdjMap(keysSet);
+		const start = key(0,0);
+		const seen = new Set([start]); const stack = [start];
+		while (stack.length){
+			const cur = stack.pop();
+			for (const nb of adj.get(cur)){
+			if (!seen.has(nb)) { seen.add(nb); stack.push(nb); }
+			}
+		}
+		return seen.size === keysSet.size;
+		}
+		function minDegreeAtLeast(keysSet, minDeg){
+		const adj = buildAdjMap(keysSet);
+		for (const [k, nb] of adj){
+			if (k === key(0,0)) continue; // allow center exemption if you want; but center will usually have many neighbors
+			if (nb.length < minDeg) return false;
+		}
+		return true;
+		}
+		/* articulation check: brute-force for small graph: removing one node and test connectivity */
+		function hasNoArticulationExceptCenter(keysSet){
+		if (!isConnected(keysSet)) return false;
+		for (const k of keysSet){
+			if (k === key(0,0)) continue;
+			const copy = new Set(keysSet);
+			copy.delete(k);
+			if (!isConnected(copy)) return false;
+		}
+		return true;
+		}
+
+		/* hole isolation rule:
+		For every removed cell (in fullSet but not in shape), it must not be surrounded by all 6 present tiles.
+		i.e., at least one of its 6 neighbors must also be missing or outside radius
+		*/
+		function noIsolatedHole(fullSet, shapeSet){
+		for (const k of fullSet){
+			if (shapeSet.has(k)) continue; // only examine holes
+			const {q,r} = unkey(k);
+			let neighborsPresent = 0;
+			for (const [nq,nr] of neighbors(q,r)){
+			const nk = key(nq,nr);
+			if (shapeSet.has(nk)) neighborsPresent++;
+			}
+			if (neighborsPresent === 6) return false; // isolated hole
+		}
+		return true;
+		}
+
+		/* ========= Build candidate mirror pairs in rings 2 & 3 ========= */
+		function buildCandidatePairs(fullSet){
+		const candidates = [];
+		const blocked = new Set([key(0,0), ...ringKeys(1)]); // never remove center or ring1
+		const visited = new Set();
+		for (const k of fullSet){
+			if (blocked.has(k)) continue;
+			if (visited.has(k)) continue;
+			const {q,r} = unkey(k);
+			const mk = key(-q,-r);
+			if (!fullSet.has(mk)) continue; // safety
+			visited.add(k); visited.add(mk);
+			// canonical ordering to avoid duplicates: only add if k < mk lexicographically
+			if (k < mk) candidates.push([k,mk]);
+			else candidates.push([mk,k]); // still ensure unique pair
+		}
+		return candidates; // should be 15 pairs (since 30 removable tiles)
+		}
+
+		/* ====== Choose exactly removePairsNeeded mirror pairs such that final shape meets graph constraints ====== */
+		function chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge, reservedRooms){
+		// backtracking choose subset of candidates size removePairsNeeded
+		// we try to prune aggressively: after partial selection, ensure current tentative shape has no vertex deg<2 (because removing more won't increase degree)
+		// and remains connected.
+		
+		// Only allow removal of pairs where both are at distance 3 from center
+		
+			if(buildStandardLodge == true) {
+				candidates = candidates.filter(([a, b]) => {
+				const qa = unkey(a), qb = unkey(b);
+				return axialDistance(qa, {q:0, r:0}) === 3 && axialDistance(qb, {q:0, r:0}) === 3;
+			});
+			}
+		
+		const totalPairs = candidates.length;
+
+		// Shuffle candidate order to vary results
+		shuffle(candidates);
+
+		const selected = [];
+		let result = null;
+		const targetRemovals = removePairsNeeded * 2;
+
+		function buildShapeFromSelected(selPairs){
+			const shape = new Set(fullSet);
+			for (const [a,b] of selPairs){
+				if (!reservedRooms.has(a) && !reservedRooms.has(b) ) {
+					shape.delete(a); shape.delete(b);
+				}
+			}
+			return shape;
+		}
+
+		function pruneCheck(selPairs){
+			const shape = buildShapeFromSelected(selPairs);
+			// quick prune: if any non-center vertex already has degree < 2 -> cannot be fixed later
+			if (!minDegreeAtLeast(shape, 2)) return false;
+			// must remain connected at this partial stage as well
+			if (!isConnected(shape)) return false;
+			// hole-isolation check for currently removed holes:
+			// For any removed cell, if it's isolated (all 6 neighbors present in shape), it's a bad hole already (cannot be fixed)
+			const full = fullSet;
+			if (!noIsolatedHole(full, shape)) return false;
+			// OK so far
+			return true;
+		}
+
+		function backtrack(startIndex){
+			if (result) return true;
+			if (selected.length === removePairsNeeded){
+			// final shape
+			const finalShape = buildShapeFromSelected(selected);
+			if (finalShape.size !== (fullSet.size - targetRemovals)) return false;
+			// final checks: connectivity already checked earlier; do biconnectivity test (no articulation except center)
+			if (!hasNoArticulationExceptCenter(finalShape)) return false;
+			// final hole check
+			if (!noIsolatedHole(fullSet, finalShape)) return false;
+			result = finalShape;
+			return true;
+			}
+			// If not enough candidates left to fill slots -> prune
+			if (startIndex >= totalPairs) return false;
+			const need = removePairsNeeded - selected.length;
+			if (totalPairs - startIndex < need) return false;
+
+			for (let i = startIndex; i < totalPairs; i++){
+			selected.push(candidates[i]);
+			// prune
+			if (pruneCheck(selected)){
+				if (backtrack(i+1)) return true;
+			}
+			selected.pop();
+			}
+			return false;
+		}
+
+		if (backtrack(0)) return result;
+		return null;
+		}
+
+		/* ===== color assignment backtracking ===== */
+/*		const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+		function assignColorsToShape(shapeSet, throneKey){
+		const nodes = [...shapeSet];
+		const adj = buildAdjMap(shapeSet);
+
+		// fixed assignments
+		const colorOf = new Map();
+		const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+		colorOf.set(key(0,0), 'black'); counts.black--;
+		colorOf.set(throneKey, 'purple'); counts.purple--;
+
+		// sort nodes by degree descending, but ensure center and throne excluded
+		const toColor = nodes.filter(n => n !== key(0,0) && n !== throneKey)
+							.sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+		function backtrack(i){
+			if (i >= toColor.length) return true;
+			const node = toColor[i];
+			const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+			// try colors with remaining counts and not used by adjacent
+			const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+			// randomize order a bit to generate varied layouts
+			shuffle(choices);
+			for (const c of choices){
+			colorOf.set(node, c);
+			counts[c]--;
+			// early neighbor-same-color constraint satisfied by used set already
+			// Also quick feasibility: ensure remainings counts can fill remaining nodes (trivial here)
+			if (backtrack(i+1)) return true;
+			counts[c]++; colorOf.delete(node);
+			}
+			return false;
+		}
+
+		return backtrack(0) ? colorOf : null;
+		}
+*/
+
+
+
+
+/* ===== color assignment backtracking with reserved rooms ===== */
+const COLOR_COUNTS = { black:1, purple:3, red:3, green:3, blue:3, gray:3, yellow:3 };
+
+/*function assignColorsToShape(shapeSet, reservedRooms) {
+    const nodes = [...shapeSet];
+    const adj = buildAdjMap(shapeSet);
+
+    const colorOf = new Map();
+    const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+
+    // --- Black Rose key ---
+    let brKey;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (color === "black") {
+            brKey = coord;
+            break;
+        }
+    }
+    if (!brKey) {
+        brKey = key(0,0); // fallback default
+    }
+    colorOf.set(brKey, "black");
+    counts.black--;
+
+    // --- Throne key ---
+    let throneKey;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (name.toLowerCase().includes("throne")) {
+            throneKey = coord;
+            break;
+        }
+    }
+    if (!throneKey) {
+        // default: random ring1 neighbor of Black Rose
+        const neighbors = adj.get(brKey).filter(n => ringKeys(1).includes(n));
+        throneKey = neighbors[Math.floor(Math.random()*neighbors.length)];
+    }
+    colorOf.set(throneKey, "purple");
+    counts.purple--;
+
+    // sort nodes by degree, excluding reserved
+    const toColor = nodes.filter(
+        n => !colorOf.has(n)
+    ).sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+    function backtrack(i){
+        if (i >= toColor.length) return true;
+        const node = toColor[i];
+        const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+        const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+        shuffle(choices);
+        for (const c of choices){
+            colorOf.set(node, c);
+            counts[c]--;
+            if (backtrack(i+1)) return true;
+            counts[c]++; colorOf.delete(node);
+        }
+        return false;
+    }
+
+    if (!backtrack(0)) return null;
+    return { colorOf, brKey, throneKey };
+}*/
+function assignColorsToShape(shapeSet, reservedRooms) {
+    // Fast path: all 19 rooms are reserved
+    if (reservedRooms.size === 19) {
+        const colorOf = new Map();
+        let brKey = null;
+        let throneKey = null;
+
+        for (const [coord, roomStr] of reservedRooms.entries()) {
+            const [name, color] = roomStr.split('|').map(x => x.trim());
+            colorOf.set(coord, color);
+
+            // track Black Rose and Throne
+            if (color === "black") brKey = coord;
+            if (name.toLowerCase().includes("throne")) throneKey = coord;
+        }
+
+        return { colorOf, brKey, throneKey };
+    }
+
+
+    const nodes = [...shapeSet];
+    const adj = buildAdjMap(shapeSet);
+
+    const colorOf = new Map();
+    const counts = JSON.parse(JSON.stringify(COLOR_COUNTS));
+
+    // --- 1. Place Black Rose ---
+    let brKey = null;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (color === "black") {
+            brKey = coord;
+            break;
+        }
+    }
+    if (!brKey) brKey = key(0,0); // default center
+    colorOf.set(brKey, "black");
+    counts.black--;
+
+    // --- 2. Place Throne Room adjacent to Black Rose ---
+    let throneKey = null;
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        const [name] = roomStr.split('|').map(x => x.trim());
+        if (name.toLowerCase().includes("throne")) {
+            throneKey = coord;
+            break;
+        }
+    }
+    if (!throneKey) {
+        // compute valid neighbors
+        const neighbors = adj.get(brKey) || [];
+        const validNeighbors = neighbors.filter(n =>
+            shapeSet.has(n) &&
+            !colorOf.has(n) &&
+            (!reservedRooms.has(n) || reservedRooms.get(n).toLowerCase().includes("throne"))
+        );
+        if (validNeighbors.length === 0) {
+            throw new Error("No valid adjacent position for Throne Room next to Black Rose");
+        }
+        shuffle(validNeighbors);
+        throneKey = validNeighbors[0];
+    }
+    colorOf.set(throneKey, "purple");
+    counts.purple--;
+
+    // --- 3. Place other reserved rooms ---
+    for (const [coord, roomStr] of reservedRooms.entries()) {
+        if (coord === brKey || coord === throneKey) continue;
+        const [name, color] = roomStr.split('|').map(x => x.trim());
+        if (!counts[color] || counts[color] <= 0) {
+            throw new Error(`Reserved room ${name} needs color ${color}, but none left`);
+        }
+        colorOf.set(coord, color);
+        counts[color]--;
+    }
+
+    // --- 4. Backtracking for remaining nodes ---
+    const toColor = nodes.filter(n => !colorOf.has(n))
+                         .sort((a,b) => adj.get(b).length - adj.get(a).length);
+
+    function backtrack(i) {
+        if (i >= toColor.length) return true;
+        const node = toColor[i];
+        const used = new Set(adj.get(node).map(n => colorOf.get(n)).filter(Boolean));
+        const choices = Object.keys(counts).filter(c => counts[c] > 0 && !used.has(c));
+        shuffle(choices);
+        for (const c of choices) {
+            colorOf.set(node, c);
+            counts[c]--;
+            if (backtrack(i+1)) return true;
+            counts[c]++; colorOf.delete(node);
+        }
+        return false;
+    }
+
+    if (!backtrack(0)) return null;
+
+    return { colorOf, brKey, throneKey };
+}
+
+
+
+/* ===== mapping room strings to positions ===== */
+/*function mapRoomsToPositions(colorResult, reservedRooms) {
+    const { colorOf, brKey, throneKey } = colorResult;
+
+    // parse rooms[] into pools
+    const pools = {}; // color -> array of room names
+    for (const s of rooms) {
+        const [nameRaw, colorRaw] = s.split('|').map(x => x.trim());
+        if (!pools[colorRaw]) pools[colorRaw] = [];
+        pools[colorRaw].push(nameRaw);
+    }
+
+    // assign actual room names
+    const roomByPos = new Map();
+
+    for (const [pos, color] of colorOf.entries()) {
+        let name;
+
+        // reserved rooms already specify their names
+        if (reservedRooms.has(pos)) {
+            name = reservedRooms.get(pos).split('|')[0].trim();
+        }
+        else if (pos === brKey) {
+            // Black Rose: pick the #1
+            const idx = pools["black"].findIndex(n => n.endsWith("#1"));
+            if (idx === -1) throw new Error("Black Rose Room missing");
+            name = pools["black"].splice(idx,1)[0];
+        }
+        else if (pos === throneKey) {
+            // Throne Room: pick the #2
+            const idx = pools["purple"].findIndex(n => n.endsWith("#2"));
+            if (idx === -1) throw new Error("Throne Room missing");
+            name = pools["purple"].splice(idx,1)[0];
+        }
+        else {
+            // generic: take any remaining of the color
+            if (!pools[color] || pools[color].length === 0) {
+                throw new Error(`Not enough rooms available for color ${color}`);
+            }
+            name = pools[color].splice(0,1)[0];
+        }
+
+        roomByPos.set(pos, { name, color });
+    }
+
+    return roomByPos;
+}
+*/
+
+function mapRoomsToPositions(colorResult, reservedRooms) {
+  const { colorOf, brKey, throneKey } = colorResult;
+
+  // Build pools: color -> [room names]
+  const pools = {};
+  for (const s of rooms) {
+    const parts = s.split('|'); // may be "Name|color|x,y"
+    const name = parts[0].trim();
+    const color = (parts[1] || '').trim();
+    if (!pools[color]) pools[color] = [];
+    pools[color].push(name);
+  }
+
+  // PRE-REMOVE reserved names from their color pools so they can't be reused
+  for (const [, roomStr] of reservedRooms.entries()) {
+    const parts = roomStr.split('|'); // "Name|color" (coords may follow, ignore)
+    const name = parts[0].trim();
+    const color = (parts[1] || '').trim();
+    const list = pools[color];
+    if (list) {
+      const idx = list.indexOf(name);
+      if (idx !== -1) list.splice(idx, 1);
+    }
+  }
+
+  const roomByPos = new Map();
+
+  for (const [pos, color] of colorOf.entries()) {
+    // 1) If explicitly reserved at this pos, use that exact name/color
+    if (reservedRooms.has(pos)) {
+      const parts = reservedRooms.get(pos).split('|');
+      const name = parts[0].trim();
+      roomByPos.set(pos, { name, color });
+      continue;
+    }
+
+    // 2) Special picks (only if not reserved at the same pos)
+    if (pos === brKey) {
+      const list = pools.black || [];
+      const idx = list.findIndex(n => n.endsWith('#1') || n.toLowerCase().includes('black rose'));
+      if (idx === -1) throw new Error('Black Rose Room missing from pools.');
+      const name = list.splice(idx, 1)[0];
+      roomByPos.set(pos, { name, color: 'black' });
+      continue;
+    }
+
+    if (pos === throneKey) {
+      const list = pools.purple || [];
+      const idx = list.findIndex(n => n.endsWith('#2') || n.toLowerCase().includes('throne'));
+      if (idx === -1) throw new Error('Throne Room missing from pools.');
+      const name = list.splice(idx, 1)[0];
+      roomByPos.set(pos, { name, color: 'purple' });
+      continue;
+    }
+
+    // 3) Generic pick from the correct color pool
+    const list = pools[color] || [];
+    if (list.length === 0) {
+      throw new Error(`Not enough rooms available for color ${color}`);
+    }
+    const name = list.shift();
+    roomByPos.set(pos, { name, color });
+  }
+
+  return roomByPos;
+}
+
+
+
+
+		/* ===== Main generator that ties everything together ===== */
+	/*	function generateValidLodge(buildStandardLodge){
+		var rendered = false;
+		var shape;
+		var fullSet;
+		var candidates;
+		var removePairsNeeded;
+		
+    	const reservedRooms = getRoomCoordsMap(rooms); // Map of "q,r" -> room string
+
+		while(!rendered) {
+			
+			fullSet = buildFullSet(); // 37 keys
+			candidates = buildCandidatePairs(fullSet); // ~15 pairs
+			removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+
+		// Try candidate combinations; search returns a shapeSet or null
+			shape = chooseRemovalPairCombination(fullSet, candidates, removePairsNeeded, buildStandardLodge, reservedRooms);
+		if (shape) rendered =true;//throw new Error("Failed to find a symmetric removal combination that satisfies graph constraints.");
+		}
+		
+		// Choose random throne key from ring 1 (central ring intact)
+		const ring1 = ringKeys(1);
+		const throneKey = ring1[Math.floor(Math.random()*ring1.length)];
+
+		// ensure throneKey is present in shape (ring1 is never removed, so yes)
+		if (!shape.has(throneKey)) throw new Error("Chosen throneKey missing from shape — shouldn't happen.");
+
+		// Now assign colors to shape (backtracking)
+		const colorMap = assignColorsToShape(shape, throneKey, reservedRooms);
+		if (!colorMap) throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
+
+		// map room names to positions (ensuring black and throne rooms placed exactly)
+		const roomPositionMap = mapRoomsToPositions(colorMap, throneKey, reservedRooms);
+		return { fullSet, shape, colorMap, roomPositionMap, throneKey };
+		}
+*/
+
+
+
+var reservedRooms =[];
+
+/* ===== Main generator that ties everything together ===== */
+function generateValidLodge(buildStandardLodge) {
+    let rendered = false;
+    let shape, fullSet, candidates, removePairsNeeded;
+
+    // All reserved rooms (may include Black Rose and/or Throne if coordinates given)
+    reservedRooms = getRoomCoordsMap(rooms); // Map of "q,r" -> "Room Name|color"
+
+    while (!rendered) {
+        fullSet = buildFullSet(); // 37 keys
+
+		if(reservedRooms.size==19) {
+			removePairsNeeded = 0;
+			candidates = [];
+			shape = new Set(fullSet);
+		} else {
+			candidates = buildCandidatePairs(fullSet); // ~15 pairs
+        	removePairsNeeded = (fullSet.size - 19) / 2; // should be 9
+
+			// Try candidate combinations; search returns a shapeSet or null
+        	shape = chooseRemovalPairCombination(
+					fullSet,
+					candidates,
+					removePairsNeeded,
+					buildStandardLodge,
+					reservedRooms
+        );
+
+		}
+
+        if (shape) rendered = true;
+    }
+
+    // Assign colors to shape (Black Rose, Throne, reserved rooms first)
+    const colorResult = assignColorsToShape(shape, reservedRooms);
+
+    if (!colorResult) {
+        throw new Error("Failed to color the chosen shape under adjacency and count constraints.");
+    }
+
+    // Map room names to positions (ensuring Black Rose + Throne + reserved rooms placed exactly)
+    const roomPositionMap = mapRoomsToPositions(colorResult, reservedRooms);
+
+    return {
+        fullSet,
+        shape,
+        colorMap: colorResult.colorOf,
+        roomPositionMap,
+        throneKey: colorResult.throneKey,
+        brKey: colorResult.brKey
+    };
+}
+
+
+
+
+
+
+		/* ======== Rendering ======= */
+		var board = document.getElementById('board');
+
+		function renderLodge(lodge){
+			board = document.getElementById("board");
+			if(board == null) return;
+			
+			board.innerHTML = '';
+
+			const refreshBtn = document.createElement("button");
+			refreshBtn.textContent = "🔄 Refresh";
+			refreshBtn.style.marginTop = "10px";
+			refreshBtn.onclick = () => createAndRender();
+			board.appendChild(refreshBtn);
+			
+			const {fullSet, shape, roomPositionMap, throneKey} = lodge;
+
+		// compute pixel positions and bounding box
+		const pts = [...fullSet].map(k => {
+			const {q,r} = unkey(k);
+			const p = axialToPixel(q,r);
+			return {k, q, r, x:p.x, y:p.y};
+		});
+		const minX = Math.min(...pts.map(p => p.x));
+		const maxX = Math.max(...pts.map(p => p.x));
+		const minY = Math.min(...pts.map(p => p.y));
+		const maxY = Math.max(...pts.map(p => p.y));
+
+		const groupW = (maxX - minX) + HEX_W;
+		const groupH = (maxY - minY) + HEX_H;
+		const offsetX = (board.clientWidth - groupW)/2 - minX;
+		const offsetY = (board.clientHeight - groupH)/2 - minY;
+
+		for (const p of pts){
+			const posKey = p.k;
+			const room = roomPositionMap.get(posKey);
+			const div = document.createElement('div');
+
+			if(room) {
+				div.className = `hex ${room.color}` + (posKey === throneKey ? ' throne' : '');
+				div.style.left = `${Math.round(p.x + offsetX)}px`;
+				div.style.top  = `${Math.round(p.y + offsetY)}px`;
+				const lbl = document.createElement('div');
+				lbl.className = 'label';
+				lbl.textContent = room.name.includes("#") ? room.name.split("#")[0] : room.name
+				div.appendChild(lbl);
+				board.appendChild(div);
+			} else {
+				// No starting locations on full predefined 19 room lodges
+				if(reservedRooms.size!=19) {
+
+					// Set potential cell positions
+					if (axialDistance({q:p.q,r:p.r},{q:0,r:0}) === 3) {
+
+						let neighborsPresent = 0;
+						for (const [nq,nr] of neighbors(p.q,p.r)){
+							const nk = key(nq,nr);
+							if (roomPositionMap.has(nk)) neighborsPresent++;
+						}
+
+						// Add possible cell locations
+						if(neighborsPresent>=2) {  
+							
+							div.style.left = `${Math.round(p.x + offsetX)}px`;
+							div.style.top  = `${Math.round(p.y + offsetY)}px`;
+							div.className = 'hex empty';
+							const lbl = document.createElement('div');
+							lbl.className = 'label';
+							lbl.textContent = 'X';
+							div.appendChild(lbl);
+							board.appendChild(div);
 						}
 					}
 				}
 			}
-		    } while ( (roomcolors[i] == "black" && rc > 1) || (roomcolors[i] != "black" && rc > 3) );
+		}
 		}
 
-		// Inferno: Pleasure Room needs at least one oter room to summon Cerbero or Centauro
-		// "BRW-INFERNO (purple): BRW Inferno: Pleasure Room - infernal - Setup: Arpia, Farfarello (purple)#3",
-		var foundInfernalPleasure = -1;
-		var foundSupportRoom = false;
-		for (let i = 0; i < rooms.length; i++) {
-			if( rooms[i].indexOf("Cerbero")>0 || rooms[i].indexOf("Centauro")>0 ) {
-				foundSupportRoom = true;
-			}
-			if( rooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")>0 ) {
-				foundInfernalPleasure = i;
-			}
+		/* ===== randomize helper ===== */
+		function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+		/* ===== initial render & regen button ===== */
+		function createAndRender(){
+		try {
+			// standardLodge
+			const lodge = generateValidLodge(standardLodge);
+			renderLodge(lodge);  
+		} catch (e) {
+			alert("Show Lodge module error: " + e.message);
+			console.error(e);
 		}
-		if( foundSupportRoom == false && foundInfernalPleasure>0 ) {
-			// no supporting room, Pleasure Room - infernsl must be replaced
-			// rooms.splice(foundInfernalPleasure, 1);
-			
-			for (let i = 0; i < purplerooms.length; i++) {
-				if( ( (purplerooms[i].indexOf("#")>0 && purplerooms[i].split("#")[1]==3) 
-				      || purplerooms[i].indexOf("#")<=0
-				    ) && purplerooms[i].indexOf("BRW Inferno: Pleasure Room - infernal")<=0
-				  ) {
-					// found possible replacement, now check if already contained in Lodge
-					// rooms[foundInfernalPleasure]=purplerooms[i].substring(purplerooms[i].indexOf('(') + 1);
-					var containsRoomAlready=false;
-					for (let j = 0; j < rooms.length; j++) {
-						if( rooms[j] == purplerooms[i] ) containsRoomAlready=true;
-					}
-				        if( !containsRoomAlready ) {
-						rooms[foundInfernalPleasure] = purplerooms[i];
-						//rooms[foundInfernalPleasure] = purplerooms[i].replaceAll("purple","black");
-					}
-					// rooms.push( purplerooms[i] );
-					// rooms[foundInfernalPleasure]="purple): REPLACEMENT (purple)";
-				}
-			}
 		}
-		
-		// Output rooms
-		var roomoutPre = "";
-		var roomout = "";
-		var colorout = "";
-		if(rooms.length<19) {
-			libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 19 rooms!</font>";
-		} else {
-			libraryHTML += "<table><tr><th align=left width=250>BOX</th><th align=left width=300>ROOM</th><th align=left width=200>SETUP</th></tr>";
-			for (let i = 0; i < rooms.length; i++) {
-				libraryHTML += "<tr><td>";
-                 		libraryHTML += rooms[i].substring(rooms[i].indexOf(':') + 1).split(":")[0];
-				libraryHTML += "</td><td>";
-				roomout = "<b>" + rooms[i].substring(rooms[i].indexOf(':', rooms[i].indexOf(':') + 1) + 1).substring(1);
-				colorout = roomout.split("(")[1].split(")")[0];
-				libraryHTML += "<span style='color: " + colorout + ";background-color: #aaaaaa;'>" + colorout + "</span> ";
 				
-				// filter setup instructions
-				if(roomout.indexOf(" - Setup:")>0) {
-					libraryHTML += roomout.split(" - Setup:")[0].split("(")[0] + "</b>";
-					libraryHTML += "</td><td>";
-					libraryHTML += roomout.split(" - Setup:")[1].split("(")[0];
-				} else {
-					libraryHTML += roomout.split("(")[0] + "</b>";
-					libraryHTML += "</td><td>";
+		// document.getElementById('regen').addEventListener('click', createAndRender);
+		// createAndRender();
+
+		// Track toggle state
+		const toggleState = { rebirth: false, brw: false };
+
+		function toggleGroup(group) {
+			let checkboxes;
+
+			if (group === 'rebirth') {
+			// Rebirth = IDs starting with BRW-R-
+			checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-R-']");
+			} else if (group === 'brw') {
+			// BRW = IDs starting with BRW- but NOT BRW-R- and NOT BRW-REV
+			checkboxes = document.querySelectorAll("input[type=checkbox][id^='BRW-']:not([id^='BRW-R-']):not([id^='BRW-REV']):not([id^='BRW-REB']):not([id^='BRW-DISCORD'])");
+			}
+
+			toggleState[group] = !toggleState[group]; // flip state
+			checkboxes.forEach(cb => cb.checked = toggleState[group]);
+
+			updateScenarioDropdown()
+		}	
+		
+
+		// Attach event listeners to all checkboxes to update scenario drop down
+		window.addEventListener('DOMContentLoaded', function() {
+			updateScenarioDropdown();
+			// Only add event listeners to checkboxes before SCHOOL
+			let foundSchool = false;
+			document.querySelectorAll('input[type=checkbox]').forEach(cb => {
+				if (cb.value === "SCHOOL") foundSchool = true;
+				if (!foundSchool) {
+					cb.addEventListener('change', updateScenarioDropdown);
 				}
-				libraryHTML += "</td></tr>";
-				// if(i!=rooms.length-1) libraryHTML += ", ";
-            		}
-			libraryHTML += "</table>";
-		}				
-		libraryHTML += "<p>";	
-	}
-		
-	if( checkboxesVal.includes("AVATAR") ) {	
-		
-		// Random Avatar
-		
-		// Select mages from selected boxes
-            	for (let i = 0; i < allavatars.length; i++) {
-			for (let j = 0; j < checkboxes.length; j++) {
-				if( allavatars[i].split(" ")[0] == checkboxes[j].value ) {
-					avatars.push( "<b>Random Avatar from " + allavatars[i].split(":")[0].substring(allavatars[i].indexOf(' ') + 1) + ": " + allavatars[i].substring(allavatars[i].indexOf(':') + 1) + "</b>" );
+			});
+
+			// Add event listener to scenario dropdown
+			const select = document.getElementById('scenario-select');
+			if (select) {
+				select.addEventListener('change', function() {
+					const scenarioCheckbox = document.getElementById('SCENARIO');
+					if (scenarioCheckbox && !scenarioCheckbox.checked) {
+						scenarioCheckbox.checked = true;
+					}
+				});
+			}
+		});
+
+		function updateScenarioDropdown() {
+			const select = document.getElementById('scenario-select');
+			if (!select) return;
+
+			// Get checked box values
+			const checked = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+
+			// Clear dropdown
+			select.innerHTML = '<option value="">(Random scenario)</option>';
+
+			// Add matching scenarios
+			for (let i = 0; i < allscenarios.length; i++) {
+				var containedScenarions = [];
+
+				if(allscenarios[i].split("|")[0].indexOf("-")<0) {
+					const parts = allscenarios[i].split('|');
+					if (parts.length < 2) continue;
+					const afterPipe = parts[1].trim();
+					const firstWord = afterPipe.split(' ')[0];
+					const secondWord = afterPipe.substring(afterPipe.indexOf(" ") +1);
+
+					// Scenarios can require multiple boxes
+					const scenarioId = parts[0].trim();
+					const boxes = firstWord.split(",");
+					var matchFound = true;
+					for (let j = 0; j < boxes.length; j++) {
+						if( !checked.includes(boxes[j].trim()) ) {
+							matchFound = false;
+							break;
+						}
+					}
+
+					if (afterPipe.split(" ")[0] === '*' || checked.includes(firstWord) || (matchFound && !containedScenarions.includes(scenarioId)) ) {
+						// Show scenario
+						const name = allscenarios[i].substring(allscenarios[i].indexOf('|', allscenarios[i].indexOf('|') + 1) + 1).split("|")[0].trim();
+						const val = allscenarios[i].split('|')[0].trim();
+						const opt = document.createElement('option');
+						opt.value = val;
+						opt.textContent = name + " [" + secondWord + "]";
+						select.appendChild(opt);
+						containedScenarions.push(scenarioId);
+					}
 				}
 			}
-            	}
-		
-		// Pick first random
-		shuffleArray(avatars);
-
-		// Show mages			
-		if(avatars.length<1) {
-				libraryHTML += "<font color=#FF0000>Select more BRW boxes to provide at least 1 avatar!</font>";
-		} else {
-                 		libraryHTML += avatars[0];
 		}
-		libraryHTML += "<p>";
-	}
-		
-		libraryHTML += "</div><p>";
-
-            document.getElementById("result").innerHTML = libraryHTML;
-        }
-
-	    function ruleTip() {
-		    var libraryHTML = "";
-
-		    	// Rule tip
-			libraryHTML += "<b>Rebirth rule tip "; 
-			libraryHTML += rules[Math.floor(Math.random()*rules.length)].replaceAll("[b]","<b>").replaceAll("[/b]","</b>").replace("</b>. ","</b><p><div style='padding-left:20px;'><font color=#000099>").replace(".",":</b>");
-			libraryHTML += "</font></div><p>";
-		    
-		  	document.getElementById("result").innerHTML = libraryHTML;
-	    }
-
-	function shuffleArray(array) {
-   		 for (let i = array.length - 1; i > 0; i--) {
-       			 const j = Math.floor(Math.random() * (i + 1));
-        		[array[i], array[j]] = [array[j], array[i]];
-   		 }
-	}
-
-	function uniqe_school(a) {
-		var seen = {};
-    		var out = [];
-    		var len = a.length;
-    		var j = 0;
-    		for(var i = 0; i < len; i++) {
-         		var item = a[i].split("<b>")[1].split("</b>")[0];
-         		if(seen[item] !== 1) {
-               		seen[item] = 1;
-               		out[j++] = a[i];
-         		}
-    		}
-    		return out;
-	}
-	    
-	function uniqe_mage(a) {
-		var seen = {};
-    		var out = [];
-    		var len = a.length;
-    		var j = 0;
-    		for(var i = 0; i < len; i++) {
-         		var item = a[i].split("<b>")[1].split("</b>")[0];
-         		if(seen[item] !== 1) {
-               		seen[item] = 1;
-               		out[j++] = a[i];
-         		}
-    		}
-    		return out;
-	}
     </script>
 
-    <body onload="ruleTip()">
-			<h1>Black Rose Wars - Random Setup</h1>
-        	<div id="result">
-        	</div>
-			<b>Select the core boxes and expansions for your Setup:</b><p>
-	<div style='padding-left:20px;'>
 
-	<p>
-	<input type="checkbox" id="SCHOOL" name="SCHOOL" value="SCHOOL" checked><label for="SCHOOL"> Schools</label> &nbsp;&nbsp;
-	<input type="checkbox" id="PLAYER" name="PLAYER" value="PLAYER" checked><label for="PLAYER"> Start Player</label> &nbsp;&nbsp;
-	<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages</label> &nbsp;&nbsp;
-	<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge</label> &nbsp;&nbsp;
-	<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR" checked><label for="AVATAR"> Avatar</label>
-	</p>
+
+
+    <body onload="ruleTip()">
 		
-	<table><tr><td VALIGN=TOP> 
+	<h1>Black Rose Wars - Random Setup</h1>
+    <div id="result">
+    </div>
+		
+	<!-- Error messages area -->
+	<div id="error-messages"
+     	role="alert"
+    	aria-live="polite"
+     	class="error hidden">
+  		<!-- Errors will be injected here -->
+	</div>
+		
+	<b>Select the core boxes and expansions for your Setup:</b>
+	<div style='padding-left:20px;'>	
+		<table><tr><td VALIGN=TOP>
 			<input type="checkbox" id="BRW-R-CORE" name="BRW-R-CORE" value="BRW-R-CORE" checked>
          <label for="BRW-R-CORE"> Rebirth Core</label><br>
 
@@ -801,9 +2779,11 @@
          <label for="BRW-R-GAEA"> Rebirth Gaea Reborn</label><br>	
 
 			<input type="checkbox" id="BRW-R-SOF" name="BRW-R-SOF" value="BRW-R-SOF">
-         <label for="BRW-R-SOF"> Rebirth Seal of Fire</label><br>
+         <label for="BRW-R-SOF"> Rebirth Seal of Fire</label><p>
 
-	</td><td VALIGN=TOP>
+			<button type="button" class="small-btn" onclick="toggleGroup('rebirth')">Toggle Rebirth</button>
+
+		</td><td VALIGN=TOP>
 			<input type="checkbox" id="DUEL-LEX" name="DUEL-LEX" value="DUEL-LEX">
          <label for="DUEL-LEX"> Duel Lex</label><br>
 
@@ -826,8 +2806,11 @@
          <label for="BRW-CRONO"> BRW Crono</label><br>
 		 
 			<input type="checkbox" id="BRW-FAMILIARS" name="BRW-FAMILIARS" value="BRW-FAMILIARS">
-         <label for="BRW-FAMILIARS"> BRW Familiars</label><br>
-	</td><td VALIGN=TOP>
+         <label for="BRW-FAMILIARS"> BRW Familiars</label><p>
+
+		<button type="button" class="small-btn" onclick="toggleGroup('brw')">Toggle BRW</button>
+			 
+		</td><td VALIGN=TOP>
 		 	<input type="checkbox" id="ASHES" name="ASHES" value="ASHES">
          <label for="ASHES"> Ashes Magazine</label><br>
 
@@ -852,14 +2835,23 @@
 		 	<input type="checkbox" id="BRW-DISCORD" name="BRW-DISCORD" value="BRW-DISCORD">
          <label for="BRW-DISCORD"> Discord Custom Items</label><br> 	 
 
-	</td></tr></table>
-	
-         <p>
-        	<button onclick="displayLibrary()">Get me my random Setup!</button><p>
+		</td></tr></table>
+
+		<b>Play a standard game. Generate:</b> <input type="checkbox" id="SCHOOL" name="SCHOOL" value="SCHOOL" checked><label for="SCHOOL"> Schools</label> &nbsp;&nbsp;
+		<input type="checkbox" id="PLAYER" name="PLAYER" value="PLAYER" checked><label for="PLAYER"> Start Player</label> &nbsp;&nbsp;
+		<input type="checkbox" id="MAGE" name="MAGE" value="MAGE" checked><label for="MAGE"> Mages</label> &nbsp;&nbsp;
+		<input type="checkbox" id="LODGE" name="LODGE" value="LODGE" checked><label for="LODGE"> Lodge</label> &nbsp;&nbsp;
+		<input type="checkbox" id="AVATAR" name="AVATAR" value="AVATAR"><label for="AVATAR"> Avatar</label>
+		<br><b>Play a generated Scenario (first test version):</b></label> <input type="checkbox" id="SCENARIO" name="SCENARIO" value="SCENARIO"><label for="SCENARIO">&nbsp;&nbsp;-&gt;
+		<select id="scenario-select" style="margin-left:10px;">
+  			<option value="">(Random scenario)</option>
+		</select>
+
+    	<p>
+        <button onclick="displayLibrary();">Amaze me!</button><p>		
 	</div>
 
-			<hr><p>
-			<b>A ton of helpful or even essential material and information for BRW Rebirth created by me:</b><br>
+			<b>A ton of helpful or even essential material and information for BRW Rebirth created by me:</b>
 			<ul>
 			<li><a href="https://boardgamegeek.com/thread/3231567/torns-brwr-overview-and-other-useful-files-german">TORN's BRW Rebirth overview and many useful files (German / English)</a></li>
 			
@@ -867,7 +2859,7 @@
 			
 			<li><a href="https://boardgamegeek.com/thread/3263754/strength-and-complexity-of-schools">Strength and complexity of BRW Rebirth schools</a></li>
 
-			<!--li><a href="BRW-R%20Mage%20Avatars%20Supplement%20v1%202025-08-09.pdf">Mage Avatars v1 (draft)</a></li><-->
+			<li><a href="BRW-R%20Mage%20Avatars%20Supplement%20v1%202025-08-09.pdf">Mage Avatars v1 (draft)</a></li>
 			</ul>
 				
 			<p>Content & programmed by TORN@BGG
